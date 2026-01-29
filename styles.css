@@ -1,0 +1,4585 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --secondary: #8b5cf6;
+    --accent: #ec4899;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --text: #1f2937;
+    --text-light: #6b7280;
+    --bg: #ffffff;
+    --bg-secondary: #f9fafb;
+    --shadow: rgba(0, 0, 0, 0.1);
+    --shadow-lg: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="dark"] {
+    --text: #f9fafb;
+    --text-light: #d1d5db;
+    --bg: #111827;
+    --bg-secondary: #1f2937;
+    --shadow: rgba(0, 0, 0, 0.3);
+    --shadow-lg: rgba(0, 0, 0, 0.5);
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    transition: background 0.3s, color 0.3s;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Animated Background Blobs */
+.background-blobs {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.5;
+    animation: float 20s infinite ease-in-out;
+}
+
+.blob-1 {
+    width: 500px;
+    height: 500px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    top: -10%;
+    left: -10%;
+    animation-delay: 0s;
+    animation-duration: 25s;
+}
+
+.blob-2 {
+    width: 400px;
+    height: 400px;
+    background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+    top: 50%;
+    right: -10%;
+    animation-delay: 5s;
+    animation-duration: 30s;
+}
+
+.blob-3 {
+    width: 600px;
+    height: 600px;
+    background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+    bottom: -20%;
+    left: 30%;
+    animation-delay: 10s;
+    animation-duration: 35s;
+}
+
+.blob-4 {
+    width: 350px;
+    height: 350px;
+    background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+    top: 30%;
+    left: 50%;
+    animation-delay: 15s;
+    animation-duration: 28s;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+    25% {
+        transform: translate(100px, -100px) rotate(90deg);
+    }
+    50% {
+        transform: translate(-50px, 100px) rotate(180deg);
+    }
+    75% {
+        transform: translate(-100px, -50px) rotate(270deg);
+    }
+}
+
+[data-theme="dark"] .blob {
+    opacity: 0.3;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header Styles */
+header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: var(--bg);
+    box-shadow: 0 2px 10px var(--shadow);
+    z-index: 1000;
+    transition: all 0.3s;
+}
+
+nav {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.logo {
+    font-size: 2rem;
+    font-weight: bold;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.3s;
+}
+
+.logo:hover {
+    transform: scale(1.05);
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+}
+
+.nav-links a {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s;
+    position: relative;
+}
+
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--primary);
+    transition: width 0.3s;
+}
+
+.nav-links a:hover {
+    color: var(--primary);
+}
+
+.nav-links a:hover::after {
+    width: 100%;
+}
+
+.theme-toggle {
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: var(--text);
+    padding: 0.5rem;
+    transition: transform 0.3s;
+}
+
+.theme-toggle:hover {
+    transform: rotate(20deg);
+}
+
+.hamburger {
+    display: none;
+    flex-direction: column;
+    cursor: pointer;
+    gap: 4px;
+}
+
+.hamburger span {
+    width: 25px;
+    height: 3px;
+    background: var(--text);
+    transition: all 0.3s;
+}
+
+.hamburger.active span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+}
+
+.hamburger.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -6px);
+}
+
+/* Admin Panel Styles */
+.admin-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg);
+    z-index: 10000;
+    overflow-y: auto;
+    padding: 2rem;
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 10px var(--shadow);
+}
+
+.admin-logo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.admin-logo i {
+    font-size: 2rem;
+    color: var(--primary);
+}
+
+.admin-logo h1 {
+    margin: 0;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.admin-panel a:focus {
+    outline: none;
+    box-shadow: none;
+}
+.admin-panel a:focus-visible {
+    outline: none;
+    border-bottom: 2px solid var(--primary);
+    color: var(--primary);
+}
+.admin-header a:focus {
+    outline: none;
+    box-shadow: none;
+}
+.admin-header a:focus-visible {
+    outline: none;
+    border-bottom: 2px solid var(--primary);
+    color: var(--primary);
+}
+/* Remove default focus outline from navbar links */
+.nav-links a:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+/* Optional: Add a custom focus style (keeps accessibility) */
+.nav-links a:focus-visible {
+    outline: none;
+    border-bottom: 2px solid var(--primary);
+    color: var(--primary);
+}
+
+
+.admin-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.admin-user {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+.admin-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--bg-secondary);
+    flex-wrap: wrap;
+}
+
+.admin-tab {
+    padding: 1rem 2rem;
+    background: transparent;
+    border: none;
+    color: var(--text-light);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.admin-tab::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--primary);
+    transition: width 0.3s;
+}
+
+.admin-tab:hover {
+    color: var(--primary);
+}
+
+.admin-tab.active {
+    color: var(--primary);
+}
+
+.admin-tab.active::after {
+    width: 100%;
+}
+
+.badge {
+    background: var(--accent);
+    color: white;
+    padding: 0.2rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.admin-tab-content {
+    display: none;
+}
+
+.admin-tab-content.active {
+    display: block;
+}
+
+.admin-section {
+    background: var(--bg-secondary);
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 10px var(--shadow);
+}
+
+.admin-section h2 {
+    margin-bottom: 1.5rem;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+    font-weight: 500;
+}
+
+.admin-input,
+.admin-textarea {
+    width: 100%;
+    padding: 0.8rem;
+    border: 2px solid var(--bg);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+    transition: border-color 0.3s;
+    font-size: 1rem;
+}
+
+.admin-input:focus,
+.admin-textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.save-section-btn {
+    margin-top: 1rem;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.admin-info-box {
+    background: var(--bg);
+    padding: 1.5rem;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary);
+}
+
+.admin-info-box p {
+    margin-bottom: 0.8rem;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.admin-info-box p i {
+    color: var(--primary);
+}
+
+/* Messages Container */
+.messages-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.messages-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.messages-container {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.loading-messages {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-light);
+}
+
+.message-card {
+    background: var(--bg);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px var(--shadow);
+    transition: transform 0.3s;
+}
+
+.message-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow-lg);
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 1rem;
+}
+
+.message-info h4 {
+    margin: 0 0 0.3rem 0;
+    color: var(--text);
+}
+
+.message-info p {
+    margin: 0;
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.message-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.message-actions button {
+    padding: 0.4rem 0.8rem;
+    background: transparent;
+    border: 1px solid var(--text-light);
+    color: var(--text-light);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.85rem;
+}
+
+.message-actions button:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.message-actions .delete-btn:hover {
+    background: #ef4444;
+    border-color: #ef4444;
+}
+
+.message-body {
+    color: var(--text);
+    line-height: 1.6;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+}
+
+.message-date {
+    color: var(--text-light);
+    font-size: 0.85rem;
+    margin-top: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.no-messages {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-light);
+}
+
+.no-messages i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--primary);
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    overflow-y: auto;
+}
+
+.modal.active {
+    display: block;
+}
+
+.modal-content {
+    background: var(--bg);
+    margin: 2rem auto;
+    padding: 0;
+    width: 90%;
+    max-width: 1000px;
+    border-radius: 12px;
+    position: relative;
+    animation: modalSlideIn 0.3s;
+}
+
+/* Admin Modal Styles */
+.admin-modal {
+    max-width: 500px;
+}
+
+.admin-login-container {
+    padding: 2rem;
+}
+
+.admin-login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.admin-login-header i {
+    font-size: 3rem;
+    color: var(--primary);
+    margin-bottom: 1rem;
+}
+
+.admin-login-header h2 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text);
+}
+
+.admin-login-header p {
+    color: var(--text-light);
+    margin: 0;
+}
+
+.admin-login-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.admin-login-form label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+    font-weight: 500;
+}
+
+.admin-login-form input {
+    width: 100%;
+    padding: 0.8rem;
+    border: 2px solid var(--bg-secondary);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    color: var(--text);
+    font-family: inherit;
+    transition: border-color 0.3s;
+}
+
+.admin-login-form input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.admin-login-btn {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.btn-loader {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.error-message {
+    color: #ef4444;
+    font-size: 0.875rem;
+    display: block;
+    margin-top: 0.5rem;
+}
+
+/* Resume Modal Specific Styles */
+.resume-modal-content {
+    max-width: 1200px;
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.resume-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-bottom: 2px solid var(--bg-secondary);
+}
+
+.resume-modal-header h2 {
+    margin: 0;
+    color: var(--text);
+}
+
+.resume-viewer {
+    flex: 1;
+    padding: 1rem;
+    overflow: hidden;
+}
+
+.resume-viewer iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 8px;
+    background: var(--bg-secondary);
+}
+
+/* Success Toast Styles */
+.success-toast {
+    position: fixed;
+    top: -200px;
+    right: 2rem;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    z-index: 3000;
+    min-width: 350px;
+    transition: top 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.success-toast.show {
+    top: 2rem;
+}
+
+.toast-icon {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+    animation: scaleIn 0.5s ease;
+}
+
+.toast-content h3 {
+    margin: 0 0 0.3rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.toast-content p {
+    margin: 0;
+    font-size: 0.9rem;
+    opacity: 0.95;
+}
+
+.toast-close {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.toast-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+@keyframes scaleIn {
+    0% {
+        transform: scale(0);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.close {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    font-size: 2rem;
+    color: var(--text);
+    cursor: pointer;
+    z-index: 1;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-secondary);
+    border-radius: 50%;
+    transition: all 0.3s;
+}
+
+.close:hover {
+    background: var(--primary);
+    color: white;
+    transform: rotate(90deg);
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.modal-video {
+    margin-bottom: 2rem;
+}
+
+.modal-video video {
+    width: 100%;
+    border-radius: 8px;
+}
+
+.modal-details h2 {
+    margin-bottom: 1rem;
+    color: var(--text);
+}
+
+.modal-details p {
+    color: var(--text-light);
+    margin-bottom: 1.5rem;
+    line-height: 1.8;
+}
+
+.tech-stack {
+    margin: 2rem 0;
+}
+
+.tech-stack h3 {
+    margin-bottom: 1rem;
+    color: var(--text);
+}
+
+.tech-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.tech-tags span {
+    padding: 0.4rem 1rem;
+    background: var(--bg-secondary);
+    border-radius: 20px;
+    font-size: 0.9rem;
+    color: var(--primary);
+    border: 1px solid var(--primary);
+}
+
+.modal-links {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+/* Home Section */
+.home {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+    background: transparent;
+}
+
+.home-content {
+    text-align: center;
+}
+
+.home h1 {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+}
+
+.highlight {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.tagline {
+    font-size: 1.5rem;
+    color: var(--text-light);
+    margin-bottom: 2rem;
+}
+
+.cta-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 0.8rem 2rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+    display: inline-block;
+    border: 2px solid transparent;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px var(--shadow);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--primary);
+    border-color: var(--primary);
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.btn-secondary:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--text);
+    border: 2px solid var(--text-light);
+    padding: 0.6rem 1.5rem;
+    font-size: 0.9rem;
+}
+
+.btn-outline:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.btn-text {
+    display: inline;
+}
+
+/* Section Title */
+.section-title {
+    font-size: 2.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border-radius: 2px;
+}
+
+.section-subtitle {
+    text-align: center;
+    color: var(--text-light);
+    font-size: 1.1rem;
+    margin-bottom: 3rem;
+}
+
+/* About Section */
+.about {
+    padding: 6rem 0;
+    position: relative;
+    z-index: 1;
+}
+
+.about-content {
+    display: flex;
+    gap: 3rem;
+    align-items: center;
+}
+
+.profile-photo {
+    flex-shrink: 0;
+}
+
+.profile-photo img {
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 5px solid var(--primary);
+    box-shadow: 0 10px 30px var(--shadow);
+}
+
+.about-text {
+    flex: 1;
+}
+
+.about-text p {
+    margin-bottom: 1rem;
+    color: var(--text-light);
+    font-size: 1.1rem;
+}
+
+.about-links {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+/* Skills Section */
+.skills {
+    padding: 6rem 0;
+    position: relative;
+    z-index: 1;
+}
+
+.skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 4rem;
+}
+
+.skill-category {
+    background: var(--bg);
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px var(--shadow);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.skill-category:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px var(--shadow-lg);
+}
+
+.skill-icon {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    font-size: 2rem;
+    color: white;
+}
+
+.skill-category h3 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: var(--text);
+    font-size: 1.5rem;
+}
+
+.skill-list {
+    list-style: none;
+}
+
+.skill-list li {
+    padding: 0.8rem 0;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 1.05rem;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    background: var(--primary);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* Tech Icons */
+.tech-icons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.tech-icon {
+    width: 80px;
+    height: 80px;
+    background: var(--bg);
+    border: 2px solid var(--primary);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.tech-icon:hover {
+    transform: translateY(-5px) scale(1.1);
+    box-shadow: 0 10px 25px var(--shadow-lg);
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border-color: transparent;
+}
+
+.tech-icon:hover span,
+.tech-icon:hover i {
+    color: white;
+}
+
+.tech-icon i {
+    font-size: 1.8rem;
+    color: var(--primary);
+    transition: color 0.3s;
+}
+
+.tech-icon span,
+.tech-letter {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary);
+    transition: color 0.3s;
+}
+
+/* Projects Section */
+.projects {
+    padding: 6rem 0;
+    position: relative;
+    z-index: 1;
+}
+
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.project-card {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px var(--shadow);
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+}
+
+.project-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px var(--shadow-lg);
+}
+
+.project-thumbnail {
+    position: relative;
+    overflow: hidden;
+    height: 200px;
+}
+
+.project-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.project-card:hover .project-thumbnail img {
+    transform: scale(1.1);
+}
+
+.project-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(99, 102, 241, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.project-card:hover .project-overlay {
+    opacity: 1;
+}
+
+.view-details {
+    padding: 0.8rem 2rem;
+    background: white;
+    color: var(--primary);
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.view-details:hover {
+    transform: scale(1.05);
+}
+
+.project-info {
+    padding: 1.5rem;
+}
+
+.project-info h3 {
+    margin-bottom: 0.5rem;
+    color: var(--text);
+}
+
+.project-info p {
+    color: var(--text-light);
+    margin-bottom: 1rem;
+}
+
+.github-link {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: color 0.3s;
+}
+
+.github-link:hover {
+    color: var(--primary-dark);
+}
+/* Remove default focus outline for GitHub or project links */
+.github-link:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+/* Optional: Add a subtle custom focus style for accessibility */
+.github-link:focus-visible {
+    outline: none;
+    border: 2px solid var(--primary);
+    border-radius: 6px;
+    padding: 0.2rem 0.5rem; /* slight inner space for border */
+}
+
+
+/* Achievements Section */
+.achievements {
+    padding: 6rem 0;
+    position: relative;
+    z-index: 1;
+}
+
+.achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+.achievement-card {
+    background: var(--bg);
+    padding: 2.5rem 2rem;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px var(--shadow);
+    transition: transform 0.3s, box-shadow 0.3s;
+    text-align: center;
+}
+
+.achievement-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px var(--shadow-lg);
+}
+
+.achievement-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    font-size: 2.5rem;
+}
+
+.grant-icon {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.prize-icon {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    color: white;
+}
+
+.trophy-icon {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+
+.first-prize-icon {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+}
+
+.top-prize-icon {
+    background: linear-gradient(135deg, #ec4899, #db2777);
+    color: white;
+}
+
+.achievement-card h3 {
+    margin-bottom: 1rem;
+    color: var(--text);
+    font-size: 1.2rem;
+    line-height: 1.4;
+}
+
+.achievement-org {
+    color: var(--text-light);
+    font-size: 0.95rem;
+}
+
+/* Education Section */
+.education {
+    padding: 6rem 0;
+    position: relative;
+    z-index: 1;
+}
+
+.education-timeline {
+    position: relative;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.education-timeline::before {
+    content: '';
+    position: absolute;
+    left: 30px;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--primary), var(--secondary));
+}
+
+.education-item {
+    position: relative;
+    padding-left: 80px;
+    margin-bottom: 3rem;
+}
+
+.education-dot {
+    position: absolute;
+    left: 18px;
+    top: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--primary);
+    border: 4px solid var(--bg);
+    box-shadow: 0 0 0 4px var(--primary);
+    z-index: 1;
+}
+
+.education-content {
+    background: var(--bg);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px var(--shadow);
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
+}
+
+.education-content:hover {
+    transform: translateX(10px);
+    box-shadow: 0 10px 25px var(--shadow-lg);
+}
+
+.education-year {
+    display: inline-block;
+    padding: 0.4rem 1rem;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.education-content h3 {
+    margin-bottom: 0.5rem;
+    color: var(--text);
+    font-size: 1.4rem;
+}
+
+.education-content h4 {
+    color: var(--text-light);
+    font-weight: 600;
+    margin-bottom: 0.8rem;
+    font-size: 1.1rem;
+}
+
+.education-content p {
+    color: var(--text-light);
+    line-height: 1.6;
+}
+
+.education-badge {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    background: var(--success);
+    color: white;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-top: 1rem;
+}
+
+/* Experience Section */
+.experience {
+    padding: 6rem 0;
+    position: relative;
+    z-index: 1;
+}
+
+.timeline {
+    position: relative;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--primary);
+}
+
+.timeline-item {
+    position: relative;
+    padding-left: 60px;
+    margin-bottom: 3rem;
+}
+
+.timeline-dot {
+    position: absolute;
+    left: 11px;
+    top: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--primary);
+    border: 4px solid var(--bg);
+    box-shadow: 0 0 0 4px var(--primary);
+}
+
+.timeline-content {
+    background: var(--bg);
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px var(--shadow);
+    transition: transform 0.3s;
+}
+
+.timeline-content:hover {
+    transform: translateX(10px);
+}
+
+.timeline-date {
+    color: var(--primary);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.timeline-content h3 {
+    margin-bottom: 0.3rem;
+    color: var(--text);
+}
+
+.timeline-content h4 {
+    color: var(--text-light);
+    font-weight: normal;
+    margin-bottom: 0.8rem;
+}
+
+.timeline-content p {
+    color: var(--text-light);
+    line-height: 1.6;
+}
+
+/* Contact Section */
+.contact {
+    padding: 6rem 0;
+    position: relative;
+    z-index: 1;
+}
+
+.contact-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: start;
+}
+
+.contact-info h3 {
+    margin-bottom: 1rem;
+    color: var(--text);
+}
+
+.contact-info p {
+    color: var(--text-light);
+    margin-bottom: 2rem;
+}
+
+.social-links {
+    display: flex;
+    gap: 1rem;
+}
+
+.social-links a {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-secondary);
+    color: var(--text);
+    border-radius: 50%;
+    font-size: 1.5rem;
+    transition: all 0.3s;
+}
+
+.social-links a:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-5px);
+}
+
+.contact-form {
+    background: var(--bg-secondary);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px var(--shadow);
+}
+
+.contact-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.contact-form input,
+.contact-form textarea {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+    transition: border-color 0.3s;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.contact-form .form-group.error input,
+.contact-form .form-group.error textarea {
+    border-color: #ef4444;
+}
+
+.contact-form button {
+    width: 100%;
+    padding: 1rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.contact-form button:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px var(--shadow);
+}
+
+.contact-form button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Footer */
+footer {
+    padding: 2rem 0;
+    text-align: center;
+    color: var(--text-light);
+}
+
+/* Responsive Design */
+
+/* Tablets and smaller laptops (max-width: 1024px) */
+@media (max-width: 1024px) {
+    .container {
+        padding: 0 30px;
+    }
+
+    .home h1 {
+        font-size: 3rem;
+    }
+
+    .tagline {
+        font-size: 1.3rem;
+    }
+
+    .about-content {
+        gap: 2rem;
+    }
+
+    .profile-photo img {
+        width: 250px;
+        height: 250px;
+    }
+
+    .projects-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .section-title {
+        font-size: 2.2rem;
+    }
+
+    .skills-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .achievements-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .admin-panel {
+        padding: 1rem;
+    }
+}
+
+/* Tablets (max-width: 768px) */
+@media (max-width: 768px) {
+    nav {
+        padding: 1rem;
+    }
+
+    .hamburger {
+        display: flex;
+    }
+
+    .nav-links {
+        position: fixed;
+        top: 70px;
+        left: -100%;
+        width: 100%;
+        height: calc(100vh - 70px);
+        background: var(--bg);
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: left 0.3s;
+        box-shadow: 0 5px 10px var(--shadow);
+        gap: 2.5rem;
+    }
+
+    .nav-links.active {
+        left: 0;
+    }
+
+    .nav-links a {
+        font-size: 1.2rem;
+    }
+
+    .home {
+        padding: 2rem 1rem;
+    }
+
+    .home h1 {
+        font-size: 2.5rem;
+        line-height: 1.3;
+    }
+
+    .tagline {
+        font-size: 1.2rem;
+    }
+
+    .cta-buttons {
+        gap: 0.8rem;
+    }
+
+    .btn {
+        padding: 0.7rem 1.5rem;
+        font-size: 0.95rem;
+    }
+
+    .about {
+        padding: 4rem 0;
+    }
+
+    .about-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 2rem;
+    }
+
+    .profile-photo img {
+        width: 220px;
+        height: 220px;
+    }
+
+    .about-text p {
+        font-size: 1rem;
+    }
+
+    .about-links {
+        justify-content: center;
+    }
+
+    .skills {
+        padding: 4rem 0;
+    }
+
+    .skills-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .projects {
+        padding: 4rem 0;
+    }
+
+    .projects-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .section-title {
+        font-size: 2rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .achievements {
+        padding: 4rem 0;
+    }
+
+    .achievements-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .education {
+        padding: 4rem 0;
+    }
+
+    .education-timeline::before {
+        left: 20px;
+    }
+
+    .education-item {
+        padding-left: 70px;
+    }
+
+    .education-dot {
+        left: 8px;
+    }
+
+    .experience {
+        padding: 4rem 0;
+    }
+
+    .timeline::before {
+        left: 10px;
+    }
+
+    .timeline-item {
+        padding-left: 50px;
+    }
+
+    .timeline-dot {
+        left: 1px;
+    }
+
+    .contact {
+        padding: 4rem 0;
+    }
+
+    .contact-content {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+    }
+
+    .modal-content {
+        width: 95%;
+        margin: 1rem auto;
+    }
+
+    .resume-modal-content {
+        height: 85vh;
+    }
+
+    .resume-modal-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .resume-modal-header .btn {
+        width: 100%;
+    }
+
+    .success-toast {
+        right: 1rem;
+        left: 1rem;
+        min-width: auto;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .modal-links {
+        flex-direction: column;
+    }
+
+    .blob-1 {
+        width: 350px;
+        height: 350px;
+    }
+
+    .blob-2 {
+        width: 300px;
+        height: 300px;
+    }
+
+    .blob-3 {
+        width: 400px;
+        height: 400px;
+    }
+
+    .blob-4 {
+        width: 250px;
+        height: 250px;
+    }
+
+    .admin-tabs {
+        gap: 0.5rem;
+    }
+
+    .admin-tab {
+        padding: 0.8rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .messages-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .messages-actions {
+        flex-direction: column;
+    }
+
+    .messages-actions .btn {
+        width: 100%;
+    }
+}
+
+/* Mobile devices (max-width: 480px) */
+@media (max-width: 480px) {
+    .container {
+        padding: 0 15px;
+    }
+
+    nav {
+        padding: 0.8rem 1rem;
+    }
+
+    .logo {
+        font-size: 1.5rem;
+    }
+
+    .theme-toggle {
+        font-size: 1rem;
+        padding: 0.3rem;
+    }
+
+    .hamburger span {
+        width: 22px;
+        height: 2.5px;
+    }
+
+    .nav-links {
+        gap: 2rem;
+    }
+
+    .nav-links a {
+        font-size: 1.1rem;
+    }
+
+    .home {
+        padding: 1.5rem 1rem;
+        min-height: 90vh;
+    }
+
+    .home h1 {
+        font-size: 1.8rem;
+        line-height: 1.4;
+        margin-bottom: 0.8rem;
+    }
+
+    .tagline {
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
+    }
+
+    .cta-buttons {
+        flex-direction: column;
+        width: 100%;
+        gap: 0.7rem;
+    }
+
+    .btn {
+        padding: 0.7rem 1.2rem;
+        font-size: 0.9rem;
+        width: 100%;
+    }
+
+    .about {
+        padding: 3rem 0;
+    }
+
+    .section-title {
+        font-size: 1.8rem;
+        margin-bottom: 2rem;
+    }
+
+    .section-title::after {
+        width: 60px;
+        height: 3px;
+    }
+
+    .profile-photo img {
+        width: 180px;
+        height: 180px;
+        border: 4px solid var(--primary);
+    }
+
+    .about-text p {
+        font-size: 0.95rem;
+        line-height: 1.7;
+    }
+
+    .about-links {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn-outline {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+    }
+
+    .skills {
+        padding: 3rem 0;
+    }
+
+    .skill-category {
+        padding: 2rem 1.5rem;
+    }
+
+    .tech-icons {
+        gap: 1rem;
+    }
+
+    .tech-icon {
+        width: 70px;
+        height: 70px;
+    }
+
+    .projects {
+        padding: 3rem 0;
+    }
+
+    .project-card {
+        margin-bottom: 0.5rem;
+    }
+
+    .project-thumbnail {
+        height: 180px;
+    }
+
+    .project-info {
+        padding: 1.2rem;
+    }
+
+    .project-info h3 {
+        font-size: 1.1rem;
+    }
+
+    .project-info p {
+        font-size: 0.9rem;
+    }
+
+    .view-details {
+        padding: 0.6rem 1.5rem;
+        font-size: 0.9rem;
+    }
+
+    .achievements {
+        padding: 3rem 0;
+    }
+
+    .achievement-card {
+        padding: 2rem 1.5rem;
+    }
+
+    .achievement-icon {
+        width: 70px;
+        height: 70px;
+        font-size: 2rem;
+    }
+
+    .education {
+        padding: 3rem 0;
+    }
+
+    .education-timeline::before {
+        left: 15px;
+    }
+
+    .education-item {
+        padding-left: 60px;
+    }
+
+    .education-dot {
+        left: 3px;
+        width: 26px;
+        height: 26px;
+    }
+
+    .education-content {
+        padding: 1.5rem;
+    }
+
+    .education-content h3 {
+        font-size: 1.2rem;
+    }
+
+    .experience {
+        padding: 3rem 0;
+    }
+
+    .timeline::before {
+        left: 8px;
+    }
+
+    .timeline-item {
+        padding-left: 40px;
+        margin-bottom: 2rem;
+    }
+
+    .timeline-dot {
+        left: 0;
+        width: 16px;
+        height: 16px;
+        border: 3px solid var(--bg);
+        box-shadow: 0 0 0 3px var(--primary);
+    }
+
+    .timeline-content {
+        padding: 1.2rem;
+    }
+
+    .timeline-date {
+        font-size: 0.9rem;
+    }
+
+    .timeline-content h3 {
+        font-size: 1.1rem;
+    }
+
+    .timeline-content h4 {
+        font-size: 0.95rem;
+    }
+
+    .timeline-content p {
+        font-size: 0.9rem;
+    }
+
+    .contact {
+        padding: 3rem 0;
+    }
+
+    .contact-info h3 {
+        font-size: 1.3rem;
+    }
+
+    .contact-info p {
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    .social-links a {
+        width: 45px;
+        height: 45px;
+        font-size: 1.3rem;
+    }
+
+    .contact-form {
+        padding: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.2rem;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        padding: 0.85rem;
+        font-size: 0.95rem;
+    }
+
+    .contact-form button {
+        padding: 0.85rem;
+        font-size: 0.95rem;
+    }
+
+    .modal-content {
+        width: 98%;
+        margin: 0.5rem auto;
+    }
+
+    .modal-body {
+        padding: 1rem;
+    }
+
+    .close {
+        right: 10px;
+        top: 10px;
+        width: 35px;
+        height: 35px;
+        font-size: 1.5rem;
+    }
+
+    .modal-details h2 {
+        font-size: 1.5rem;
+    }
+
+    .modal-details p {
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    .tech-stack h3 {
+        font-size: 1.1rem;
+    }
+
+    .tech-tags span {
+        padding: 0.3rem 0.8rem;
+        font-size: 0.8rem;
+    }
+
+    .modal-links {
+        gap: 0.8rem;
+    }
+
+    .modal-links .btn {
+        font-size: 0.9rem;
+        padding: 0.7rem 1.2rem;
+    }
+
+    footer {
+        padding: 1.5rem 0;
+        font-size: 0.9rem;
+    }
+
+    .blob-1 {
+        width: 250px;
+        height: 250px;
+    }
+
+    .blob-2 {
+        width: 200px;
+        height: 200px;
+    }
+
+    .blob-3 {
+        width: 280px;
+        height: 280px;
+    }
+
+    .blob-4 {
+        width: 180px;
+        height: 180px;
+    }
+
+    .admin-panel {
+        padding: 1rem;
+    }
+
+    .admin-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+
+    .admin-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .admin-tab {
+        padding: 0.7rem 1rem;
+    }
+
+    .message-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .message-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+
+/* Extra small devices (max-width: 360px) */
+@media (max-width: 360px) {
+    .home h1 {
+        font-size: 1.5rem;
+    }
+
+    .tagline {
+        font-size: 0.85rem;
+    }
+
+    .section-title {
+        font-size: 1.6rem;
+    }
+
+    .profile-photo img {
+        width: 150px;
+        height: 150px;
+    }
+
+    .project-thumbnail {
+        height: 150px;
+    }
+
+    .timeline-item {
+        padding-left: 35px;
+    }
+
+    .education-item {
+        padding-left: 55px;
+    }
+
+    .social-links a {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+
+    .tech-icon {
+        width: 60px;
+        height: 60px;
+    }
+}
+
+/* Landscape orientation for mobile devices */
+@media (max-height: 600px) and (orientation: landscape) {
+    .home {
+        min-height: auto;
+        padding: 6rem 1rem 2rem;
+    }
+
+    .nav-links {
+        height: calc(100vh - 60px);
+        overflow-y: auto;
+        padding: 2rem 0;
+    }
+}
+
+/* High resolution displays */
+@media (min-width: 1440px) {
+    .container {
+        max-width: 1400px;
+    }
+
+    .home h1 {
+        font-size: 4rem;
+    }
+
+    .tagline {
+        font-size: 1.7rem;
+    }
+
+    .section-title {
+        font-size: 3rem;
+    }
+
+    .profile-photo img {
+        width: 350px;
+        height: 350px;
+    }
+
+    .projects-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .skills-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .achievements-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+
+/* Message Filters */
+
+
+/* Unread Badge */
+.unread-badge {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    margin-left: 0.5rem;
+}
+
+.message-card.unread {
+    border-left: 4px solid var(--accent);
+}
+
+/* Export Buttons */
+.export-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.export-buttons .btn {
+    flex: 1;
+    min-width: 200px;
+    justify-content: center;
+}
+
+/* Sheets Configuration */
+.sheets-config {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.config-info {
+    background: var(--bg);
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.config-info p {
+    margin: 0 0 0.5rem 0;
+    color: var(--text);
+    font-weight: 500;
+}
+
+.config-info code {
+    display: block;
+    background: var(--bg-secondary);
+    padding: 0.8rem;
+    border-radius: 6px;
+    color: var(--primary);
+    font-size: 0.85rem;
+    word-break: break-all;
+    margin-top: 0.5rem;
+}
+
+.sync-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: var(--bg);
+    border-radius: 8px;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.status-indicator i {
+    font-size: 0.7rem;
+}
+
+.last-sync-time {
+    color: var(--text-light);
+    font-size: 0.85rem;
+}
+
+.sync-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+
+
+/* Responsive adjustments for admin panel */
+@media (max-width: 768px) {
+    .analytics-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .export-buttons {
+        flex-direction: column;
+    }
+    
+    .export-buttons .btn {
+        width: 100%;
+    }
+    
+    .sync-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .sync-controls .btn {
+        width: 100%;
+    }
+    
+    .sync-status {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .analytics-number {
+        font-size: 1.5rem;
+    }
+    
+    .analytics-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+    }
+    
+    .chart-container {
+        height: 250px;
+    }
+}
+/* ============================================
+   NEW FEATURES CSS
+   Add this file to your project and include it in HTML:
+   <link rel="stylesheet" href="new-features.css">
+   ============================================ */
+
+/* ============================================
+   PRELOADER
+   ============================================ */
+#preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    transition: opacity 0.5s ease;
+}
+
+.loader {
+    text-align: center;
+}
+
+.spinner {
+    border: 5px solid var(--bg-secondary);
+    border-top: 5px solid var(--primary);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+.loader p {
+    color: var(--text);
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ============================================
+   PARTICLES CONTAINER
+   ============================================ */
+#particles-js {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    opacity: 0.6;
+}
+
+[data-theme="dark"] #particles-js {
+    opacity: 0.4;
+}
+
+/* ============================================
+   TYPING CURSOR
+   ============================================ */
+.cursor {
+    display: inline-block;
+    animation: blink 1s infinite;
+    margin-left: 3px;
+    color: var(--primary);
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+/* ============================================
+   GRADIENT TEXT ANIMATION
+   ============================================ */
+.gradient-text {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #667eea 75%, #764ba2 100%);
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradientShift 5s ease infinite;
+}
+
+@keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+/* ============================================
+   BACK TO TOP BUTTON
+   ============================================ */
+.back-to-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 50px;
+    height: 50px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    box-shadow: 0 5px 15px var(--shadow);
+    transition: all 0.3s ease;
+    font-size: 1.2rem;
+}
+
+.back-to-top:hover {
+    background: var(--primary-dark);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px var(--shadow-lg);
+}
+
+.back-to-top:active {
+    transform: translateY(-2px);
+}
+
+/* ============================================
+   FLOATING CONTACT BUTTON
+   ============================================ */
+.floating-contact {
+    position: fixed;
+    bottom: 2rem;
+    left: 2rem;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 998;
+    box-shadow: 0 5px 20px rgba(99, 102, 241, 0.4);
+    transition: all 0.3s ease;
+    font-size: 1.5rem;
+}
+
+.floating-contact:hover {
+    transform: scale(1.1) rotate(15deg);
+    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.6);
+}
+
+.floating-contact:active {
+    transform: scale(1.05) rotate(10deg);
+}
+
+/* ============================================
+   SKILL PROGRESS BARS
+   ============================================ */
+.skill-item {
+    margin-bottom: 1.5rem;
+}
+
+.skill-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.skill-bar {
+    width: 100%;
+    height: 10px;
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.skill-progress {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    border-radius: 10px;
+    transition: width 1.5s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.skill-progress::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+    );
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* ============================================
+   PROJECT SEARCH AND FILTERS
+   ============================================ */
+.project-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.search-input {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    border: 2px solid var(--bg-secondary);
+    border-radius: 12px;
+    background: var(--bg-secondary);
+    color: var(--text);
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+.project-filters {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.project-filters .filter-btn {
+    padding: 0.7rem 1.5rem;
+    background: transparent;
+    border: 2px solid var(--text-light);
+    color: var(--text-light);
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.project-filters .filter-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3);
+}
+
+.project-filters .filter-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* ============================================
+   PROJECT META (LIKES & VIEWS)
+   ============================================ */
+.project-meta {
+    display: flex;
+    gap: 1rem;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+    color: var(--text-light);
+}
+
+.project-likes,
+.project-views {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.project-likes i,
+.project-views i {
+    color: var(--primary);
+}
+
+/* ============================================
+   TESTIMONIALS SECTION
+   ============================================ */
+.testimonials {
+    padding: 6rem 0;
+    background: var(--bg);
+}
+
+.testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.testimonial-card {
+    background: var(--bg-secondary);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px var(--shadow);
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
+}
+
+.testimonial-card::before {
+    content: '"';
+    position: absolute;
+    top: -20px;
+    left: 20px;
+    font-size: 5rem;
+    color: var(--primary);
+    opacity: 0.2;
+    font-family: Georgia, serif;
+}
+
+.testimonial-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px var(--shadow-lg);
+}
+
+.stars {
+    color: #f59e0b;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.testimonial-text {
+    color: var(--text);
+    font-size: 1rem;
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+    font-style: italic;
+}
+
+.testimonial-author {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-top: 1rem;
+    border-top: 2px solid var(--bg);
+}
+
+.author-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.testimonial-author h4 {
+    margin: 0 0 0.3rem 0;
+    color: var(--text);
+    font-size: 1rem;
+}
+
+.testimonial-author p {
+    margin: 0;
+    color: var(--text-light);
+    font-size: 0.85rem;
+}
+
+/* ============================================
+   NEWSLETTER SECTION
+   ============================================ */
+.newsletter-section {
+    margin-top: 2rem;
+    padding: 2rem;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    border: 2px solid var(--primary);
+}
+
+.newsletter-section h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text);
+    font-size: 1.3rem;
+}
+
+.newsletter-section p {
+    margin: 0 0 1rem 0;
+    color: var(--text-light);
+    font-size: 0.95rem;
+}
+
+#newsletterForm {
+    display: flex;
+    gap: 0.5rem;
+}
+
+#newsletterForm input {
+    flex: 1;
+    padding: 0.8rem 1rem;
+    border: 2px solid var(--bg);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+}
+
+#newsletterForm input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+#newsletterForm button {
+    padding: 0.8rem 1.5rem;
+    white-space: nowrap;
+}
+
+/* ============================================
+   GITHUB STATS
+   ============================================ */
+.github-stats {
+    margin-top: 2rem;
+}
+
+.github-stats h3 {
+    color: var(--text);
+    margin-bottom: 1rem;
+}
+
+.github-stats img {
+    width: 100%;
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    padding: 1rem;
+}
+
+/* ============================================
+   TOOLTIP
+   ============================================ */
+.custom-tooltip {
+    position: fixed;
+    background: var(--text);
+    color: var(--bg);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    z-index: 10000;
+    pointer-events: none;
+    animation: tooltipFadeIn 0.2s ease;
+}
+
+@keyframes tooltipFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+[data-tooltip] {
+    position: relative;
+    cursor: help;
+}
+
+/* ============================================
+   FADE IN ANIMATION
+   ============================================ */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================
+   FOOTER IMPROVEMENTS
+   ============================================ */
+footer {
+    padding: 2rem 0;
+    text-align: center;
+    color: var(--text-light);
+    background: var(--bg-secondary);
+    margin-top: 4rem;
+}
+
+.footer-links {
+    margin-top: 0.5rem;
+}
+
+.footer-links a {
+    color: var(--text-light);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.footer-links a:hover {
+    color: var(--primary);
+}
+
+/* ============================================
+   ADDITIONAL ADMIN PANEL STYLES
+   ============================================ */
+.analytics-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.analytics-card {
+    background: var(--bg-secondary);
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.analytics-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px var(--shadow-lg);
+}
+
+.analytics-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.analytics-info {
+    flex: 1;
+}
+
+.analytics-info h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+    color: var(--text-light);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.analytics-number {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--text);
+}
+
+/* ============================================
+   CHART CONTAINER
+   ============================================ */
+.chart-container {
+    background: var(--bg);
+    padding: 1.5rem;
+    border-radius: 8px;
+    height: 300px;
+    position: relative;
+}
+
+/* ============================================
+   MESSAGE FILTERS
+   ============================================ */
+.message-filters {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.message-filters .filter-btn {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: 2px solid var(--text-light);
+    color: var(--text-light);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.message-filters .filter-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.message-filters .filter-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* ============================================
+   UNREAD BADGE
+   ============================================ */
+.unread-badge {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    margin-left: 0.5rem;
+}
+
+.message-card.unread {
+    border-left: 4px solid var(--accent);
+}
+
+/* ============================================
+   EXPORT BUTTONS
+   ============================================ */
+.export-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.export-buttons .btn {
+    flex: 1;
+    min-width: 200px;
+    justify-content: center;
+}
+
+/* ============================================
+   SHEETS CONFIGURATION
+   ============================================ */
+.sheets-config {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.config-info {
+    background: var(--bg);
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.config-info p {
+    margin: 0 0 0.5rem 0;
+    color: var(--text);
+    font-weight: 500;
+}
+
+.config-info code {
+    display: block;
+    background: var(--bg-secondary);
+    padding: 0.8rem;
+    border-radius: 6px;
+    color: var(--primary);
+    font-size: 0.85rem;
+    word-break: break-all;
+    margin-top: 0.5rem;
+}
+
+.sync-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: var(--bg);
+    border-radius: 8px;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.status-indicator i {
+    font-size: 0.7rem;
+}
+
+.last-sync-time {
+    color: var(--text-light);
+    font-size: 0.85rem;
+}
+
+.sync-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* ============================================
+   TOGGLE SWITCH
+   ============================================ */
+.toggle-switch {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.toggle-switch input[type="checkbox"] {
+    display: none;
+}
+
+.toggle-slider {
+    position: relative;
+    width: 50px;
+    height: 26px;
+    background: var(--text-light);
+    border-radius: 26px;
+    transition: background 0.3s;
+}
+
+.toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: white;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.3s;
+}
+
+.toggle-switch input[type="checkbox"]:checked + .toggle-slider {
+    background: var(--success);
+}
+
+.toggle-switch input[type="checkbox"]:checked + .toggle-slider::before {
+    transform: translateX(24px);
+}
+
+.toggle-label {
+    color: var(--text);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+@media (max-width: 768px) {
+    .back-to-top {
+        bottom: 1rem;
+        right: 1rem;
+        width: 45px;
+        height: 45px;
+    }
+
+    .floating-contact {
+        bottom: 1rem;
+        left: 1rem;
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+    }
+
+    .project-controls {
+        gap: 0.8rem;
+    }
+
+    .search-input {
+        padding: 0.8rem 1rem;
+    }
+
+    .project-filters {
+        gap: 0.3rem;
+    }
+
+    .project-filters .filter-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
+
+    .testimonials-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .analytics-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .export-buttons {
+        flex-direction: column;
+    }
+
+    .export-buttons .btn {
+        width: 100%;
+    }
+
+    .sync-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .sync-controls .btn {
+        width: 100%;
+    }
+
+    .sync-status {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    #newsletterForm {
+        flex-direction: column;
+    }
+
+    #newsletterForm button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .spinner {
+        width: 50px;
+        height: 50px;
+    }
+
+    .loader p {
+        font-size: 0.95rem;
+    }
+
+    .analytics-number {
+        font-size: 1.5rem;
+    }
+
+    .analytics-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+    }
+
+    .chart-container {
+        height: 250px;
+    }
+
+    .back-to-top {
+        bottom: 1rem;
+        right: 1rem;
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+
+    .floating-contact {
+        bottom: 1rem;
+        left: 1rem;
+        width: 45px;
+        height: 45px;
+        font-size: 1.1rem;
+    }
+
+    .testimonial-card {
+        padding: 1.5rem;
+    }
+
+    .stars {
+        font-size: 1rem;
+    }
+
+    .testimonial-text {
+        font-size: 0.9rem;
+    }
+
+    .author-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+
+    .newsletter-section {
+        padding: 1.5rem;
+    }
+
+    .newsletter-section h3 {
+        font-size: 1.1rem;
+    }
+}
+
+
+
+
+/* Skip to main content link */
+.skip-to-main {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--primary);
+    color: white;
+    padding: 8px;
+    text-decoration: none;
+    z-index: 100000;
+}
+
+.skip-to-main:focus {
+    top: 0;
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+    .back-to-top,
+    .floating-contact,
+    header,
+    .admin-panel,
+    #preloader,
+    #particles-js {
+        display: none !important;
+    }
+
+    body {
+        background: white;
+        color: black;
+    }
+
+    .project-card,
+    .achievement-card,
+    .testimonial-card {
+        break-inside: avoid;
+    }
+}
+
+/* ============================================
+   HIGH CONTRAST MODE
+   ============================================ */
+@media (prefers-contrast: high) {
+    :root {
+        --primary: #0000ff;
+        --text: #000000;
+        --bg: #ffffff;
+    }
+
+    [data-theme="dark"] {
+        --primary: #00ffff;
+        --text: #ffffff;
+        --bg: #000000;
+    }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .spinner {
+        animation: none;
+        border-top-color: var(--primary);
+    }
+}
+
+/* ============================================
+   LANDSCAPE ORIENTATION
+   ============================================ */
+@media (max-height: 600px) and (orientation: landscape) {
+    .back-to-top {
+        bottom: 0.5rem;
+        right: 0.5rem;
+        width: 35px;
+        height: 35px;
+        font-size: 0.9rem;
+    }
+
+    .floating-contact {
+        bottom: 0.5rem;
+        left: 0.5rem;
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+}
+
+/* ============================================
+   CUSTOM SCROLLBAR
+   ============================================ */
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark);
+}
+
+/* ============================================
+   SELECTION COLOR
+   ============================================ */
+::selection {
+    background: var(--primary);
+    color: white;
+}
+
+::-moz-selection {
+    background: var(--primary);
+    color: white;
+}
+
+
+/* Custom Confirmation Modal */
+.confirm-modal-content {
+    max-width: 450px;
+    text-align: center;
+    padding: 2rem;
+    animation: slideDown 0.3s ease;
+}
+
+.confirm-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 1.5s infinite;
+}
+
+.confirm-icon i {
+    font-size: 2.5rem;
+    color: white;
+}
+
+.confirm-modal-content h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--text);
+}
+
+.confirm-modal-content p {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.confirm-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.confirm-actions button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-secondary {
+    background: var(--card-bg);
+    color: var(--text);
+    border: 2px solid var(--border);
+}
+
+.btn-secondary:hover {
+    background: var(--border);
+    transform: translateY(-2px);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .confirm-modal-content {
+        padding: 1.5rem;
+        max-width: 90%;
+    }
+    
+    .confirm-actions {
+        flex-direction: column;
+    }
+    
+    .confirm-actions button {
+        width: 100%;
+        justify-content: center;
+    }
+}
+/* Add to your styles.css */
+.confirm-modal-content {
+    position: relative;
+    z-index: 10001;
+}
+
+.confirm-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.confirm-actions button {
+    flex: 1;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    pointer-events: auto; /* ✅ Ensure buttons are clickable */
+}
+
+.confirm-actions .btn-primary {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: white;
+}
+
+.confirm-actions .btn-secondary {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.confirm-actions button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+/* ============================================
+   CONFIRMATION MODAL - CRITICAL FIXES
+   ============================================ */
+
+#confirmModal {
+    z-index: 10001 !important;
+    pointer-events: auto !important;
+}
+
+#confirmModal.active {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+#confirmModal .modal-content {
+    position: relative;
+    z-index: 10002 !important;
+    pointer-events: auto !important;
+}
+
+#confirmModal button {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    z-index: 10003 !important;
+    position: relative;
+}
+
+#confirmModal .confirm-actions {
+    pointer-events: auto !important;
+    z-index: 10003 !important;
+}
+
+/* Ensure buttons are clickable */
+.confirm-actions button {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+.confirm-actions button:active {
+    transform: scale(0.95);
+}
+
+/* Remove any conflicting styles */
+#confirmModal *:focus {
+    outline: 2px solid var(--primary) !important;
+    outline-offset: 2px !important;
+}
+/* ============================================
+   IMPROVED ACCESSIBILITY & FOCUS MANAGEMENT
+   ============================================ */
+
+/* Remove focus from specific navigation links only (not all elements) */
+.nav-links a:focus,
+.github-link:focus,
+.admin-panel a:focus,
+.admin-header a:focus,
+.social-links a:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+/* KEEP focus visible for interactive elements (accessibility) */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[role="button"]:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* Enhanced focus for form controls */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    border-color: var(--primary);
+}
+
+/* Focus for buttons with subtle shadow */
+button:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+/* Remove focus outline from decorative elements */
+.logo:focus,
+.tech-icon:focus,
+.project-card:focus,
+img:focus,
+.achievement-card:focus {
+    outline: none;
+}
+
+/* Remove tap highlight on mobile (no !important needed) */
+a, button {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* ============================================
+   Z-INDEX SYSTEM (Organized Hierarchy)
+   ============================================ */
+
+/* Update existing z-index values to use consistent system */
+header {
+    z-index: 1000; /* Already correct */
+}
+
+.floating-contact {
+    z-index: 998; /* Already correct */
+}
+
+.back-to-top {
+    z-index: 999; /* Already correct */
+}
+
+/* Base modals - updated z-index */
+.modal {
+    z-index: 9000; /* Increased from 2000 */
+}
+
+.admin-panel {
+    z-index: 10000; /* Already correct */
+}
+
+/* Success toast - highest priority for notifications */
+.success-toast {
+    z-index: 11000; /* Increased from 3000 */
+}
+
+/* ============================================
+   CONFIRMATION MODAL - CRITICAL OVERRIDES
+   ============================================ */
+
+/* Confirmation modal must be above everything */
+#confirmModal {
+    z-index: 10001 !important;
+    pointer-events: auto !important;
+}
+
+#confirmModal.active {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Modal content clickable */
+#confirmModal .modal-content {
+    position: relative;
+    z-index: 10002 !important;
+    pointer-events: auto !important;
+}
+
+/* Buttons must be clickable */
+#confirmModal button {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    z-index: 10003 !important;
+    position: relative;
+}
+
+/* Actions container */
+#confirmModal .confirm-actions {
+    pointer-events: auto !important;
+    z-index: 10003 !important;
+}
+
+/* Button feedback on click */
+.confirm-actions button:active {
+    transform: scale(0.95) !important;
+    transition: transform 0.1s ease;
+}
+
+/* Remove any conflicting focus styles on confirm modal */
+#confirmModal *:focus {
+    outline: 2px solid var(--primary) !important;
+    outline-offset: 2px !important;
+}
+
+/* ============================================
+   ENSURE ALL MODALS ARE CLICKABLE
+   ============================================ */
+
+/* All modals and their children should be clickable */
+.modal,
+.modal-content,
+.modal button,
+.modal a,
+.modal input,
+.modal textarea {
+    pointer-events: auto;
+}
+
+/* Specific button types */
+.confirm-actions button,
+.modal-actions button,
+.message-actions button,
+.messages-actions button {
+    pointer-events: auto !important;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Ensure all buttons show pointer cursor */
+button,
+.btn,
+.view-details,
+.delete-btn,
+.mark-read-btn,
+.filter-btn,
+.admin-tab,
+.theme-toggle {
+    cursor: pointer !important;
+}
+
+/* Disabled button states */
+button:disabled,
+.btn:disabled {
+    cursor: not-allowed !important;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* ============================================
+   BUTTON HOVER & ACTIVE STATES (UX Enhancement)
+   ============================================ */
+
+/* Better button feedback */
+.confirm-actions button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* All standard buttons */
+.btn:not(:disabled):hover {
+    transform: translateY(-2px);
+}
+
+.btn:not(:disabled):active {
+    transform: translateY(0);
+}
+
+/* Message action buttons */
+.message-actions button:hover {
+    transform: translateY(-1px);
+}
+
+/* Admin tabs */
+.admin-tab:hover {
+    transform: translateY(-1px);
+}
+
+/* ============================================
+   DARK MODE SUPPORT FOR CONFIRM MODAL
+   ============================================ */
+
+[data-theme="dark"] #confirmModal .confirm-modal-content {
+    background: var(--bg-secondary);
+    color: var(--text);
+}
+
+[data-theme="dark"] .confirm-actions .btn-secondary {
+    background: var(--bg);
+    color: var(--text);
+    border: 2px solid var(--text-light);
+}
+
+[data-theme="dark"] .confirm-actions .btn-secondary:hover {
+    background: var(--bg-secondary);
+    border-color: var(--primary);
+}
+
+[data-theme="dark"] .confirm-icon {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+}
+
+/* ============================================
+   MODAL BACKDROP IMPROVEMENTS
+   ============================================ */
+
+/* Ensure modal backdrop is visible but allows clicks on modal content */
+.modal.active {
+    display: block;
+    pointer-events: auto;
+}
+
+/* Modal content should float above backdrop */
+.modal-content {
+    position: relative;
+    pointer-events: auto;
+}
+
+/* Close button should always be clickable */
+.close,
+.modal .close {
+    pointer-events: auto;
+    cursor: pointer;
+    z-index: 1;
+}
+
+/* ============================================
+   FORM ELEMENTS ACCESSIBILITY
+   ============================================ */
+
+/* Ensure form inputs are always accessible */
+input,
+textarea,
+select,
+.admin-input,
+.admin-textarea,
+.search-input {
+    pointer-events: auto;
+}
+
+/* Form elements should show focus */
+input:focus,
+textarea:focus,
+select:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 1px;
+}
+
+/* ============================================
+   ADMIN PANEL SPECIFIC FIXES
+   ============================================ */
+
+/* Ensure admin buttons are clickable */
+#markAllRead,
+#refreshMessages,
+#syncNowBtn,
+#exportExcel,
+#exportCSV,
+#exportJSON,
+#logoutBtn {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+/* Admin modal buttons */
+#adminLoginForm button {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+/* ============================================
+   RESPONSIVE FIXES FOR MOBILE
+   ============================================ */
+
+@media (max-width: 768px) {
+    /* Ensure touch targets are large enough on mobile */
+    .confirm-actions button {
+        min-height: 44px;
+        padding: 0.75rem 1.5rem;
+    }
+    
+    /* Make sure modals are properly sized on mobile */
+    #confirmModal .modal-content {
+        width: 95%;
+        max-width: 450px;
+    }
+    
+    /* Ensure buttons stack nicely on mobile */
+    .confirm-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .confirm-actions button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Smaller confirm icon on small screens */
+    .confirm-icon {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .confirm-icon i {
+        font-size: 2rem;
+    }
+    
+    /* Adjust modal padding */
+    .confirm-modal-content {
+        padding: 1.5rem;
+    }
+    
+    .confirm-modal-content h2 {
+        font-size: 1.3rem;
+    }
+    
+    .confirm-modal-content p {
+        font-size: 0.95rem;
+    }
+}
+
+/* ============================================
+   PRINT STYLES (Hide modals when printing)
+   ============================================ */
+
+@media print {
+    .modal,
+    #confirmModal,
+    .success-toast,
+    .floating-contact,
+    .back-to-top {
+        display: none !important;
+    }
+}
+
+/* ============================================
+   HIGH CONTRAST MODE SUPPORT
+   ============================================ */
+
+@media (prefers-contrast: high) {
+    #confirmModal button {
+        border: 2px solid currentColor;
+    }
+    
+    button:focus-visible {
+        outline: 3px solid currentColor;
+        outline-offset: 3px;
+    }
+}
+
+/* ============================================
+   REDUCED MOTION SUPPORT (Accessibility)
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    #confirmModal .modal-content,
+    .confirm-actions button,
+    .btn {
+        transition: none !important;
+        animation: none !important;
+    }
+    
+    .confirm-actions button:hover {
+        transform: none;
+    }
+}
+
+/* ============================================
+   FOCUS TRAP FOR MODALS (Accessibility)
+   ============================================ */
+
+/* When modal is active, everything behind should not be focusable */
+.modal.active ~ * {
+    pointer-events: none;
+}
+
+/* But modal itself should be focusable */
+.modal.active {
+    pointer-events: auto;
+}
+
+.modal.active * {
+    pointer-events: auto;
+}
+
+/* ============================================
+   ADDITIONAL BUTTON STATES
+   ============================================ */
+
+/* Loading state for buttons */
+button.loading {
+    pointer-events: none;
+    opacity: 0.7;
+    cursor: wait !important;
+}
+
+/* Button with spinner */
+button .fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================
+   FINAL OVERRIDES (Last Resort Fixes)
+   ============================================ */
+
+/* If somehow buttons still don't work, this is the nuclear option */
+#confirmOk,
+#confirmCancel {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    position: relative !important;
+    z-index: 99999 !important;
+}
+
+/* Ensure no parent blocks clicks */
+#confirmModal .confirm-actions {
+    position: relative;
+    z-index: 99998 !important;
+}
+
+/* ============================================
+   DEBUGGING HELPERS (Remove after testing)
+   ============================================ */
+
+/* Uncomment these to visually debug click areas
+#confirmModal button {
+    outline: 2px solid red !important;
+}
+
+#confirmModal .confirm-actions {
+    outline: 2px solid blue !important;
+}
+
+#confirmModal .modal-content {
+    outline: 2px solid green !important;
+}
+*/
+
+/* ============================================
+   END OF NEW CSS ADDITIONS
+   ============================================ */
+   /* ============================================
+   BORDER VISIBILITY FIXES
+   Add this to the END of your styles.css
+   ============================================ */
+
+/* ============================================
+   FIX: Export to Excel Button Border
+   ============================================ */
+
+/* Make Excel export button border visible */
+#exportExcel {
+    background: transparent;
+    color: var(--text);
+    border: 2px solid var(--primary) !important; /* Force visible border */
+    padding: 0.8rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+#exportExcel:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3);
+}
+
+/* ============================================
+   FIX: Export to CSV Button Border
+   ============================================ */
+
+/* Make CSV export button border visible */
+#exportCSV {
+    background: transparent;
+    color: var(--text);
+    border: 2px solid var(--primary) !important; /* Force visible border */
+    padding: 0.8rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+#exportCSV:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3);
+}
+
+/* ============================================
+   FIX: View Spreadsheet Button Border
+   ============================================ */
+
+/* View Spreadsheet button - make border visible */
+#viewSpreadsheetBtn {
+    background: transparent;
+    color: var(--text);
+    border: 2px solid var(--primary) !important;
+    padding: 0.8rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+}
+
+#viewSpreadsheetBtn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3);
+}
+
+/* ============================================
+   FIX: Export to JSON Button Border
+   ============================================ */
+
+/* JSON export button border */
+#exportJSON {
+    background: transparent;
+    color: var(--text);
+    border: 2px solid var(--primary) !important;
+    padding: 0.8rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+#exportJSON:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3);
+}
+
+/* ============================================
+   FIX: "Get In Touch" Button Border (Home Page)
+   ============================================ */
+
+/* Get In Touch button on home page */
+.cta-buttons .btn-secondary {
+    background: transparent;
+    color: var(--text);
+    border: 2px solid var(--primary) !important;
+    padding: 0.8rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.cta-buttons .btn-secondary:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3);
+}
+
+/* Ensure "View Projects" button stays solid */
+.cta-buttons .btn-primary {
+    background: var(--primary);
+    color: white;
+    border: 2px solid var(--primary);
+    padding: 0.8rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+/* ============================================
+   FIX: All Secondary Buttons (Global Fix)
+   ============================================ */
+
+/* Make ALL secondary/outline buttons have visible borders */
+.btn-secondary,
+.btn-outline {
+    background: transparent !important;
+    color: var(--text) !important;
+    border: 2px solid var(--primary) !important;
+}
+
+.btn-secondary:hover,
+.btn-outline:hover {
+    background: var(--primary) !important;
+    color: white !important;
+    border-color: var(--primary) !important;
+}
+
+/* ============================================
+   DARK MODE SPECIFIC FIXES
+   ============================================ */
+
+/* Ensure borders are visible in dark mode */
+[data-theme="dark"] .btn-secondary,
+[data-theme="dark"] .btn-outline,
+[data-theme="dark"] #exportExcel,
+[data-theme="dark"] #exportCSV,
+[data-theme="dark"] #exportJSON,
+[data-theme="dark"] #viewSpreadsheetBtn {
+    border-color: var(--primary) !important;
+    color: var(--text) !important;
+}
+
+[data-theme="dark"] .btn-secondary:hover,
+[data-theme="dark"] .btn-outline:hover,
+[data-theme="dark"] #exportExcel:hover,
+[data-theme="dark"] #exportCSV:hover,
+[data-theme="dark"] #exportJSON:hover,
+[data-theme="dark"] #viewSpreadsheetBtn:hover {
+    background: var(--primary) !important;
+    color: white !important;
+    border-color: var(--primary) !important;
+}
+
+/* ============================================
+   LIGHT MODE SPECIFIC FIXES (Extra Safety)
+   ============================================ */
+
+/* Ensure borders are visible in light mode too */
+[data-theme="light"] .btn-secondary,
+[data-theme="light"] .btn-outline,
+[data-theme="light"] #exportExcel,
+[data-theme="light"] #exportCSV,
+[data-theme="light"] #exportJSON,
+[data-theme="light"] #viewSpreadsheetBtn {
+    border-color: var(--primary) !important;
+    color: var(--primary) !important;
+}
+
+[data-theme="light"] .btn-secondary:hover,
+[data-theme="light"] .btn-outline:hover,
+[data-theme="light"] #exportExcel:hover,
+[data-theme="light"] #exportCSV:hover,
+[data-theme="light"] #exportJSON:hover,
+[data-theme="light"] #viewSpreadsheetBtn:hover {
+    background: var(--primary) !important;
+    color: white !important;
+}
+
+/* ============================================
+   FOCUS STATE FOR ACCESSIBILITY
+   ============================================ */
+
+/* Visible focus state for these buttons */
+.btn-secondary:focus-visible,
+.btn-outline:focus-visible,
+#exportExcel:focus-visible,
+#exportCSV:focus-visible,
+#exportJSON:focus-visible,
+#viewSpreadsheetBtn:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+}
+
+/* ============================================
+   EXPORT BUTTONS CONTAINER FIX
+   ============================================ */
+
+/* Ensure export buttons are properly styled */
+.export-buttons .btn {
+    min-width: 200px;
+    justify-content: center;
+    border: 2px solid var(--primary) !important;
+}
+
+.export-buttons .btn-primary {
+    background: var(--primary) !important;
+    color: white !important;
+}
+
+.export-buttons .btn-secondary,
+.export-buttons .btn-outline {
+    background: transparent !important;
+    color: var(--text) !important;
+}
+
+/* ============================================
+   GOOGLE SHEETS SYNC CONTROLS FIX
+   ============================================ */
+
+/* Sync controls buttons */
+.sync-controls .btn {
+    border: 2px solid var(--primary) !important;
+}
+
+.sync-controls .btn-primary {
+    background: var(--primary) !important;
+    color: white !important;
+}
+
+.sync-controls .btn-secondary {
+    background: transparent !important;
+    color: var(--text) !important;
+}
+
+.sync-controls .btn-secondary:hover {
+    background: var(--primary) !important;
+    color: white !important;
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+
+@media (max-width: 768px) {
+    /* Ensure borders are visible on mobile */
+    .btn-secondary,
+    .btn-outline,
+    #exportExcel,
+    #exportCSV,
+    #exportJSON,
+    #viewSpreadsheetBtn {
+        border-width: 2px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Slightly thicker borders on small screens for visibility */
+    .btn-secondary,
+    .btn-outline,
+    #exportExcel,
+    #exportCSV,
+    #exportJSON,
+    #viewSpreadsheetBtn {
+        border-width: 2.5px !important;
+    }
+}
+/* Additional fix for Export to Excel button */
+#exportExcel {
+    background: transparent !important;
+    color: var(--text) !important;
+    border: 2px solid var(--primary) !important;
+}
+
+#exportExcel:hover {
+    background: var(--primary) !important;
+    color: white !important;
+}
+/* Add to your CSS */
+@media (max-width: 768px) {
+    #resumeModal .modal-content {
+        width: 95%;
+        height: 90vh;
+        padding: 1rem;
+    }
+    
+    #resumeFrame {
+        height: calc(90vh - 80px);
+    }
+}
+/* ============================================
+   DEBUGGING HELPER (Optional)
+   Uncomment to see exactly where borders are
+   ============================================ */
+
+/*
+.btn-secondary,
+.btn-outline,
+#exportExcel,
+#exportCSV,
+#exportJSON,
+#viewSpreadsheetBtn {
+    box-shadow: 0 0 0 3px red !important;
+}
+*/
+
+/* ============================================
+   END OF BORDER VISIBILITY FIXES
+   ============================================ */
