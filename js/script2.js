@@ -70,9 +70,9 @@ let isDeleting = false;
 function typeEffect() {
     const typedElement = document.getElementById('typedText');
     if (!typedElement) return;
-    
+
     const current = roles[roleIndex];
-    
+
     if (isDeleting) {
         typedElement.textContent = current.substring(0, charIndex - 1);
         charIndex--;
@@ -80,7 +80,7 @@ function typeEffect() {
         typedElement.textContent = current.substring(0, charIndex + 1);
         charIndex++;
     }
-    
+
     if (!isDeleting && charIndex === current.length) {
         isDeleting = true;
         setTimeout(typeEffect, 2000);
@@ -130,7 +130,7 @@ if (floatingContact) {
 // ============================================
 function animateSkillBars() {
     const skillBars = document.querySelectorAll('.skill-progress');
-    
+
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -140,7 +140,7 @@ function animateSkillBars() {
             }
         });
     }, { threshold: 0.5 });
-    
+
     skillBars.forEach(bar => {
         bar.style.width = '0%';
         observer.observe(bar);
@@ -155,13 +155,13 @@ setTimeout(animateSkillBars, 500);
 // ============================================
 const projectSearch = document.getElementById('projectSearch');
 if (projectSearch) {
-    projectSearch.addEventListener('input', function(e) {
+    projectSearch.addEventListener('input', function (e) {
         const searchTerm = e.target.value.toLowerCase();
-        
+
         document.querySelectorAll('.project-card').forEach(card => {
             const title = card.querySelector('h3').textContent.toLowerCase();
             const description = card.querySelector('p').textContent.toLowerCase();
-            
+
             if (title.includes(searchTerm) || description.includes(searchTerm)) {
                 card.style.display = 'block';
                 card.style.animation = 'fadeIn 0.3s ease';
@@ -176,12 +176,12 @@ if (projectSearch) {
 // PROJECT FILTERING
 // ============================================
 document.querySelectorAll('.project-filters .filter-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
+    btn.addEventListener('click', function () {
         const filter = this.getAttribute('data-filter');
-        
+
         document.querySelectorAll('.project-filters .filter-btn').forEach(b => b.classList.remove('active'));
         this.classList.add('active');
-        
+
         document.querySelectorAll('.project-card').forEach(card => {
             if (filter === 'all' || card.getAttribute('data-category') === filter) {
                 card.style.display = 'block';
@@ -205,7 +205,7 @@ const RATE_LIMIT = 60000; // 1 minute
 // Override the original contact form submit
 const originalContactForm = document.getElementById('contactForm');
 if (originalContactForm) {
-    originalContactForm.addEventListener('submit', function(e) {
+    originalContactForm.addEventListener('submit', function (e) {
         const now = Date.now();
         if (now - lastSubmitTime < RATE_LIMIT) {
             e.preventDefault();
@@ -242,36 +242,49 @@ window.sanitizeInput = sanitizeInput;
  */
 async function trackVisitorLocation() {
     try {
-        console.log('🌍 Starting location tracking...');
-        
+        // Respect cookie consent
+        if (localStorage.getItem('cookieConsent') !== 'accepted') {
+            return;
+        }
         // Fetch location data from ipapi.co (HTTPS)
         const response = await fetch('https://ipapi.co/json/');
-        
+
         // Check if request was successful
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        
+
         // Check for API errors (rate limiting, etc.)
         if (data.error) {
             console.warn('⚠️ Location API error:', data.reason);
             return; // Exit gracefully without breaking the site
         }
-        
+
         // Validate we got location data
         if (!data.country || !data.ip) {
             console.warn('⚠️ Incomplete location data received');
             return;
         }
-        
-        console.log('✅ Location data fetched:', data.city, data.country_name);
-        
+
+
+
         // Save to Firebase if available
         if (window.firebaseDb && window.firebaseModules) {
-            const { collection, addDoc, Timestamp } = window.firebaseModules;
-            
+            const { collection, addDoc, getDocs, query, where, Timestamp } = window.firebaseModules;
+
+            // Check for duplicate IP — skip if already tracked today
+            const lastTrackedIP = localStorage.getItem('lastTrackedIP');
+            const lastTrackedTime = localStorage.getItem('lastTrackedTime');
+            const now = Date.now();
+            const ONE_DAY = 24 * 60 * 60 * 1000;
+
+            if (lastTrackedIP === data.ip && lastTrackedTime && (now - parseInt(lastTrackedTime)) < ONE_DAY) {
+                // Already tracked this IP within 24 hours, skip
+                return;
+            }
+
             // Prepare visitor data
             const visitorData = {
                 // Location info
@@ -281,51 +294,62 @@ async function trackVisitorLocation() {
                 city: data.city || 'Unknown',
                 region: data.region || 'Unknown',
                 regionCode: data.region_code || 'Unknown',
-                
+
                 // Additional details
                 timezone: data.timezone || 'Unknown',
                 postal: data.postal || 'Unknown',
                 latitude: data.latitude || null,
                 longitude: data.longitude || null,
-                
+
                 // ISP/Network info
-                org: data.org || 'Unknown', // ISP name
-                asn: data.asn || 'Unknown', // Autonomous System Number
-                
+                org: data.org || 'Unknown',
+                asn: data.asn || 'Unknown',
+
                 // Metadata
                 timestamp: Timestamp.now(),
                 date: new Date().toLocaleDateString(),
                 dateTime: new Date().toLocaleString(),
-                
-                // Browser info (optional)
+
+                // Browser info
                 userAgent: navigator.userAgent,
                 language: navigator.language,
                 platform: navigator.platform,
                 screenResolution: `${screen.width}x${screen.height}`,
-                
+
                 // Page info
                 referrer: document.referrer || 'Direct',
                 currentPage: window.location.pathname
             };
-            
-            // Save to Firebase
-            const docRef = await addDoc(collection(window.firebaseDb, 'visitors'), visitorData);
-            
-            console.log('✅ Visitor tracked successfully! Doc ID:', docRef.id);
-            console.log('   Location:', data.city, ',', data.country_name);
-            console.log('   IP:', data.ip);
-            
+
+            // Save to visitors collection
+            await addDoc(collection(window.firebaseDb, 'visitors'), visitorData);
+
+            // Also save to analytics collection (used by admin panel for total views)
+            await addDoc(collection(window.firebaseDb, 'analytics'), {
+                type: 'page_view',
+                ip: data.ip || 'Unknown',
+                country: data.country_name || 'Unknown',
+                city: data.city || 'Unknown',
+                timestamp: Timestamp.now(),
+                date: new Date().toLocaleDateString()
+            });
+
+            // Mark as tracked to prevent duplicates
+            localStorage.setItem('lastTrackedIP', data.ip);
+            localStorage.setItem('lastTrackedTime', now.toString());
+
+
+
         } else {
-            console.warn('⚠️ Firebase not initialized - location data not saved');
+
         }
-        
+
     } catch (error) {
         // Log error but don't break the site
-        console.log('⚠️ Location tracking skipped:', error.message);
-        
+        // Silently fail - don't break the site
+
         // If it's a network error, provide helpful info
         if (error.message.includes('Failed to fetch')) {
-            console.log('   Possible causes: Network issue, API rate limit, or ad blocker');
         }
     }
 }
@@ -353,16 +377,16 @@ window.addEventListener('load', () => {
  * Test location tracking manually
  * Call this in console to test: testLocationTracking()
  */
-window.testLocationTracking = async function() {
+window.testLocationTracking = async function () {
     console.log('\n%c🧪 MANUAL LOCATION TRACKING TEST', 'font-size: 16px; font-weight: bold; color: #10b981; background: #dcfce7; padding: 10px;');
     console.log('====================================\n');
-    
+
     try {
         // Step 1: Fetch location
         console.log('1️⃣ Fetching location data...');
         const response = await fetch('https://ipapi.co/json/');
         const data = await response.json();
-        
+
         if (data.error) {
             console.error('❌ API Error:', data.reason);
             console.log('\n💡 This usually means:');
@@ -370,9 +394,9 @@ window.testLocationTracking = async function() {
             console.log('   - Try again in a few minutes');
             return;
         }
-        
+
         console.log('✅ Location data received!\n');
-        
+
         // Display in table format
         console.table({
             'IP Address': data.ip,
@@ -384,13 +408,13 @@ window.testLocationTracking = async function() {
             'ISP/Org': data.org,
             'Coordinates': `${data.latitude}, ${data.longitude}`
         });
-        
+
         // Step 2: Save to Firebase
         if (window.firebaseDb && window.firebaseModules) {
             console.log('\n2️⃣ Saving to Firebase...');
-            
+
             const { collection, addDoc, Timestamp } = window.firebaseModules;
-            
+
             const docRef = await addDoc(collection(window.firebaseDb, 'visitors'), {
                 ip: data.ip,
                 country: data.country,
@@ -403,22 +427,22 @@ window.testLocationTracking = async function() {
                 date: new Date().toLocaleDateString(),
                 testMode: true // Mark as test
             });
-            
+
             console.log('✅ Saved to Firebase!');
             console.log('   Document ID:', docRef.id);
             console.log('   Collection: visitors');
             console.log('\n🔗 Check your Firebase Console to see the data');
-            
+
         } else {
             console.warn('⚠️ Firebase not available - data not saved');
         }
-        
+
         console.log('\n%c✅ TEST COMPLETE!', 'font-size: 14px; font-weight: bold; color: #166534; background: #dcfce7; padding: 8px;');
-        
+
     } catch (error) {
         console.error('\n%c❌ TEST FAILED!', 'font-size: 14px; font-weight: bold; color: #991b1b; background: #fee2e2; padding: 8px;');
         console.error('Error:', error.message);
-        
+
         if (error.message.includes('Failed to fetch')) {
             console.log('\n💡 Troubleshooting:');
             console.log('   1. Check your internet connection');
@@ -440,28 +464,28 @@ window.testLocationTracking = async function() {
 async function trackVisitorLocationFallback() {
     try {
         console.log('🔄 Using fallback location API (ipwhois.app)...');
-        
+
         // Step 1: Get IP from ipify
         const ipResponse = await fetch('https://api.ipify.org?format=json');
         const ipData = await ipResponse.json();
         const userIP = ipData.ip;
-        
+
         console.log('   Got IP:', userIP);
-        
+
         // Step 2: Get location from IP
         const locationResponse = await fetch(`https://ipwhois.app/json/${userIP}`);
         const data = await locationResponse.json();
-        
+
         if (data.success === false) {
             throw new Error('Location lookup failed');
         }
-        
+
         console.log('✅ Fallback location data fetched:', data.city, data.country);
-        
+
         // Save to Firebase
         if (window.firebaseDb && window.firebaseModules) {
             const { collection, addDoc, Timestamp } = window.firebaseModules;
-            
+
             await addDoc(collection(window.firebaseDb, 'visitors'), {
                 ip: data.ip,
                 country: data.country_code,
@@ -474,10 +498,10 @@ async function trackVisitorLocationFallback() {
                 date: new Date().toLocaleDateString(),
                 api: 'ipwhois.app' // Mark which API was used
             });
-            
+
             console.log('✅ Visitor tracked (fallback API)');
         }
-        
+
     } catch (error) {
         console.log('⚠️ Fallback tracking also failed:', error.message);
     }
@@ -487,9 +511,7 @@ async function trackVisitorLocationFallback() {
 window.trackVisitorLocation = trackVisitorLocation;
 window.trackVisitorLocationFallback = trackVisitorLocationFallback;
 
-console.log('✅ Location tracking functions loaded');
-console.log('💡 Test with: testLocationTracking()');
-console.log('🔄 Fallback available: trackVisitorLocationFallback()');
+
 // ============================================
 // TIMELINE ANIMATION
 // ============================================
@@ -514,20 +536,20 @@ timelineItems.forEach(item => {
 // TOOLTIP FUNCTIONALITY
 // ============================================
 document.querySelectorAll('[data-tooltip]').forEach(element => {
-    element.addEventListener('mouseenter', function() {
+    element.addEventListener('mouseenter', function () {
         const tooltip = document.createElement('div');
         tooltip.className = 'custom-tooltip';
         tooltip.textContent = this.getAttribute('data-tooltip');
         document.body.appendChild(tooltip);
-        
+
         const rect = this.getBoundingClientRect();
         tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
         tooltip.style.top = rect.top - tooltip.offsetHeight - 10 + 'px';
-        
+
         this._tooltip = tooltip;
     });
-    
-    element.addEventListener('mouseleave', function() {
+
+    element.addEventListener('mouseleave', function () {
         if (this._tooltip) {
             this._tooltip.remove();
             delete this._tooltip;
@@ -540,7 +562,7 @@ document.querySelectorAll('[data-tooltip]').forEach(element => {
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
     const lazyImages = document.querySelectorAll('img[loading="lazy"]');
-    
+
     if ('IntersectionObserver' in window) {
         const imageObserver = new IntersectionObserver((entries, observer) => {
             entries.forEach(entry => {
@@ -554,7 +576,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         });
-        
+
         lazyImages.forEach(img => imageObserver.observe(img));
     }
 });
@@ -569,9 +591,10 @@ document.addEventListener('keydown', (e) => {
         const searchInput = document.getElementById('projectSearch');
         if (searchInput) searchInput.focus();
     }
-    
+
     // Arrow keys for project navigation in modal
-    if (document.getElementById('projectModal').classList.contains('active')) {
+    const projectModal = document.getElementById('projectModal');
+    if (projectModal && projectModal.classList.contains('active')) {
         if (e.key === 'ArrowLeft') {
             // Previous project logic here
         }
@@ -625,12 +648,14 @@ console.log('   - likeProject(projectId)');
 // ============================================
 // PERFORMANCE MONITORING
 // ============================================
-if (window.performance) {
+if (window.performance && window.PerformanceNavigationTiming) {
     window.addEventListener('load', () => {
         setTimeout(() => {
-            const perfData = window.performance.timing;
-            const pageLoadTime = perfData.loadEventEnd - perfData.navigationStart;
-            console.log(`⚡ Page loaded in ${pageLoadTime}ms`);
+            const [entry] = performance.getEntriesByType('navigation');
+            if (entry) {
+                const pageLoadTime = Math.round(entry.loadEventEnd - entry.startTime);
+                console.log(`Page loaded in ${pageLoadTime}ms`);
+            }
         }, 0);
     });
 }
@@ -671,5 +696,207 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e)
 });
 
 
+// ============================================
+// #12 — PAGE LOAD PROGRESS BAR
+// ============================================
+(function () {
+    const bar = document.getElementById('pageProgress');
+    if (!bar) return;
 
-console.log('✅ New features loaded successfully!');
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += Math.random() * 15 + 5;
+        if (progress > 90) progress = 90;
+        bar.style.width = progress + '%';
+    }, 200);
+
+    window.addEventListener('load', () => {
+        clearInterval(interval);
+        bar.style.width = '100%';
+        setTimeout(() => bar.classList.add('done'), 300);
+        setTimeout(() => { bar.style.display = 'none'; }, 800);
+    });
+})();
+
+// ============================================
+// #13 — SCROLL PROGRESS INDICATOR
+// ============================================
+(function () {
+    const bar = document.getElementById('scrollProgress');
+    if (!bar) return;
+
+    window.addEventListener('scroll', () => {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const scrollPercent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+        bar.style.width = scrollPercent + '%';
+    }, { passive: true });
+})();
+
+// ============================================
+// #11 — CUSTOM CURSOR
+// ============================================
+(function () {
+    // Only on devices with fine pointer (mouse)
+    if (!window.matchMedia('(pointer: fine)').matches) return;
+
+    const cursor = document.getElementById('customCursor');
+    const follower = document.getElementById('customCursorFollower');
+    if (!cursor || !follower) return;
+
+    let mouseX = 0, mouseY = 0;
+    let followerX = 0, followerY = 0;
+
+    document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        cursor.style.left = mouseX + 'px';
+        cursor.style.top = mouseY + 'px';
+    });
+
+    // Smooth follower with requestAnimationFrame
+    function animateFollower() {
+        followerX += (mouseX - followerX) * 0.15;
+        followerY += (mouseY - followerY) * 0.15;
+        follower.style.left = followerX + 'px';
+        follower.style.top = followerY + 'px';
+        requestAnimationFrame(animateFollower);
+    }
+    animateFollower();
+
+    // Hover effect on interactive elements
+    const hoverTargets = 'a, button, input, textarea, .btn, .filter-btn, .project-card, .theme-toggle, .cert-link, .social-links a, .nav-links a';
+
+    document.addEventListener('mouseover', (e) => {
+        if (e.target.closest(hoverTargets)) {
+            cursor.classList.add('hovering');
+            follower.classList.add('hovering');
+        }
+    });
+
+    document.addEventListener('mouseout', (e) => {
+        if (e.target.closest(hoverTargets)) {
+            cursor.classList.remove('hovering');
+            follower.classList.remove('hovering');
+        }
+    });
+
+    // Hide when mouse leaves window
+    document.addEventListener('mouseleave', () => {
+        cursor.style.opacity = '0';
+        follower.style.opacity = '0';
+    });
+    document.addEventListener('mouseenter', () => {
+        cursor.style.opacity = '1';
+        follower.style.opacity = '0.5';
+    });
+})();
+
+// ============================================
+// #1 — ANIMATED STATS COUNTER
+// ============================================
+(function () {
+    const counters = document.querySelectorAll('.stat-number');
+    if (counters.length === 0) return;
+
+    let animated = false;
+
+    function animateCounters() {
+        if (animated) return;
+        animated = true;
+
+        counters.forEach(counter => {
+            const target = parseInt(counter.getAttribute('data-target'));
+            const duration = 1500; // ms
+            const startTime = performance.now();
+
+            function updateCount(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                // Ease out cubic
+                const eased = 1 - Math.pow(1 - progress, 3);
+                const current = Math.round(eased * target);
+                counter.textContent = current;
+
+                if (progress < 1) {
+                    requestAnimationFrame(updateCount);
+                } else {
+                    counter.textContent = target;
+                }
+            }
+            requestAnimationFrame(updateCount);
+        });
+    }
+
+    // Trigger when stats section scrolls into view
+    const statsSection = document.querySelector('.stats-counter');
+    if (statsSection) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    animateCounters();
+                    observer.disconnect();
+                }
+            });
+        }, { threshold: 0.3 });
+        observer.observe(statsSection);
+    }
+})();
+
+// ============================================
+// #6 — RESUME DOWNLOAD ANALYTICS
+// ============================================
+(function () {
+    const resumeBtn = document.getElementById('viewResumeBtn');
+    if (!resumeBtn) return;
+
+    resumeBtn.addEventListener('click', async () => {
+        try {
+            if (localStorage.getItem('cookieConsent') !== 'accepted') return;
+            if (window.firebaseDb && window.firebaseModules) {
+                const { collection, addDoc, Timestamp } = window.firebaseModules;
+                await addDoc(collection(window.firebaseDb, 'analytics'), {
+                    type: 'resume_download',
+                    timestamp: Timestamp.now(),
+                    date: new Date().toLocaleDateString()
+                });
+            }
+        } catch (e) {
+            // Silent fail
+        }
+    });
+})();
+
+// ============================================
+// #15 — VISITOR COUNT BADGE
+// ============================================
+(function () {
+    const badge = document.getElementById('visitorCount');
+    if (!badge) return;
+
+    async function loadVisitorCount() {
+        try {
+            if (window.firebaseDb && window.firebaseModules) {
+                const { collection, getDocs } = window.firebaseModules;
+                // Read from 'analytics' collection (same as admin panel total views)
+                const snapshot = await getDocs(collection(window.firebaseDb, 'analytics'));
+                const totalViews = snapshot.size;
+                badge.textContent = totalViews.toLocaleString();
+            }
+        } catch (e) {
+            badge.textContent = '0';
+        }
+    }
+
+    // Wait for Firebase to initialize
+    const checkFirebase = setInterval(() => {
+        if (window.firebaseDb && window.firebaseModules) {
+            clearInterval(checkFirebase);
+            loadVisitorCount();
+        }
+    }, 500);
+
+    // Clear after 15 seconds if Firebase never loads
+    setTimeout(() => clearInterval(checkFirebase), 15000);
+})();
+

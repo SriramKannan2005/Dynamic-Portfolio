@@ -1,0 +1,76 @@
+{
+  "1": {
+      "title": "Smart-Exam-Evaluator",
+      "description": "An AI-powered exam evaluation system that automates grading of handwritten multiple-choice answer sheets using Google Gemini, Flask, and OpenCV. It enables educators to set up tests, process scanned answer sheets, and generate detailed Excel-based performance reports. The platform supports real-time analysis, consolidated reporting, and an intuitive frontend dashboard for seamless test management.",
+      "techStack": ["Flask", "Google Gemini API", "OpenCV", "JavaScript", "HTML", "CSS", "OpenPyXL", "Pandas", "Machine Learning"],
+      "github": "https://github.com/SriramKannan2005/Smart-Exam-Evaluvator",
+      "video": "assets/videos/smart.mp4",
+      "image": "assets/images/projects/project1.png",
+      "category": "ai",
+      "icon": "fas fa-robot"
+  },
+  "2": {
+      "title": "GenAI Multi-Document Intelligence System",
+      "description": "An advanced AI-powered document analysis platform that enables users to upload, analyze, and query multiple documents simultaneously. The system leverages Generative AI and Natural Language Processing to extract contextual insights, provide precise citations, and deliver intelligent responses with real-time analytics through interactive visualizations.",
+      "techStack": ["HTML", "CSS", "JavaScript", "Chart.js", "Generative AI", "NLP", "Flask", "Google Gemini API", "Machine Learning"],
+      "github": "https://github.com/SriramKannan2005/Info-Nexus",
+      "video": "assets/videos/doc.mp4",
+      "image": "assets/images/projects/project2.png",
+      "category": "ai",
+      "icon": "fas fa-file-alt"
+  },
+  "3": {
+      "title": "CineHome+ | AI-Powered Personal Cinema",
+      "description": "An intelligent, locally hosted OTT-style platform that transforms your personal video library into an immersive cinema experience. CineHome+ integrates gesture-based video controls, AI-powered chat assistance, and user-adaptive recommendations using the Gemini API. It supports video streaming, watch history, and real-time interactions for a seamless home-theater experience.",
+      "techStack": ["HTML", "CSS", "JavaScript", "Flask", "MediaPipe", "OpenCV", "Google Gemini API", "AI Chatbot", "Gesture Recognition", "Computer Vision"],
+      "github": "https://github.com/SriramKannan2005/media-player",
+      "video": "assets/videos/me.mp4",
+      "image": "assets/images/projects/project3.png",
+      "category": "ai",
+      "icon": "fas fa-film"
+  },
+  "4": {
+      "title": "The Chai Time POS",
+      "description": "A Point of Sale (POS) system designed for chai shops and small food businesses. Features include order management, real-time billing, sales tracking, and a clean, intuitive interface for quick service. Built with vanilla JavaScript for fast, dependency-free operation.",
+      "techStack": ["HTML", "CSS", "JavaScript"],
+      "github": "https://github.com/SriramKannan2005/The-Chai-Time-POS",
+      "video": "",
+      "image": "",
+      "category": "web",
+      "icon": "fas fa-mug-hot",
+      "iconColor": ["#f59e0b", "#d97706"]
+  },
+  "5": {
+      "title": "Wedding Flowers Delivery App",
+      "description": "A full-stack e-commerce platform for wedding flower delivery services. Features secure JWT authentication, product catalog with categories and pricing, flower customization (types & colors), bulk ordering with status tracking, auto-generated PDF bills, and a comprehensive admin dashboard for inventory and order management.",
+      "techStack": ["React", "Spring Boot", "MySQL", "JWT", "Spring Security", "Vite"],
+      "github": "https://github.com/SriramKannan2005/flower-delivery-application-frontend-",
+      "video": "",
+      "image": "",
+      "category": "web",
+      "icon": "fas fa-seedling",
+      "iconColor": ["#ec4899", "#f43f5e"]
+  },
+  "6": {
+      "title": "Job Analytics Dashboard",
+      "description": "An end-to-end data analysis and visualization project built using the Job Descriptions Dataset from Kaggle. Features interactive filter-driven insights across salary, geography, qualifications, company size, work type, and job portals. Includes extensive data cleaning, salary parsing, experience extraction, and geospatial mapping.",
+      "techStack": ["Python", "Jupyter Notebook", "Data Visualization", "Pandas", "Machine Learning"],
+      "github": "https://github.com/SriramKannan2005/Job-Analytics-Dashboard",
+      "video": "",
+      "image": "",
+      "category": "ml",
+      "icon": "fas fa-chart-bar",
+      "iconColor": ["#3b82f6", "#1d4ed8"]
+  },
+  "7": {
+      "title": "Digital Clock",
+      "description": "A sleek, responsive digital clock application featuring real-time display with hours, minutes, and seconds. Supports dark and light themes with smooth CSS animations for an elegant user experience.",
+      "techStack": ["HTML", "CSS", "JavaScript"],
+      "github": "https://github.com/SriramKannan2005/Digital-Clock",
+      "video": "",
+      "image": "",
+      "category": "web",
+      "icon": "fas fa-clock",
+      "iconColor": ["#10b981", "#059669"]
+  }
+}

@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Messages collection
+    match /messages/{messageId} {
+      allow read, delete, update: if request.auth != null;
+      allow create: if true;
+    }
+    
+    // Admin content
+    match /admin/{document=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Analytics collection (public read for visitor count badge)
+    match /analytics/{analyticsId} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if false;
+    }
+    
+    // Page views tracking
+    match /pageViews/{viewId} {
+      allow read: if request.auth != null;
+      allow create: if true;
+      allow update, delete: if false;
+    }
+    
+    // Visitor tracking
+    match /visitors/{visitorId} {
+      allow read: if request.auth != null;
+      allow create: if true;
+      allow update, delete: if false;
+    }
+    
+    // ✅ FIXED: Project views (was projectViews, now matches code)
+    match /projectViews/{viewId} {
+      allow read: if true;  // ✅ Changed to allow public read
+      allow create: if true;
+      allow update, delete: if false;
+    }
+    
+    // Project likes
+    match /projectLikes/{likeId} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if false;
+    }
+  }
+}

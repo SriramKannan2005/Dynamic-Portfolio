@@ -49,7 +49,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: -1;
+    z-index: 0;
     overflow: hidden;
     pointer-events: none;
 }
@@ -58,7 +58,7 @@ body {
     position: absolute;
     border-radius: 50%;
     filter: blur(80px);
-    opacity: 0.5;
+    opacity: 0.6;
     animation: float 20s infinite ease-in-out;
 }
 
@@ -103,15 +103,20 @@ body {
 }
 
 @keyframes float {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translate(0, 0) rotate(0deg);
     }
+
     25% {
         transform: translate(100px, -100px) rotate(90deg);
     }
+
     50% {
         transform: translate(-50px, 100px) rotate(180deg);
     }
+
     75% {
         transform: translate(-100px, -50px) rotate(270deg);
     }
@@ -125,6 +130,20 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
+}
+
+/* Ensure all page content sits above background blobs */
+header,
+footer,
+section,
+.modal,
+.preloader,
+#cookieConsent,
+.floating-contact,
+.back-to-top,
+.cert-lightbox {
+    position: relative;
+    z-index: 1;
 }
 
 /* Header Styles */
@@ -282,24 +301,29 @@ nav {
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
+
 .admin-panel a:focus {
     outline: none;
     box-shadow: none;
 }
+
 .admin-panel a:focus-visible {
     outline: none;
     border-bottom: 2px solid var(--primary);
     color: var(--primary);
 }
+
 .admin-header a:focus {
     outline: none;
     box-shadow: none;
 }
+
 .admin-header a:focus-visible {
     outline: none;
     border-bottom: 2px solid var(--primary);
     color: var(--primary);
 }
+
 /* Remove default focus outline from navbar links */
 .nav-links a:focus {
     outline: none;
@@ -442,9 +466,12 @@ nav {
 }
 
 @keyframes pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         opacity: 1;
     }
+
     50% {
         opacity: 0.7;
     }
@@ -790,9 +817,11 @@ nav {
     0% {
         transform: scale(0);
     }
+
     50% {
         transform: scale(1.2);
     }
+
     100% {
         transform: scale(1);
     }
@@ -803,6 +832,7 @@ nav {
         transform: translateY(-50px);
         opacity: 0;
     }
+
     to {
         transform: translateY(0);
         opacity: 1;
@@ -1275,6 +1305,7 @@ nav {
 .github-link:hover {
     color: var(--primary-dark);
 }
+
 /* Remove default focus outline for GitHub or project links */
 .github-link:focus {
     outline: none;
@@ -1286,7 +1317,8 @@ nav {
     outline: none;
     border: 2px solid var(--primary);
     border-radius: 6px;
-    padding: 0.2rem 0.5rem; /* slight inner space for border */
+    padding: 0.2rem 0.5rem;
+    /* slight inner space for border */
 }
 
 
@@ -2478,24 +2510,24 @@ footer {
     .analytics-cards {
         grid-template-columns: 1fr;
     }
-    
+
     .export-buttons {
         flex-direction: column;
     }
-    
+
     .export-buttons .btn {
         width: 100%;
     }
-    
+
     .sync-controls {
         flex-direction: column;
         align-items: stretch;
     }
-    
+
     .sync-controls .btn {
         width: 100%;
     }
-    
+
     .sync-status {
         flex-direction: column;
         align-items: flex-start;
@@ -2507,17 +2539,18 @@ footer {
     .analytics-number {
         font-size: 1.5rem;
     }
-    
+
     .analytics-icon {
         width: 50px;
         height: 50px;
         font-size: 1.5rem;
     }
-    
+
     .chart-container {
         height: 250px;
     }
 }
+
 /* ============================================
    NEW FEATURES CSS
    Add this file to your project and include it in HTML:
@@ -2562,8 +2595,13 @@ footer {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* ============================================
@@ -2594,8 +2632,16 @@ footer {
 }
 
 @keyframes blink {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0; }
+
+    0%,
+    50% {
+        opacity: 1;
+    }
+
+    51%,
+    100% {
+        opacity: 0;
+    }
 }
 
 /* ============================================
@@ -2611,8 +2657,15 @@ footer {
 }
 
 @keyframes gradientShift {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
+
+    0%,
+    100% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
 }
 
 /* ============================================
@@ -2721,18 +2774,21 @@ footer {
     left: 0;
     bottom: 0;
     right: 0;
-    background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.3),
-        transparent
-    );
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.3),
+            transparent);
     animation: shimmer 2s infinite;
 }
 
 @keyframes shimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
 }
 
 /* ============================================
@@ -2991,6 +3047,7 @@ footer {
         opacity: 0;
         transform: translateY(5px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -3010,6 +3067,7 @@ footer {
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -3277,11 +3335,11 @@ footer {
     transition: transform 0.3s;
 }
 
-.toggle-switch input[type="checkbox"]:checked + .toggle-slider {
+.toggle-switch input[type="checkbox"]:checked+.toggle-slider {
     background: var(--success);
 }
 
-.toggle-switch input[type="checkbox"]:checked + .toggle-slider::before {
+.toggle-switch input[type="checkbox"]:checked+.toggle-slider::before {
     transform: translateX(24px);
 }
 
@@ -3457,6 +3515,7 @@ footer {
    PRINT STYLES
    ============================================ */
 @media print {
+
     .back-to-top,
     .floating-contact,
     header,
@@ -3499,6 +3558,7 @@ footer {
    REDUCED MOTION
    ============================================ */
 @media (prefers-reduced-motion: reduce) {
+
     *,
     *::before,
     *::after {
@@ -3651,6 +3711,7 @@ footer {
         opacity: 0;
         transform: translateY(-50px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -3658,9 +3719,12 @@ footer {
 }
 
 @keyframes pulse {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: scale(1);
     }
+
     50% {
         transform: scale(1.05);
     }
@@ -3672,16 +3736,17 @@ footer {
         padding: 1.5rem;
         max-width: 90%;
     }
-    
+
     .confirm-actions {
         flex-direction: column;
     }
-    
+
     .confirm-actions button {
         width: 100%;
         justify-content: center;
     }
 }
+
 /* Add to your styles.css */
 .confirm-modal-content {
     position: relative;
@@ -3702,7 +3767,8 @@ footer {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    pointer-events: auto; /* ✅ Ensure buttons are clickable */
+    pointer-events: auto;
+    /* ✅ Ensure buttons are clickable */
 }
 
 .confirm-actions .btn-primary {
@@ -3717,8 +3783,9 @@ footer {
 
 .confirm-actions button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
+
 /* ============================================
    CONFIRMATION MODAL - CRITICAL FIXES
    ============================================ */
@@ -3767,6 +3834,7 @@ footer {
     outline: 2px solid var(--primary) !important;
     outline-offset: 2px !important;
 }
+
 /* ============================================
    IMPROVED ACCESSIBILITY & FOCUS MANAGEMENT
    ============================================ */
@@ -3817,7 +3885,8 @@ img:focus,
 }
 
 /* Remove tap highlight on mobile (no !important needed) */
-a, button {
+a,
+button {
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -3827,29 +3896,35 @@ a, button {
 
 /* Update existing z-index values to use consistent system */
 header {
-    z-index: 1000; /* Already correct */
+    z-index: 1000;
+    /* Already correct */
 }
 
 .floating-contact {
-    z-index: 998; /* Already correct */
+    z-index: 998;
+    /* Already correct */
 }
 
 .back-to-top {
-    z-index: 999; /* Already correct */
+    z-index: 999;
+    /* Already correct */
 }
 
 /* Base modals - updated z-index */
 .modal {
-    z-index: 9000; /* Increased from 2000 */
+    z-index: 9000;
+    /* Increased from 2000 */
 }
 
 .admin-panel {
-    z-index: 10000; /* Already correct */
+    z-index: 10000;
+    /* Already correct */
 }
 
 /* Success toast - highest priority for notifications */
 .success-toast {
-    z-index: 11000; /* Increased from 3000 */
+    z-index: 11000;
+    /* Increased from 3000 */
 }
 
 /* ============================================
@@ -4071,49 +4146,51 @@ select:focus {
    ============================================ */
 
 @media (max-width: 768px) {
+
     /* Ensure touch targets are large enough on mobile */
     .confirm-actions button {
         min-height: 44px;
         padding: 0.75rem 1.5rem;
     }
-    
+
     /* Make sure modals are properly sized on mobile */
     #confirmModal .modal-content {
         width: 95%;
         max-width: 450px;
     }
-    
+
     /* Ensure buttons stack nicely on mobile */
     .confirm-actions {
         flex-direction: column;
         gap: 0.75rem;
     }
-    
+
     .confirm-actions button {
         width: 100%;
     }
 }
 
 @media (max-width: 480px) {
+
     /* Smaller confirm icon on small screens */
     .confirm-icon {
         width: 60px;
         height: 60px;
     }
-    
+
     .confirm-icon i {
         font-size: 2rem;
     }
-    
+
     /* Adjust modal padding */
     .confirm-modal-content {
         padding: 1.5rem;
     }
-    
+
     .confirm-modal-content h2 {
         font-size: 1.3rem;
     }
-    
+
     .confirm-modal-content p {
         font-size: 0.95rem;
     }
@@ -4124,6 +4201,7 @@ select:focus {
    ============================================ */
 
 @media print {
+
     .modal,
     #confirmModal,
     .success-toast,
@@ -4141,7 +4219,7 @@ select:focus {
     #confirmModal button {
         border: 2px solid currentColor;
     }
-    
+
     button:focus-visible {
         outline: 3px solid currentColor;
         outline-offset: 3px;
@@ -4153,13 +4231,14 @@ select:focus {
    ============================================ */
 
 @media (prefers-reduced-motion: reduce) {
+
     #confirmModal .modal-content,
     .confirm-actions button,
     .btn {
         transition: none !important;
         animation: none !important;
     }
-    
+
     .confirm-actions button:hover {
         transform: none;
     }
@@ -4170,7 +4249,7 @@ select:focus {
    ============================================ */
 
 /* When modal is active, everything behind should not be focusable */
-.modal.active ~ * {
+.modal.active~* {
     pointer-events: none;
 }
 
@@ -4203,6 +4282,7 @@ button .fa-spinner {
     from {
         transform: rotate(0deg);
     }
+
     to {
         transform: rotate(360deg);
     }
@@ -4248,7 +4328,7 @@ button .fa-spinner {
 /* ============================================
    END OF NEW CSS ADDITIONS
    ============================================ */
-   /* ============================================
+/* ============================================
    BORDER VISIBILITY FIXES
    Add this to the END of your styles.css
    ============================================ */
@@ -4261,7 +4341,8 @@ button .fa-spinner {
 #exportExcel {
     background: transparent;
     color: var(--text);
-    border: 2px solid var(--primary) !important; /* Force visible border */
+    border: 2px solid var(--primary) !important;
+    /* Force visible border */
     padding: 0.8rem 2rem;
     border-radius: 8px;
     font-weight: 600;
@@ -4284,7 +4365,8 @@ button .fa-spinner {
 #exportCSV {
     background: transparent;
     color: var(--text);
-    border: 2px solid var(--primary) !important; /* Force visible border */
+    border: 2px solid var(--primary) !important;
+    /* Force visible border */
     padding: 0.8rem 2rem;
     border-radius: 8px;
     font-weight: 600;
@@ -4519,6 +4601,7 @@ button .fa-spinner {
    ============================================ */
 
 @media (max-width: 768px) {
+
     /* Ensure borders are visible on mobile */
     .btn-secondary,
     .btn-outline,
@@ -4531,6 +4614,7 @@ button .fa-spinner {
 }
 
 @media (max-width: 480px) {
+
     /* Slightly thicker borders on small screens for visibility */
     .btn-secondary,
     .btn-outline,
@@ -4541,6 +4625,7 @@ button .fa-spinner {
         border-width: 2.5px !important;
     }
 }
+
 /* Additional fix for Export to Excel button */
 #exportExcel {
     background: transparent !important;
@@ -4552,6 +4637,7 @@ button .fa-spinner {
     background: var(--primary) !important;
     color: white !important;
 }
+
 /* Add to your CSS */
 @media (max-width: 768px) {
     #resumeModal .modal-content {
@@ -4559,11 +4645,12 @@ button .fa-spinner {
         height: 90vh;
         padding: 1rem;
     }
-    
+
     #resumeFrame {
         height: calc(90vh - 80px);
     }
 }
+
 /* ============================================
    DEBUGGING HELPER (Optional)
    Uncomment to see exactly where borders are
@@ -4583,3 +4670,519 @@ button .fa-spinner {
 /* ============================================
    END OF BORDER VISIBILITY FIXES
    ============================================ */
+
+/* ============================================
+   SKIP TO CONTENT (Accessibility)
+   ============================================ */
+.skip-to-content {
+    position: absolute;
+    top: -100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary);
+    color: #fff;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0 0 8px 8px;
+    z-index: 10000;
+    font-weight: 600;
+    text-decoration: none;
+    transition: top 0.2s ease;
+}
+
+.skip-to-content:focus {
+    top: 0;
+}
+
+/* ============================================
+   COOKIE CONSENT BANNER
+   ============================================ */
+.cookie-consent {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--shadow);
+    box-shadow: 0 -4px 20px var(--shadow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 2rem;
+    animation: slideUpConsent 0.4s ease;
+}
+
+@keyframes slideUpConsent {
+    from {
+        transform: translateY(100%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
+}
+
+.cookie-content {
+    max-width: 900px;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.cookie-content p {
+    flex: 1;
+    min-width: 250px;
+    color: var(--text);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.cookie-content p i {
+    margin-right: 0.5rem;
+    color: var(--warning);
+}
+
+.cookie-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+.cookie-actions .btn {
+    padding: 0.5rem 1.25rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.85rem;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.cookie-actions .btn-primary {
+    background: var(--primary);
+    color: #fff;
+}
+
+.cookie-actions .btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+.cookie-actions .btn-outline {
+    background: transparent;
+    color: var(--text-light);
+    border: 1px solid var(--text-light);
+}
+
+.cookie-actions .btn-outline:hover {
+    background: var(--bg);
+    color: var(--text);
+}
+
+@media (max-width: 600px) {
+    .cookie-consent {
+        padding: 1rem;
+    }
+
+    .cookie-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.75rem;
+    }
+
+    .cookie-actions {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ============================================
+   ERROR TOAST VARIANT
+   ============================================ */
+.success-toast.error-toast {
+    border-left-color: #ef4444;
+}
+
+.success-toast.error-toast::before {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+/* ============================================
+   REDUCED MOTION (Accessibility)
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    html {
+        scroll-behavior: auto;
+    }
+
+    .preloader {
+        display: none !important;
+    }
+}
+
+/* ============================================
+   CERTIFICATE LINKS
+   ============================================ */
+.cert-link {
+    color: var(--text);
+    text-decoration: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: color 0.2s ease;
+    width: 100%;
+}
+
+.cert-link:hover {
+    color: var(--primary);
+}
+
+.cert-link:hover .dot {
+    background: var(--primary);
+    transform: scale(1.3);
+}
+
+.cert-icon {
+    font-size: 0.65rem;
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    margin-left: 0.3rem;
+}
+
+.cert-link:hover .cert-icon {
+    opacity: 0.7;
+    transform: translateX(2px);
+}
+
+/* ============================================
+   CERTIFICATE LIGHTBOX
+   ============================================ */
+.cert-lightbox {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.cert-lightbox.active {
+    display: flex;
+    opacity: 1;
+}
+
+.cert-lightbox-content {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: certZoomIn 0.3s ease;
+}
+
+@keyframes certZoomIn {
+    from {
+        transform: scale(0.85);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.cert-lightbox-title {
+    color: #fff;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.cert-lightbox-content img {
+    max-width: 100%;
+    max-height: 80vh;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    object-fit: contain;
+}
+
+.cert-lightbox-close {
+    position: absolute;
+    top: -40px;
+    right: -10px;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 2rem;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.cert-lightbox-close:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: scale(1.1);
+}
+
+@media (max-width: 768px) {
+    .cert-lightbox-content {
+        max-width: 95vw;
+        padding: 0.5rem;
+    }
+
+    .cert-lightbox-title {
+        font-size: 1rem;
+    }
+
+    .cert-lightbox-close {
+        top: -35px;
+        right: 0;
+    }
+}
+
+/* ============================================
+   PAGE LOAD PROGRESS BAR (#12)
+   ============================================ */
+.page-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    width: 0%;
+    background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+    z-index: 99999;
+    transition: width 0.3s ease;
+    border-radius: 0 2px 2px 0;
+}
+
+.page-progress.done {
+    opacity: 0;
+    transition: width 0.3s ease, opacity 0.4s ease 0.3s;
+}
+
+/* ============================================
+   SCROLL PROGRESS INDICATOR (#13)
+   ============================================ */
+.scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    width: 0%;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    z-index: 99998;
+    transition: none;
+}
+
+/* ============================================
+   CUSTOM CURSOR (#11)
+   ============================================ */
+@media (pointer: fine) {
+    .custom-cursor {
+        width: 8px;
+        height: 8px;
+        background: var(--primary);
+        border-radius: 50%;
+        position: fixed;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+        z-index: 99997;
+        transition: transform 0.1s ease, background 0.2s ease;
+        transform: translate(-50%, -50%);
+        mix-blend-mode: difference;
+    }
+
+    .custom-cursor-follower {
+        width: 32px;
+        height: 32px;
+        border: 1.5px solid var(--primary);
+        border-radius: 50%;
+        position: fixed;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+        z-index: 99996;
+        transition: transform 0.15s ease, width 0.2s ease, height 0.2s ease, border-color 0.2s ease;
+        transform: translate(-50%, -50%);
+        opacity: 0.5;
+    }
+
+    .custom-cursor.hovering {
+        transform: translate(-50%, -50%) scale(2.5);
+        background: var(--accent);
+    }
+
+    .custom-cursor-follower.hovering {
+        width: 48px;
+        height: 48px;
+        border-color: var(--accent);
+        opacity: 0.3;
+    }
+
+    body {
+        cursor: none !important;
+    }
+
+    a,
+    button,
+    input,
+    textarea,
+    select,
+    .btn,
+    .filter-btn,
+    .project-card,
+    .theme-toggle,
+    .nav-links a,
+    .cert-link,
+    .social-links a {
+        cursor: none !important;
+    }
+}
+
+/* Hide custom cursor on touch devices */
+@media (pointer: coarse) {
+
+    .custom-cursor,
+    .custom-cursor-follower {
+        display: none !important;
+    }
+}
+
+/* ============================================
+   THEME TRANSITION OVERLAY (#8)
+   ============================================ */
+.theme-transition-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 99990;
+    pointer-events: none;
+    border-radius: 50%;
+    transform: scale(0);
+    opacity: 0;
+}
+
+.theme-transition-overlay.animating {
+    animation: themeReveal 0.6s ease forwards;
+}
+
+@keyframes themeReveal {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.6;
+    }
+
+    100% {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* ============================================
+   ANIMATED STATS COUNTER (#1)
+   ============================================ */
+.stats-counter {
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+    flex-wrap: wrap;
+    margin-top: 3rem;
+    padding: 2rem 0;
+}
+
+.stat-item {
+    text-align: center;
+    position: relative;
+}
+
+.stat-number {
+    font-size: 3rem;
+    font-weight: 800;
+    color: var(--primary);
+    display: inline-block;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.stat-plus {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.stat-label {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.95rem;
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+@media (max-width: 600px) {
+    .stats-counter {
+        gap: 1.5rem;
+    }
+
+    .stat-number {
+        font-size: 2.2rem;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+    }
+}
+
+/* ============================================
+   VISITOR BADGE (#15)
+   ============================================ */
+.visitor-badge {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    margin-top: 0.5rem;
+    opacity: 0.7;
+}
+
+.visitor-badge i {
+    margin-right: 0.3rem;
+}

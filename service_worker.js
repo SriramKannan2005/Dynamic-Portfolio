@@ -1,15 +1,15 @@
 // Service Worker for PWA Functionality
-const CACHE_NAME = 'sriram-portfolio-v1';
+const CACHE_NAME = 'sriram-portfolio-v4';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/styles.css',
-  '/new-features.css',
-  '/script.js',
-  '/script2.js',
-  '/images/profile.png',
-  '/images/project1.png',
-  '/images/project2.png',
+  '/css/styles.css',
+  '/js/script.js',
+  '/js/script2.js',
+  '/data/projects.json',
+  '/assets/images/profile/profile.png',
+  '/assets/images/projects/project1.png',
+  '/assets/images/projects/project2.png',
   '/manifest.json',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js',
@@ -18,15 +18,13 @@ const urlsToCache = [
 
 // Install Service Worker
 self.addEventListener('install', (event) => {
-  console.log('[Service Worker] Installing...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('[Service Worker] Caching app shell');
         return cache.addAll(urlsToCache);
       })
       .catch((error) => {
-        console.error('[Service Worker] Cache failed:', error);
+        console.error('[SW] Cache failed:', error);
       })
   );
   self.skipWaiting();
@@ -34,13 +32,11 @@ self.addEventListener('install', (event) => {
 
 // Activate Service Worker
 self.addEventListener('activate', (event) => {
-  console.log('[Service Worker] Activating...');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
-            console.log('[Service Worker] Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -52,21 +48,19 @@ self.addEventListener('activate', (event) => {
 
 // Fetch Strategy: Network First, falling back to Cache
 self.addEventListener('fetch', (event) => {
-  // Skip cross-origin requests
-  if (!event.request.url.startsWith(self.location.origin) && 
-      !event.request.url.includes('cdnjs.cloudflare.com')) {
+  // Skip cross-origin requests (except CDN)
+  if (!event.request.url.startsWith(self.location.origin) &&
+    !event.request.url.includes('cdnjs.cloudflare.com')) {
     return;
   }
 
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Check if valid response
         if (!response || response.status !== 200 || response.type === 'error') {
           return response;
         }
 
-        // Clone the response
         const responseToCache = response.clone();
 
         caches.open(CACHE_NAME)
@@ -77,16 +71,18 @@ self.addEventListener('fetch', (event) => {
         return response;
       })
       .catch(() => {
-        // Network failed, try cache
         return caches.match(event.request)
           .then((response) => {
             if (response) {
               return response;
             }
-            
-            // Return offline page if available
+
+            // Return a basic offline response for navigation requests
             if (event.request.mode === 'navigate') {
-              return caches.match('/offline.html');
+              return new Response(
+                '<html><body><h1>Offline</h1><p>Please check your internet connection.</p></body></html>',
+                { headers: { 'Content-Type': 'text/html' } }
+              );
             }
           });
       })
@@ -101,17 +97,60 @@ self.addEventListener('sync', (event) => {
 });
 
 async function syncMessages() {
-  // This would sync any pending messages when back online
-  console.log('[Service Worker] Syncing messages...');
-  // Implementation depends on your IndexedDB setup
+  try {
+    // Retrieve pending messages from IndexedDB (if any)
+    const db = await openDB();
+    const tx = db.transaction('pendingMessages', 'readonly');
+    const store = tx.objectStore('pendingMessages');
+    const messages = await getAllFromStore(store);
+
+    if (messages.length === 0) return;
+
+    // Attempt to send each pending message
+    for (const msg of messages) {
+      try {
+        await fetch(msg.url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify(msg.data)
+        });
+        // Remove from pending after successful send
+        const deleteTx = db.transaction('pendingMessages', 'readwrite');
+        deleteTx.objectStore('pendingMessages').delete(msg.id);
+      } catch (e) {
+        // Will retry on next sync
+      }
+    }
+  } catch (error) {
+    // IndexedDB not available or no pending messages
+  }
 }
 
-// Push Notifications (optional - for future use)
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('PortfolioDB', 1);
+    request.onupgradeneeded = (e) => {
+      e.target.result.createObjectStore('pendingMessages', { keyPath: 'id', autoIncrement: true });
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function getAllFromStore(store) {
+  return new Promise((resolve, reject) => {
+    const request = store.getAll();
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// Push Notifications
 self.addEventListener('push', (event) => {
   const options = {
     body: event.data ? event.data.text() : 'New notification',
-    icon: '/images/icon-192.png',
-    badge: '/images/icon-72.png',
+    icon: '/assets/images/icons/icon-192.png',
+    badge: '/assets/images/icons/icon-72.png',
     vibrate: [200, 100, 200],
     tag: 'portfolio-notification',
     actions: [
@@ -135,5 +174,3 @@ self.addEventListener('notificationclick', (event) => {
     );
   }
 });
-
-console.log('[Service Worker] Loaded successfully');

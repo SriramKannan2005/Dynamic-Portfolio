@@ -4,31 +4,187 @@
 const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwKpK2IA9z23sJVl53zxw9N7AQgI0YdJFcyqbxGl6TdwFpy1OM2eEEgMmNrCCxPytA00A/exec';
 
 // ============================================
+// SECURITY: HTML ESCAPING (XSS Prevention)
+// ============================================
+function escapeHTML(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+window.escapeHTML = escapeHTML;
+
+// ============================================
+// COOKIE CONSENT MANAGEMENT
+// ============================================
+function hasAnalyticsConsent() {
+    return localStorage.getItem('cookieConsent') === 'accepted';
+}
+
+function initCookieConsent() {
+    const banner = document.getElementById('cookieConsent');
+    const acceptBtn = document.getElementById('acceptCookies');
+    const declineBtn = document.getElementById('declineCookies');
+    if (!banner) return;
+
+    const consent = localStorage.getItem('cookieConsent');
+    if (!consent) {
+        banner.style.display = 'flex';
+    }
+
+    if (acceptBtn) {
+        acceptBtn.addEventListener('click', () => {
+            localStorage.setItem('cookieConsent', 'accepted');
+            banner.style.display = 'none';
+        });
+    }
+    if (declineBtn) {
+        declineBtn.addEventListener('click', () => {
+            localStorage.setItem('cookieConsent', 'declined');
+            banner.style.display = 'none';
+        });
+    }
+}
+
+window.addEventListener('DOMContentLoaded', initCookieConsent);
+
+// ============================================
+// CERTIFICATE LIGHTBOX
+// ============================================
+function initCertLightbox() {
+    const lightbox = document.getElementById('certLightbox');
+    const lightboxImg = document.getElementById('certLightboxImg');
+    const lightboxTitle = document.getElementById('certLightboxTitle');
+    const lightboxClose = document.querySelector('.cert-lightbox-close');
+    if (!lightbox || !lightboxImg) return;
+
+    // Open lightbox when clicking a cert link
+    document.querySelectorAll('.cert-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const imgSrc = link.getAttribute('data-cert-img');
+            const title = link.getAttribute('data-cert-title') || 'Certificate';
+            lightboxImg.src = imgSrc;
+            lightboxImg.alt = title;
+            if (lightboxTitle) lightboxTitle.textContent = title;
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+    });
+
+    // Close on X button
+    if (lightboxClose) {
+        lightboxClose.addEventListener('click', () => {
+            lightbox.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        });
+    }
+
+    // Close on backdrop click
+    lightbox.addEventListener('click', (e) => {
+        if (e.target === lightbox) {
+            lightbox.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && lightbox.classList.contains('active')) {
+            lightbox.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+    });
+}
+
+window.addEventListener('DOMContentLoaded', initCertLightbox);
+
+// ============================================
 // PROJECT DATA
 // ============================================
-const projectsData = {
-    1: {
-        title: "Smart-Exam-Evaluator",
-        description: "An AI-powered exam evaluation system that automates grading of handwritten multiple-choice answer sheets using Google Gemini, Flask, and OpenCV. It enables educators to set up tests, process scanned answer sheets, and generate detailed Excel-based performance reports. The platform supports real-time analysis, consolidated reporting, and an intuitive frontend dashboard for seamless test management.",
-        techStack: ["Flask", "Google Gemini API", "OpenCV", "JavaScript", "HTML", "CSS", "OpenPyXL", "Pandas","Machine Learning"],
-        github: "https://github.com/SriramKannan2005/Smart-Exam-Evaluvator",
-        video: "videos/smart.mp4"
-    },
-    2: {
-        title: "GenAI Multi-Document Intelligence System",
-        description: "An advanced AI-powered document analysis platform that enables users to upload, analyze, and query multiple documents simultaneously. The system leverages Generative AI and Natural Language Processing to extract contextual insights, provide precise citations, and deliver intelligent responses with real-time analytics through interactive visualizations.",
-        techStack: ["HTML", "CSS", "JavaScript", "Chart.js", "Generative AI", "NLP", "Flask", "Google Gemini API","Machine Learning"],
-        github: "https://github.com/SriramKannan2005/Info-Nexus",
-        video: "videos/doc.mp4"
-    },
-    3: {
-        title: "CineHome+ | AI-Powered Personal Cinema",
-        description: "An intelligent, locally hosted OTT-style platform that transforms your personal video library into an immersive cinema experience. CineHome+ integrates gesture-based video controls, AI-powered chat assistance, and user-adaptive recommendations using the Gemini API. It supports video streaming, watch history, and real-time interactions for a seamless home-theater experience.",
-        techStack: ["HTML", "CSS", "JavaScript", "Flask", "MediaPipe", "OpenCV", "Google Gemini API", "AI Chatbot", "Gesture Recognition", "Computer Vision"],
-        github: "https://github.com/SriramKannan2005/media-player",
-        video: "videos/me.mp4"
+let projectsData = {};
+let projectIds = [];
+
+// ============================================
+// FETCH PROJECTS FROM JSON
+// ============================================
+async function fetchProjects() {
+    try {
+        const response = await fetch('data/projects.json');
+        projectsData = await response.json();
+        projectIds = Object.keys(projectsData);
+
+        const grid = document.getElementById('projectsGrid');
+        if (!grid) return;
+
+        grid.innerHTML = '';
+
+        for (const [id, project] of Object.entries(projectsData)) {
+            let thumbnailHTML = '';
+            if (project.image && project.image !== '') {
+                thumbnailHTML = `<img src="${project.image}" alt="${project.title}" loading="lazy">`;
+            } else if (project.icon) {
+                const bg = project.iconColor ? `linear-gradient(135deg, ${project.iconColor[0]}, ${project.iconColor[1]})` : 'var(--primary)';
+                thumbnailHTML = `<div style="background: ${bg}; display:flex;align-items:center;justify-content:center;height:200px;border-radius:12px 12px 0 0;">
+                    <i class="${project.icon}" style="font-size:3rem;color:white;"></i>
+                </div>`;
+            }
+
+            let tagsHTML = '';
+            // Only show up to 3 tags to keep design clean
+            if (project.techStack && project.techStack.length > 0) {
+                tagsHTML = `<div class="project-tags">` +
+                    project.techStack.slice(0, 3).map(tech => `<span>${tech}</span>`).join('') +
+                    `</div>`;
+            }
+
+            const cardHTML = `
+                <div class="project-card" data-project="${id}" data-category="${project.category}">
+                    <div class="project-thumbnail">
+                        ${thumbnailHTML}
+                        <div class="project-overlay">
+                            <button class="view-details" data-id="${id}">View Details</button>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <h3>${project.title}</h3>
+                        <p>${project.description.slice(0, 150)}...</p>
+                        ${tagsHTML}
+                        <div class="project-meta">
+                            <span class="project-likes"><i class="fas fa-heart"></i> <span class="like-count">0</span></span>
+                            <span class="project-views"><i class="fas fa-eye"></i> <span class="view-count">0</span></span>
+                        </div>
+                        <a href="${project.github}" target="_blank" class="github-link" rel="noopener">
+                            <i class="fab fa-github"></i> Source Code
+                        </a>
+                    </div>
+                </div>
+            `;
+            grid.innerHTML += cardHTML;
+        }
+
+        // Attach click listeners to new view detail buttons
+        document.querySelectorAll('.view-details').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const projectId = btn.getAttribute('data-id');
+                openModal(projectId);
+                trackProjectView(projectId);
+            });
+        });
+
+        // Fetch stats for new cards
+        await loadProjectStats();
+
+        // Optional: Call project filtering init here if there is a function for it
+        if (typeof window.initProjectFilters === 'function') {
+            window.initProjectFilters();
+        }
+
+    } catch (error) {
+        console.error('Error fetching projects:', error);
     }
-};
+}
 
 // ============================================
 // NAVIGATION & MENU
@@ -97,9 +253,23 @@ if (themeToggle) {
     html.setAttribute('data-theme', currentTheme);
     updateThemeIcon(currentTheme);
 
-    themeToggle.addEventListener('click', () => {
+    themeToggle.addEventListener('click', (e) => {
         const theme = html.getAttribute('data-theme');
         const newTheme = theme === 'light' ? 'dark' : 'light';
+
+        // Circular reveal animation
+        const overlay = document.getElementById('themeTransition');
+        if (overlay) {
+            const rect = themeToggle.getBoundingClientRect();
+            overlay.style.left = rect.left + rect.width / 2 + 'px';
+            overlay.style.top = rect.top + rect.height / 2 + 'px';
+            overlay.style.background = newTheme === 'dark' ? '#111827' : '#ffffff';
+            overlay.classList.remove('animating');
+            void overlay.offsetWidth; // force reflow
+            overlay.classList.add('animating');
+            setTimeout(() => overlay.classList.remove('animating'), 700);
+        }
+
         html.setAttribute('data-theme', newTheme);
         localStorage.setItem('theme', newTheme);
         updateThemeIcon(newTheme);
@@ -109,7 +279,7 @@ if (themeToggle) {
 function updateThemeIcon(theme) {
     const icon = themeToggle?.querySelector('i');
     if (!icon) return;
-    
+
     if (theme === 'dark') {
         icon.classList.remove('fa-moon');
         icon.classList.add('fa-sun');
@@ -124,46 +294,33 @@ function updateThemeIcon(theme) {
 // ============================================
 const modal = document.getElementById('projectModal');
 const closeBtn = modal?.querySelector('.close');
-const projectCards = document.querySelectorAll('.project-card');
 
 // Keep track of current project
 let currentProjectId = null;
-const projectIds = Array.from(projectCards).map(card => card.getAttribute('data-project'));
-
-projectCards.forEach(card => {
-    const viewDetailsBtn = card.querySelector('.view-details');
-    if (viewDetailsBtn) {
-        viewDetailsBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const projectId = card.getAttribute('data-project');
-            openModal(projectId);
-            // Track view ONLY when "View Details" is clicked
-            trackProjectView(projectId);
-        });
-    }
-});
+// projectIds is now populated in fetchProjects()
+// Event listeners are attached in fetchProjects()
 
 function openModal(projectId) {
     const project = projectsData[projectId];
     if (!project || !modal) return;
-    
+
     currentProjectId = projectId; // Store current project ID
-    
+
     const modalTitle = document.getElementById('modalTitle');
     const modalDescription = document.getElementById('modalDescription');
     const modalGithub = document.getElementById('modalGithub');
     const video = document.getElementById('modalVideo');
     const techStackContainer = document.getElementById('modalTechStack');
-    
+
     if (modalTitle) modalTitle.textContent = project.title;
     if (modalDescription) modalDescription.textContent = project.description;
     if (modalGithub) modalGithub.href = project.github;
-    
+
     if (video) {
         video.src = project.video;
-        video.play().catch(e => console.log('Video autoplay prevented'));
+        video.play().catch(() => { });
     }
-    
+
     if (techStackContainer) {
         techStackContainer.innerHTML = '';
         project.techStack.forEach(tech => {
@@ -172,7 +329,7 @@ function openModal(projectId) {
             techStackContainer.appendChild(span);
         });
     }
-    
+
     // Update like button for this project
     const likeBtn = document.getElementById('likeProjectBtn');
     if (likeBtn) {
@@ -181,7 +338,7 @@ function openModal(projectId) {
         likeBtn.innerHTML = '<i class="fas fa-heart"></i> Like Project';
         likeBtn.style.background = '';
     }
-    
+
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
 }
@@ -206,23 +363,23 @@ window.addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
     // Only work if modal is open
     if (!modal?.classList.contains('active') || !currentProjectId) return;
-    
+
     const currentIndex = projectIds.indexOf(currentProjectId);
-    
+
     if (e.key === 'ArrowLeft' && currentIndex > 0) {
         e.preventDefault();
         const previousProjectId = projectIds[currentIndex - 1];
         openModal(previousProjectId);
         trackProjectView(previousProjectId);
     }
-    
+
     if (e.key === 'ArrowRight' && currentIndex < projectIds.length - 1) {
         e.preventDefault();
         const nextProjectId = projectIds[currentIndex + 1];
         openModal(nextProjectId);
         trackProjectView(nextProjectId);
     }
-    
+
     if (e.key === 'Escape') {
         closeModal();
     }
@@ -240,9 +397,7 @@ async function trackProjectView(projectId) {
                 timestamp: Timestamp.now(),
                 date: new Date().toLocaleDateString()
             });
-            
-            console.log(`✅ Project ${projectId} view tracked`);
-            
+
             // Update view count in UI
             updateProjectViewCount(projectId);
         }
@@ -258,7 +413,7 @@ async function updateProjectViewCount(projectId) {
             const q = query(collection(window.firebaseDb, 'projectViews'), where('projectId', '==', projectId));
             const querySnapshot = await getDocs(q);
             const viewCount = querySnapshot.size;
-            
+
             const card = document.querySelector(`[data-project="${projectId}"]`);
             if (card) {
                 const viewCountElement = card.querySelector('.view-count');
@@ -278,14 +433,14 @@ async function updateProjectViewCount(projectId) {
 async function likeProject(projectId) {
     try {
         const likeBtn = document.getElementById('likeProjectBtn');
-        
+
         // Check if already liked (using localStorage)
         const likedProjects = JSON.parse(localStorage.getItem('likedProjects') || '[]');
         if (likedProjects.includes(projectId)) {
             showSuccessToast('Already Liked!', 'You already liked this project.');
             return;
         }
-        
+
         if (window.firebaseDb && window.firebaseModules) {
             const { collection, addDoc, Timestamp } = window.firebaseModules;
             await addDoc(collection(window.firebaseDb, 'projectLikes'), {
@@ -293,15 +448,15 @@ async function likeProject(projectId) {
                 timestamp: Timestamp.now(),
                 date: new Date().toLocaleDateString()
             });
-            
+
             // Store in localStorage to prevent multiple likes
             likedProjects.push(projectId);
             localStorage.setItem('likedProjects', JSON.stringify(likedProjects));
-            
+
             likeBtn.innerHTML = '<i class="fas fa-heart"></i> Liked!';
             likeBtn.style.background = '#ec4899';
             likeBtn.disabled = true;
-            
+
             showSuccessToast('Thank You!', 'Project liked successfully!');
             updateProjectLikeCount(projectId);
         }
@@ -317,7 +472,7 @@ async function updateProjectLikeCount(projectId) {
             const q = query(collection(window.firebaseDb, 'projectLikes'), where('projectId', '==', projectId));
             const querySnapshot = await getDocs(q);
             const likeCount = querySnapshot.size;
-            
+
             const card = document.querySelector(`[data-project="${projectId}"]`);
             if (card) {
                 const likeCountElement = card.querySelector('.like-count');
@@ -336,7 +491,7 @@ async function updateProjectLikeCount(projectId) {
 // ============================================
 async function loadProjectStats() {
     const projectCards = document.querySelectorAll('.project-card');
-    
+
     for (const card of projectCards) {
         const projectId = card.getAttribute('data-project');
         await updateProjectViewCount(projectId);
@@ -344,9 +499,9 @@ async function loadProjectStats() {
     }
 }
 
-// Load stats when page loads
-window.addEventListener('load', () => {
-    setTimeout(loadProjectStats, 2000);
+// Load stats when page loads is now handled inside fetchProjects()
+document.addEventListener('DOMContentLoaded', () => {
+    fetchProjects();
 });
 
 // Make functions available globally
@@ -364,9 +519,9 @@ const resumeFrame = document.getElementById('resumeFrame');
 if (viewResumeBtn && resumeModal && resumeFrame) {
     viewResumeBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        
+
         const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-        
+
         if (isIOS) {
             // iOS - use object/embed tag (best compatibility)
             resumeFrame.innerHTML = `
@@ -382,7 +537,7 @@ if (viewResumeBtn && resumeModal && resumeFrame) {
             // All other devices - direct PDF with no toolbar
             resumeFrame.src = 'resume.pdf#toolbar=0&navpanes=0&scrollbar=1&view=FitH&zoom=page-fit';
         }
-        
+
         resumeModal.classList.add('active');
         document.body.style.overflow = 'hidden';
     });
@@ -425,7 +580,7 @@ document.addEventListener('keydown', (e) => {
             document.body.style.overflow = 'auto';
         }
     }
-    
+
     // Admin Access: Ctrl+Shift+A (Windows/Linux) or Cmd+Shift+A (Mac)
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'A') {
         e.preventDefault();
@@ -441,13 +596,21 @@ const toastCloseBtn = successToast?.querySelector('.toast-close');
 
 function showSuccessToast(title = 'Message Sent Successfully!', message = "Thank you for reaching out. I'll get back to you soon!") {
     if (!successToast) return;
-    
+
     const toastTitle = successToast.querySelector('h3');
     const toastMessage = successToast.querySelector('p');
-    
+
     if (toastTitle) toastTitle.textContent = title;
     if (toastMessage) toastMessage.textContent = message;
-    
+
+    // Apply error styling if title contains error indicators
+    const isError = title.toLowerCase().includes('error') || title.toLowerCase().includes('failed') || title.includes('❌');
+    if (isError) {
+        successToast.classList.add('error-toast');
+    } else {
+        successToast.classList.remove('error-toast');
+    }
+
     successToast.classList.add('show');
     setTimeout(() => hideSuccessToast(), 5000);
 }
@@ -474,30 +637,39 @@ const submitBtn = document.getElementById('submitBtn');
 if (contactForm) {
     contactForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
+
         let isValid = true;
         document.querySelectorAll('.form-group').forEach(group => {
             group.classList.remove('error');
             const errorMsg = group.querySelector('.error-message');
             if (errorMsg) errorMsg.textContent = '';
         });
-        
+
+        // Honeypot bot check
+        const honeypot = document.getElementById('website');
+        if (honeypot && honeypot.value.trim() !== '') {
+            // Bot detected — silently reject
+            contactForm.reset();
+            showSuccessToast('Message Sent!', 'Your message has been saved successfully!');
+            return;
+        }
+
         if (!nameInput || nameInput.value.trim() === '' || nameInput.value.trim().length < 2) {
             showError(nameInput, 'Please enter a valid name (at least 2 characters)');
             isValid = false;
         }
-        
+
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailInput || !emailRegex.test(emailInput.value.trim())) {
             showError(emailInput, 'Please enter a valid email address');
             isValid = false;
         }
-        
+
         if (!messageInput || messageInput.value.trim().length < 10) {
             showError(messageInput, 'Message must be at least 10 characters');
             isValid = false;
         }
-        
+
         if (isValid) {
             await saveMessageToFirebase();
         }
@@ -515,10 +687,11 @@ function showError(input, message) {
 
 
 // ============================================
-// PAGE VIEW TRACKING
+// PAGE VIEW TRACKING (Requires consent)
 // ============================================
 async function trackPageView() {
     try {
+        if (!hasAnalyticsConsent()) return;
         if (window.firebaseDb && window.firebaseModules) {
             const { collection, addDoc, Timestamp } = window.firebaseModules;
             await addDoc(collection(window.firebaseDb, 'analytics'), {
@@ -546,32 +719,22 @@ let confirmResolve = null;
 
 function showConfirmModal(title, message) {
     return new Promise((resolve) => {
-        console.log('🔔 showConfirmModal called:', title);
-        
         const confirmModal = document.getElementById('confirmModal');
         const confirmTitle = document.getElementById('confirmTitle');
         const confirmMessage = document.getElementById('confirmMessage');
         const confirmOk = document.getElementById('confirmOk');
         const confirmCancel = document.getElementById('confirmCancel');
-        
-        // Verify all elements exist
+
         if (!confirmModal || !confirmTitle || !confirmMessage || !confirmOk || !confirmCancel) {
-            console.error('❌ Modal elements missing, falling back to native confirm');
             resolve(confirm(message));
             return;
         }
-        
-        // Store resolve function globally
+
         confirmResolve = resolve;
-        
-        // Set content
         confirmTitle.textContent = title;
         confirmMessage.textContent = message;
-        
-        // Show modal
         confirmModal.classList.add('active');
         document.body.style.overflow = 'hidden';
-        console.log('✅ Custom modal displayed');
     });
 }
 
@@ -580,67 +743,53 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmOk = document.getElementById('confirmOk');
     const confirmCancel = document.getElementById('confirmCancel');
     const confirmModal = document.getElementById('confirmModal');
-    
+
     if (confirmOk) {
         confirmOk.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log('✅ OK clicked');
-            
             if (confirmModal) {
                 confirmModal.classList.remove('active');
                 document.body.style.overflow = 'auto';
             }
-            
             if (confirmResolve) {
                 confirmResolve(true);
                 confirmResolve = null;
             }
         });
-        console.log('✅ OK button listener attached');
     }
-    
+
     if (confirmCancel) {
         confirmCancel.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log('❌ Cancel clicked');
-            
             if (confirmModal) {
                 confirmModal.classList.remove('active');
                 document.body.style.overflow = 'auto';
             }
-            
             if (confirmResolve) {
                 confirmResolve(false);
                 confirmResolve = null;
             }
         });
-        console.log('✅ Cancel button listener attached');
     }
-    
-    // Close on Escape key
+
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && confirmModal?.classList.contains('active')) {
-            console.log('❌ Escape pressed');
             confirmModal.classList.remove('active');
             document.body.style.overflow = 'auto';
-            
             if (confirmResolve) {
                 confirmResolve(false);
                 confirmResolve = null;
             }
         }
     });
-    
-    // Close on outside click
+
     if (confirmModal) {
         confirmModal.addEventListener('click', (e) => {
             if (e.target === confirmModal) {
-                console.log('❌ Clicked outside');
                 confirmModal.classList.remove('active');
                 document.body.style.overflow = 'auto';
-                
                 if (confirmResolve) {
                     confirmResolve(false);
                     confirmResolve = null;
@@ -650,9 +799,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Make globally available
 window.showConfirmModal = showConfirmModal;
-console.log('✅ showConfirmModal defined globally');
 // ============================================
 // ADMIN PANEL
 // ============================================
@@ -708,26 +855,26 @@ if (closeAdminLogin && adminLoginModal) {
 if (adminLoginForm) {
     adminLoginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
+
         const emailField = document.getElementById('adminEmail');
         const passwordField = document.getElementById('adminPassword');
         const loginError = document.getElementById('loginError');
-        
+
         if (!emailField || !passwordField) return;
-        
+
         const email = emailField.value;
         const password = passwordField.value;
-        
+
         const btnText = adminLoginForm.querySelector('.btn-text');
         const btnLoader = adminLoginForm.querySelector('.btn-loader');
         if (btnText) btnText.style.display = 'none';
         if (btnLoader) btnLoader.style.display = 'inline';
-        
+
         try {
             if (window.firebaseAuth && window.firebaseModules) {
                 const { signInWithEmailAndPassword } = window.firebaseModules;
                 const userCredential = await signInWithEmailAndPassword(window.firebaseAuth, email, password);
-                
+
                 if (adminLoginModal) adminLoginModal.classList.remove('active');
                 showAdminPanel(userCredential.user);
             }
@@ -745,17 +892,17 @@ if (adminLoginForm) {
 }
 function showAdminPanel(user) {
     if (!adminPanel) return;
-    
+
     adminPanel.style.display = 'block';
     document.body.style.overflow = 'auto';
-    
+
     const adminUserEmail = document.getElementById('adminUserEmail');
     if (adminUserEmail) adminUserEmail.textContent = user.email;
-    
+
     loadAdminContent();
     loadMessages();
     loadAnalytics();
-    
+
     // ✅ Attach Mark All Read listener when panel opens
     setTimeout(() => {
         if (typeof window.attachMarkAllReadListener === 'function') {
@@ -787,14 +934,14 @@ const adminTabContents = document.querySelectorAll('.admin-tab-content');
 adminTabs.forEach(tab => {
     tab.addEventListener('click', () => {
         const tabName = tab.getAttribute('data-tab');
-        
+
         adminTabs.forEach(t => t.classList.remove('active'));
         adminTabContents.forEach(c => c.classList.remove('active'));
-        
+
         tab.classList.add('active');
         const tabContent = document.getElementById(tabName + 'Tab');
         if (tabContent) tabContent.classList.add('active');
-        
+
         if (tabName === 'messages') {
             loadMessages();
         } else if (tabName === 'analytics') {
@@ -810,31 +957,31 @@ adminTabs.forEach(tab => {
 // ============================================
 function categorizeMessage(message) {
     const text = message.toLowerCase();
-    
+
     // Job/Career related keywords
-    if (text.includes('job') || text.includes('hire') || text.includes('position') || 
+    if (text.includes('job') || text.includes('hire') || text.includes('position') ||
         text.includes('career') || text.includes('recruit') || text.includes('opportunity')) {
         return 'Job Inquiry';
     }
-    
+
     // Project/Collaboration keywords
-    if (text.includes('project') || text.includes('collaborate') || text.includes('work together') || 
+    if (text.includes('project') || text.includes('collaborate') || text.includes('work together') ||
         text.includes('partnership') || text.includes('freelance')) {
         return 'Collaboration';
     }
-    
+
     // Technical/Help keywords
-    if (text.includes('help') || text.includes('question') || text.includes('how to') || 
+    if (text.includes('help') || text.includes('question') || text.includes('how to') ||
         text.includes('issue') || text.includes('problem') || text.includes('error')) {
         return 'Technical Question';
     }
-    
+
     // Feedback keywords
-    if (text.includes('feedback') || text.includes('suggestion') || text.includes('improve') || 
+    if (text.includes('feedback') || text.includes('suggestion') || text.includes('improve') ||
         text.includes('great') || text.includes('awesome') || text.includes('love')) {
         return 'Feedback';
     }
-    
+
     // Default category
     return 'General';
 }
@@ -844,17 +991,17 @@ function categorizeMessage(message) {
 // ============================================
 async function saveMessageToFirebase() {
     if (!nameInput || !emailInput || !messageInput || !submitBtn) return;
-    
+
     const name = nameInput.value.trim();
     const email = emailInput.value.trim();
     const message = messageInput.value.trim();
-    
+
     const btnText = submitBtn.querySelector('.btn-text');
     const btnLoader = submitBtn.querySelector('.btn-loader');
     if (btnText) btnText.style.display = 'none';
     if (btnLoader) btnLoader.style.display = 'inline';
     submitBtn.disabled = true;
-    
+
     try {
         const messageData = {
             name: name,
@@ -865,19 +1012,19 @@ async function saveMessageToFirebase() {
             date: new Date().toLocaleString(),
             read: false
         };
-        
+
         if (window.firebaseDb && window.firebaseModules) {
             const { collection, addDoc } = window.firebaseModules;
             await addDoc(collection(window.firebaseDb, 'messages'), messageData);
-            console.log('✅ Message saved to Firebase with category:', messageData.category);
+            console.log('Message saved to Firebase with category:', messageData.category);
         }
-        
+
         await sendToGoogleSheets(messageData);
         await trackPageView();
-        
+
         if (contactForm) contactForm.reset();
         showSuccessToast('Message Sent!', 'Your message has been saved successfully!');
-        
+
     } catch (error) {
         console.error('❌ Error saving message:', error);
         showSuccessToast('Error!', 'Failed to send message. Please try again.');
@@ -900,19 +1047,19 @@ async function sendToGoogleSheets(messageData) {
             date: messageData.date,
             read: messageData.read ? 'Yes' : 'No'
         };
-        
+
         const response = await fetch(GOOGLE_SHEETS_URL, {
             method: 'POST',
-            headers: { 
+            headers: {
                 'Content-Type': 'text/plain',
             },
             body: JSON.stringify(sheetData),
             mode: 'no-cors' // ✅ Required for Google Apps Script
         });
-        
-        console.log('✅ Message sent to Google Sheets');
+
+        console.log('Message sent to Google Sheets');
         return true;
-        
+
     } catch (error) {
         console.error('❌ Error sending to Google Sheets:', error);
         // Don't throw error - we don't want to block Firebase save if Sheets fails
@@ -931,22 +1078,22 @@ let currentFilter = 'all';
 async function loadMessages() {
     const messagesContainer = document.getElementById('messagesContainer');
     if (!messagesContainer) return;
-    
+
     messagesContainer.innerHTML = '<div class="loading-messages"><i class="fas fa-spinner fa-spin"></i> Loading messages...</div>';
-    
+
     try {
         let messages = [];
-        
+
         if (window.firebaseDb && window.firebaseModules) {
             const { collection, getDocs, query, orderBy } = window.firebaseModules;
             const q = query(collection(window.firebaseDb, 'messages'), orderBy('timestamp', 'desc'));
             const querySnapshot = await getDocs(q);
-            
+
             querySnapshot.forEach((doc) => {
                 messages.push({ id: doc.id, ...doc.data() });
             });
         }
-        
+
         displayMessages(messages);
         const messageCount = document.getElementById('messageCount');
         if (messageCount) {
@@ -961,21 +1108,21 @@ async function loadMessages() {
 function displayMessages(messages) {
     const messagesContainer = document.getElementById('messagesContainer');
     if (!messagesContainer) return;
-    
+
     let filteredMessages = messages;
     if (currentFilter === 'unread') {
         filteredMessages = messages.filter(msg => !msg.read);
     } else if (currentFilter === 'read') {
         filteredMessages = messages.filter(msg => msg.read);
     }
-    
+
     if (filteredMessages.length === 0) {
         messagesContainer.innerHTML = '<div class="no-messages"><i class="fas fa-inbox"></i><p>No messages yet</p></div>';
         return;
     }
-    
+
     messagesContainer.innerHTML = '';
-    
+
     // Category colors
     const categoryColors = {
         'Job Inquiry': '#6366f1',
@@ -984,48 +1131,48 @@ function displayMessages(messages) {
         'Feedback': '#10b981',
         'General': '#f59e0b'
     };
-    
+
     filteredMessages.forEach(msg => {
         const messageCard = document.createElement('div');
         messageCard.className = 'message-card' + (msg.read ? '' : ' unread');
-        
+
         const categoryColor = categoryColors[msg.category] || '#f59e0b';
-        
+
         messageCard.innerHTML = `
             <div class="message-header">
                 <div class="message-info">
                     <h4>
-                        ${msg.name} 
+                        ${escapeHTML(msg.name)} 
                         ${!msg.read ? '<span class="unread-badge">New</span>' : ''}
                         ${msg.category ? `<span class="category-badge" style="background: ${categoryColor}; color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; margin-left: 0.5rem; font-weight: 600;">
-                            ${msg.category}
+                            ${escapeHTML(msg.category)}
                         </span>` : ''}
                     </h4>
-                    <p>${msg.email}</p>
+                    <p>${escapeHTML(msg.email)}</p>
                 </div>
                 <div class="message-actions">
-                    ${!msg.read ? `<button class="mark-read-btn" data-id="${msg.id}">
+                    ${!msg.read ? `<button class="mark-read-btn" data-id="${escapeHTML(msg.id)}">
                         <i class="fas fa-check"></i> Mark Read
                     </button>` : ''}
-                    <button class="delete-btn" data-id="${msg.id}">
+                    <button class="delete-btn" data-id="${escapeHTML(msg.id)}">
                         <i class="fas fa-trash"></i> Delete
                     </button>
                 </div>
             </div>
-            <div class="message-body">${msg.message}</div>
+            <div class="message-body">${escapeHTML(msg.message)}</div>
             <div class="message-date">
-                <i class="fas fa-clock"></i> ${msg.date || new Date(msg.timestamp).toLocaleString()}
+                <i class="fas fa-clock"></i> ${escapeHTML(msg.date || new Date(msg.timestamp).toLocaleString())}
             </div>
         `;
-        
+
         messagesContainer.appendChild(messageCard);
     });
-    
+
     // Attach event listeners
     document.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', () => deleteMessage(btn.getAttribute('data-id')));
     });
-    
+
     document.querySelectorAll('.mark-read-btn').forEach(btn => {
         btn.addEventListener('click', () => markAsRead(btn.getAttribute('data-id')));
     });
@@ -1072,69 +1219,52 @@ async function markAsRead(id) {
 // MARK ALL AS READ - FIXED VERSION
 // ============================================
 async function markAllMessagesAsRead() {
-    console.log('🔄 markAllMessagesAsRead called');
-    
     try {
-        // Use custom modal
         const confirmed = await showConfirmModal(
             '📬 Mark All as Read?',
             'This will mark all unread messages as read. You can still access them later, but they won\'t show as "new" anymore.'
         );
-        
-        console.log('User response:', confirmed);
-        
-        if (!confirmed) {
-            console.log('❌ User cancelled');
-            return;
-        }
-        
-        console.log('✅ User confirmed, proceeding...');
-        
+
+        if (!confirmed) return;
+
         const markAllReadBtn = document.getElementById('markAllRead');
-        if (!markAllReadBtn) {
-            console.error('❌ Button not found');
-            return;
-        }
-        
+        if (!markAllReadBtn) return;
+
         const originalHTML = markAllReadBtn.innerHTML;
         markAllReadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Marking...';
         markAllReadBtn.disabled = true;
-        
+
         try {
             if (!window.firebaseDb || !window.firebaseModules) {
                 throw new Error('Firebase not initialized');
             }
-            
+
             const { collection, getDocs, doc, updateDoc, query, where } = window.firebaseModules;
-            
-            console.log('📊 Querying unread messages...');
+
             const messagesRef = collection(window.firebaseDb, 'messages');
             const unreadQuery = query(messagesRef, where('read', '==', false));
             const querySnapshot = await getDocs(unreadQuery);
-            
+
             const unreadCount = querySnapshot.size;
-            console.log(`📨 Found ${unreadCount} unread messages`);
-            
+
             if (unreadCount === 0) {
                 showSuccessToast(
-                    '📭 Inbox Zero!', 
+                    '📭 Inbox Zero!',
                     'You\'re all caught up! No unread messages remaining.'
                 );
                 markAllReadBtn.innerHTML = originalHTML;
                 markAllReadBtn.disabled = false;
                 return;
             }
-            
-            console.log('🔄 Updating messages...');
+
             const updatePromises = [];
             querySnapshot.forEach((docSnapshot) => {
                 const docRef = doc(window.firebaseDb, 'messages', docSnapshot.id);
                 updatePromises.push(updateDoc(docRef, { read: true }));
             });
-            
+
             await Promise.all(updatePromises);
-            console.log(`✅ ${unreadCount} messages marked as read`);
-            
+
             // Reload
             if (typeof loadMessages === 'function') {
                 await loadMessages();
@@ -1142,25 +1272,25 @@ async function markAllMessagesAsRead() {
             if (typeof loadAnalytics === 'function') {
                 await loadAnalytics();
             }
-            
+
             showSuccessToast(
-                '🎉 Inbox Cleared!', 
+                '🎉 Inbox Cleared!',
                 `${unreadCount} message${unreadCount > 1 ? 's' : ''} marked as read. Great job staying organized!`
             );
-            
+
         } catch (error) {
-            console.error('❌ Operation error:', error);
+            console.error('Error marking all as read:', error);
             showSuccessToast(
-                '❌ Operation Failed', 
+                '❌ Operation Failed',
                 'Could not mark messages as read. Error: ' + error.message
             );
         } finally {
             markAllReadBtn.innerHTML = originalHTML;
             markAllReadBtn.disabled = false;
         }
-        
+
     } catch (error) {
-        console.error('❌ Function error:', error);
+        console.error('Error in markAllMessagesAsRead:', error);
         showSuccessToast('❌ Error', 'An error occurred: ' + error.message);
     }
 }
@@ -1170,67 +1300,46 @@ async function markAllMessagesAsRead() {
 // DELETE MESSAGE - FIXED VERSION
 // ============================================
 async function deleteMessage(id) {
-    console.log('🗑️ deleteMessage called for:', id);
-    
     try {
-        // Use custom confirmation modal
         const confirmed = await showConfirmModal(
             '🗑️ Delete Message?',
             'This action cannot be undone. The message will be permanently deleted from your database.'
         );
-        
-        console.log('Delete confirmation result:', confirmed);
-        
-        if (!confirmed) {
-            console.log('❌ User cancelled deletion');
-            return;
-        }
-        
-        console.log('✅ User confirmed deletion');
-        
-        // Show loading state
+
+        if (!confirmed) return;
+
         const deleteBtn = document.querySelector(`[data-id="${id}"].delete-btn`);
         if (deleteBtn) {
             deleteBtn.disabled = true;
             deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
         }
-        
+
         try {
             if (!window.firebaseDb || !window.firebaseModules) {
                 throw new Error('Firebase not initialized');
             }
-            
+
             const { doc, deleteDoc } = window.firebaseModules;
-            
-            console.log('🔄 Deleting document...');
             await deleteDoc(doc(window.firebaseDb, 'messages', id));
-            console.log('✅ Document deleted from Firebase');
-            
-            // Reload messages and analytics
-            if (typeof loadMessages === 'function') {
-                await loadMessages();
-                console.log('✅ Messages reloaded');
-            }
-            if (typeof loadAnalytics === 'function') {
-                await loadAnalytics();
-                console.log('✅ Analytics reloaded');
-            }
-            
+
+            if (typeof loadMessages === 'function') await loadMessages();
+            if (typeof loadAnalytics === 'function') await loadAnalytics();
+
             showSuccessToast(
-                '🗑️ Message Deleted', 
+                '🗑️ Message Deleted',
                 'The message has been permanently removed from your inbox.'
             );
-            
+
         } catch (error) {
-            console.error('❌ Error deleting message:', error);
+            console.error('Error deleting message:', error);
             showSuccessToast(
-                '❌ Deletion Failed', 
+                '❌ Deletion Failed',
                 'Unable to delete the message. Error: ' + error.message
             );
         }
-        
+
     } catch (error) {
-        console.error('❌ Error in deleteMessage:', error);
+        console.error('Error in deleteMessage:', error);
         showSuccessToast('❌ Error', 'An error occurred: ' + error.message);
     }
 }
@@ -1241,40 +1350,21 @@ window.deleteMessage = deleteMessage;
 
 // Attach listeners when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('✅ DOM loaded, attaching listeners...');
-    
     const markAllReadBtn = document.getElementById('markAllRead');
     if (markAllReadBtn) {
-        // Remove any existing listeners
         markAllReadBtn.replaceWith(markAllReadBtn.cloneNode(true));
         const newMarkAllReadBtn = document.getElementById('markAllRead');
-        
         newMarkAllReadBtn.addEventListener('click', markAllMessagesAsRead);
-        console.log('✅ Mark All Read listener attached');
-    } else {
-        console.warn('⚠️ markAllRead button not found on page load');
     }
 });
 
-// Backup function to attach listener when admin panel opens
-window.attachMarkAllReadListener = function() {
+window.attachMarkAllReadListener = function () {
     const btn = document.getElementById('markAllRead');
-    if (!btn) {
-        console.warn('⚠️ Button not found');
-        return;
-    }
-    
-    if (btn.hasAttribute('data-listener-attached')) {
-        console.log('ℹ️ Listener already attached');
-        return;
-    }
-    
+    if (!btn) return;
+    if (btn.hasAttribute('data-listener-attached')) return;
     btn.addEventListener('click', markAllMessagesAsRead);
     btn.setAttribute('data-listener-attached', 'true');
-    console.log('✅ Mark All Read listener attached (backup)');
 };
-
-console.log('✅ Fixed modal script loaded');
 // ============================================
 // REFRESH MESSAGES
 // ============================================
@@ -1283,9 +1373,9 @@ if (refreshMessagesBtn) {
     refreshMessagesBtn.addEventListener('click', async () => {
         refreshMessagesBtn.innerHTML = '<i class="fas fa-sync fa-spin"></i> Refreshing...';
         refreshMessagesBtn.disabled = true;
-        
+
         await loadMessages();
-        
+
         setTimeout(() => {
             refreshMessagesBtn.innerHTML = '<i class="fas fa-sync"></i> Refresh';
             refreshMessagesBtn.disabled = false;
@@ -1299,13 +1389,13 @@ if (refreshMessagesBtn) {
 async function generateVisitorChart() {
     try {
         if (!window.firebaseDb || !window.firebaseModules) return;
-        
+
         const { collection, getDocs } = window.firebaseModules;
         const analyticsSnapshot = await getDocs(collection(window.firebaseDb, 'analytics'));
-        
+
         const last7Days = [];
         const viewsByDate = {};
-        
+
         // Generate last 7 days dates
         for (let i = 6; i >= 0; i--) {
             const date = new Date();
@@ -1314,7 +1404,7 @@ async function generateVisitorChart() {
             last7Days.push(dateStr);
             viewsByDate[dateStr] = 0;
         }
-        
+
         // Count views by date
         analyticsSnapshot.forEach(doc => {
             const data = doc.data();
@@ -1322,20 +1412,20 @@ async function generateVisitorChart() {
                 viewsByDate[data.date]++;
             }
         });
-        
+
         const chartData = last7Days.map(date => viewsByDate[date]);
-        
+
         const ctx = document.getElementById('visitorChart');
         if (!ctx) {
             console.warn('⚠️ visitorChart canvas element not found');
             return;
         }
-        
+
         // ✅ FIX: Properly destroy existing chart if it exists
         if (window.visitorChart && typeof window.visitorChart.destroy === 'function') {
             window.visitorChart.destroy();
         }
-        
+
         // Create new chart
         window.visitorChart = new Chart(ctx, {
             type: 'line',
@@ -1392,9 +1482,9 @@ async function generateVisitorChart() {
                 }
             }
         });
-        
+
         console.log('✅ Visitor chart generated successfully');
-        
+
     } catch (error) {
         console.error('❌ Error generating visitor chart:', error);
     }
@@ -1405,10 +1495,10 @@ async function generateVisitorChart() {
 async function generateMessageCategoryChart() {
     try {
         if (!window.firebaseDb || !window.firebaseModules) return;
-        
+
         const { collection, getDocs } = window.firebaseModules;
         const messagesSnapshot = await getDocs(collection(window.firebaseDb, 'messages'));
-        
+
         // Count messages by category
         const categoryCounts = {
             'Job Inquiry': 0,
@@ -1417,7 +1507,7 @@ async function generateMessageCategoryChart() {
             'Feedback': 0,
             'General': 0
         };
-        
+
         messagesSnapshot.forEach(doc => {
             const data = doc.data();
             const category = data.category || 'General';
@@ -1427,18 +1517,18 @@ async function generateMessageCategoryChart() {
                 categoryCounts['General']++;
             }
         });
-        
+
         const ctx = document.getElementById('messageTypeChart');
         if (!ctx) {
             console.warn('⚠️ messageTypeChart canvas element not found');
             return;
         }
-        
+
         // ✅ FIX: Properly destroy existing chart if it exists
         if (window.messageCategoryChart && typeof window.messageCategoryChart.destroy === 'function') {
             window.messageCategoryChart.destroy();
         }
-        
+
         // Create doughnut chart
         window.messageCategoryChart = new Chart(ctx, {
             type: 'doughnut',
@@ -1475,7 +1565,7 @@ async function generateMessageCategoryChart() {
                     },
                     tooltip: {
                         callbacks: {
-                            label: function(context) {
+                            label: function (context) {
                                 const label = context.label || '';
                                 const value = context.parsed || 0;
                                 const total = context.dataset.data.reduce((a, b) => a + b, 0);
@@ -1491,11 +1581,11 @@ async function generateMessageCategoryChart() {
                 cutout: '60%'
             }
         });
-        
+
         console.log('✅ Message category chart generated');
-        
+
     } catch (error) {
-        console.error('❌ Error generating category chart:', error);
+        console.error('Error generating category chart:', error);
     }
 }
 // ============================================
@@ -1504,49 +1594,49 @@ async function generateMessageCategoryChart() {
 async function loadAnalytics() {
     try {
         if (!window.firebaseDb || !window.firebaseModules) return;
-        
+
         const { collection, getDocs, query, where, Timestamp } = window.firebaseModules;
-        
+
         // Total views
         const analyticsSnapshot = await getDocs(collection(window.firebaseDb, 'analytics'));
         const totalViews = analyticsSnapshot.size;
-        
+
         // Total messages
         const messagesSnapshot = await getDocs(collection(window.firebaseDb, 'messages'));
         const totalMessages = messagesSnapshot.size;
-        
+
         // Unread messages
         const unreadQuery = query(collection(window.firebaseDb, 'messages'), where('read', '==', false));
         const unreadSnapshot = await getDocs(unreadQuery);
         const unreadMessages = unreadSnapshot.size;
-        
+
         // Today's views
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const todayTimestamp = Timestamp.fromDate(today);
-        
+
         const todayQuery = query(
             collection(window.firebaseDb, 'analytics'),
             where('timestamp', '>=', todayTimestamp)
         );
         const todaySnapshot = await getDocs(todayQuery);
         const todayViews = todaySnapshot.size;
-        
+
         // Update UI
         const totalViewsEl = document.getElementById('totalViews');
         const totalMessagesEl = document.getElementById('totalMessages');
         const todayViewsEl = document.getElementById('todayViews');
         const unreadMessagesEl = document.getElementById('unreadMessages');
-        
+
         if (totalViewsEl) totalViewsEl.textContent = totalViews;
         if (totalMessagesEl) totalMessagesEl.textContent = totalMessages;
         if (todayViewsEl) todayViewsEl.textContent = todayViews;
         if (unreadMessagesEl) unreadMessagesEl.textContent = unreadMessages;
-        
+
         // Generate charts
         await generateVisitorChart();
         await generateMessageCategoryChart(); // ✅ Generate category chart
-        
+
     } catch (error) {
         console.error('Error loading analytics:', error);
     }
@@ -1586,7 +1676,7 @@ if (exportJSONBtn) {
 async function exportMessages(format) {
     try {
         let messages = [];
-        
+
         if (window.firebaseDb && window.firebaseModules) {
             const { collection, getDocs } = window.firebaseModules;
             const querySnapshot = await getDocs(collection(window.firebaseDb, 'messages'));
@@ -1594,7 +1684,7 @@ async function exportMessages(format) {
                 messages.push(doc.data());
             });
         }
-        
+
         if (format === 'csv') {
             const csv = convertToCSV(messages);
             downloadFile(csv, 'contact-messages.csv', 'text/csv');
@@ -1602,7 +1692,7 @@ async function exportMessages(format) {
             const json = JSON.stringify(messages, null, 2);
             downloadFile(json, 'contact-messages.json', 'application/json');
         }
-        
+
         showSuccessToast('Exported!', `Data exported as ${format.toUpperCase()} successfully.`);
     } catch (error) {
         console.error('Error exporting messages:', error);
@@ -1619,7 +1709,7 @@ function convertToCSV(data) {
         msg.date || new Date(msg.timestamp).toLocaleString(),
         msg.read ? 'Yes' : 'No'
     ]);
-    
+
     return [headers, ...rows].map(row => row.join(',')).join('\n');
 }
 
@@ -1649,20 +1739,20 @@ if (autoSyncToggle) {
         autoSyncToggle.checked = true;
         startAutoSync();
     }
-    
+
     autoSyncToggle.addEventListener('change', (e) => {
         if (e.target.checked) {
             startAutoSync();
             localStorage.setItem('autoSyncEnabled', 'true');
             showSuccessToast(
-                '🔄 Auto-Sync Enabled', 
+                '🔄 Auto-Sync Enabled',
                 'Your messages will automatically backup to Google Sheets every 30 minutes!'
             );
         } else {
             stopAutoSync();
             localStorage.setItem('autoSyncEnabled', 'false');
             showSuccessToast(
-                '⏸️ Auto-Sync Paused', 
+                '⏸️ Auto-Sync Paused',
                 'Automatic syncing is now disabled. You can still sync manually anytime.'
             );
         }
@@ -1677,14 +1767,14 @@ if (syncNowBtn) {
         const btnText = syncNowBtn.innerHTML;
         syncNowBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
         syncNowBtn.disabled = true;
-        
+
         try {
             await syncToGoogleSheets();
         } catch (error) {
             console.error('Sync button error:', error);
             if (typeof showSuccessToast === 'function') {
                 showSuccessToast(
-                    '❌ Sync Failed', 
+                    '❌ Sync Failed',
                     'Could not sync to Google Sheets. Please try again.'
                 );
             }
@@ -1700,17 +1790,14 @@ function startAutoSync() {
         clearInterval(autoSyncInterval);
     }
     autoSyncInterval = setInterval(async () => {
-        console.log('🔄 Auto-sync running...');
         await syncToGoogleSheets();
     }, 30 * 60 * 1000); // 30 minutes
-    console.log('✅ Auto-sync started');
 }
 
 function stopAutoSync() {
     if (autoSyncInterval) {
         clearInterval(autoSyncInterval);
         autoSyncInterval = null;
-        console.log('⏸️ Auto-sync stopped');
     }
 }
 
@@ -1722,7 +1809,7 @@ async function syncToGoogleSheets() {
     const syncStatus = document.getElementById('syncStatus');
     const lastSync = document.getElementById('lastSync');
     const syncBtn = document.getElementById('syncNowBtn');
-    
+
     if (syncStatus) {
         syncStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
         syncStatus.style.color = '#f59e0b';
@@ -1730,10 +1817,10 @@ async function syncToGoogleSheets() {
     if (syncBtn) {
         syncBtn.disabled = true;
     }
-    
+
     try {
         let messages = [];
-        
+
         if (window.firebaseDb && window.firebaseModules) {
             const { collection, getDocs, query, orderBy } = window.firebaseModules;
             const q = query(collection(window.firebaseDb, 'messages'), orderBy('timestamp', 'desc'));
@@ -1749,7 +1836,7 @@ async function syncToGoogleSheets() {
                 });
             });
         }
-        
+
         if (messages.length === 0) {
             showSuccessToast('No Data', 'No messages to sync.');
             if (syncStatus) {
@@ -1761,7 +1848,7 @@ async function syncToGoogleSheets() {
             }
             return;
         }
-        
+
         await fetch(GOOGLE_SHEETS_URL, {
             method: 'POST',
             headers: {
@@ -1769,20 +1856,20 @@ async function syncToGoogleSheets() {
             },
             body: JSON.stringify({ data: messages })
         });
-        
+
         if (syncStatus) {
             syncStatus.innerHTML = '<i class="fas fa-check-circle"></i> Synced successfully';
             syncStatus.style.color = '#10b981';
         }
-        
+
         const now = new Date().toLocaleString();
         if (lastSync) {
             lastSync.textContent = `Last synced: ${now}`;
         }
         localStorage.setItem('lastSyncTime', now);
-        
+
         showSuccessToast('Synced!', `${messages.length} messages synced successfully.`);
-        
+
     } catch (error) {
         console.error('Error syncing to Google Sheets:', error);
         if (syncStatus) {
@@ -1836,12 +1923,12 @@ const sections = document.querySelectorAll('section[id]');
 
 function activateNavLink() {
     const scrollY = window.pageYOffset;
-    
+
     sections.forEach(section => {
         const sectionHeight = section.offsetHeight;
         const sectionTop = section.offsetTop - 100;
         const sectionId = section.getAttribute('id');
-        
+
         if (scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {
             document.querySelectorAll('.nav-links a').forEach(link => {
                 link.classList.remove('active');
@@ -1866,10 +1953,10 @@ revealSections.forEach(section => {
 // ============================================
 // UTILITY FUNCTIONS
 // ============================================
-window.viewAllMessages = async function() {
+window.viewAllMessages = async function () {
     try {
         let messages = [];
-        
+
         if (window.firebaseDb && window.firebaseModules) {
             const { collection, getDocs } = window.firebaseModules;
             const querySnapshot = await getDocs(collection(window.firebaseDb, 'messages'));
@@ -1877,12 +1964,12 @@ window.viewAllMessages = async function() {
                 messages.push({ id: doc.id, ...doc.data() });
             });
         }
-        
+
         if (messages.length === 0) {
             console.log('No messages stored yet.');
             return;
         }
-        
+
         console.log('=== ALL CONTACT MESSAGES ===');
         messages.forEach((msg, index) => {
             console.log(`\nMessage ${index + 1}:`);
@@ -1912,7 +1999,7 @@ function loadAdminContent() {
         const aboutP1 = document.getElementById('aboutP1');
         const aboutP2 = document.getElementById('aboutP2');
         const aboutP3 = document.getElementById('aboutP3');
-        
+
         if (savedContent.homeHeading && homeHeading) homeHeading.textContent = savedContent.homeHeading;
         if (savedContent.homeTagline && homeTagline) homeTagline.textContent = savedContent.homeTagline;
         if (savedContent.aboutP1 && aboutP1) aboutP1.textContent = savedContent.aboutP1;
@@ -1926,22 +2013,14 @@ function loadAdminContent() {
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
     activateNavLink();
-    console.log('🚀 Portfolio loaded successfully!');
-    console.log('💡 Admin Access: Triple-click the logo or press Ctrl+Shift+A');
-    console.log('📝 Console Commands: viewAllMessages()');
-    
     loadAdminContent();
-    
+
     // Check authentication state
     if (window.firebaseAuth && window.firebaseModules) {
         const { onAuthStateChanged } = window.firebaseModules;
-        onAuthStateChanged(window.firebaseAuth, (user) => {
-            if (user) {
-                console.log('✅ User authenticated:', user.email);
-            }
-        });
+        onAuthStateChanged(window.firebaseAuth, () => { });
     }
-    
+
     // Load last sync time
     const lastSyncTime = localStorage.getItem('lastSyncTime');
     if (lastSyncTime) {
@@ -1952,44 +2031,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// ============================================
-// DARK MODE PREFERENCE DETECTION
-// ============================================
-function detectSystemTheme() {
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        if (!localStorage.getItem('theme')) {
-            html.setAttribute('data-theme', 'dark');
-            updateThemeIcon('dark');
-        }
-    }
-}
-
-detectSystemTheme();
-
-if (window.matchMedia) {
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-        if (!localStorage.getItem('theme')) {
-            const newTheme = e.matches ? 'dark' : 'light';
-            html.setAttribute('data-theme', newTheme);
-            updateThemeIcon(newTheme);
-        }
-    });
-}
+// NOTE: detectSystemTheme() is defined in script2.js — no duplicate needed here
 // ============================================
 // TECH STACK BASED PROJECT FILTERING - SIMPLE & DIRECT
 // ============================================
 
-console.log('🚀 Tech filter script loading...');
+
 
 // Wait for everything to be ready
 function waitForProjectsData() {
     return new Promise((resolve) => {
         const checkData = () => {
             if (typeof projectsData !== 'undefined' && Object.keys(projectsData).length > 0) {
-                console.log('✅ projectsData found:', projectsData);
+
                 resolve();
             } else {
-                console.log('⏳ Waiting for projectsData...');
+
                 setTimeout(checkData, 500);
             }
         };
@@ -2000,7 +2057,7 @@ function waitForProjectsData() {
 // Extract all unique tech stacks from projects
 function getAllTechStacks() {
     const allTechs = new Set();
-    
+
     Object.values(projectsData).forEach(project => {
         if (project.techStack && Array.isArray(project.techStack)) {
             project.techStack.forEach(tech => {
@@ -2008,21 +2065,21 @@ function getAllTechStacks() {
             });
         }
     });
-    
+
     const techArray = Array.from(allTechs).sort();
-    console.log('📊 All tech stacks found:', techArray);
+
     return techArray;
 }
 
 // Get important techs to show as filters
 function getFilterTechs() {
     const allTechs = getAllTechStacks();
-    
+
     // Priority list - only show these if they exist
     const priorities = [
         'Machine Learning',
         'Flask',
-        'Google Gemini API', 
+        'Google Gemini API',
         'OpenCV',
         'JavaScript',
         'Python',
@@ -2033,9 +2090,9 @@ function getFilterTechs() {
         'HTML',
         'CSS'
     ];
-    
+
     const filtered = priorities.filter(tech => allTechs.includes(tech));
-    console.log('🎯 Techs to show as filters:', filtered);
+
     return filtered;
 }
 
@@ -2053,25 +2110,23 @@ function shortenTechName(tech) {
 
 // Generate filter buttons
 function generateFilters() {
-    console.log('🔧 Generating filter buttons...');
-    
+
+
     const container = document.querySelector('.project-filters');
     if (!container) {
-        console.error('❌ .project-filters not found!');
         return;
     }
-    
+
     // Get techs to display
     const techs = getFilterTechs();
-    
+
     if (techs.length === 0) {
-        console.error('❌ No techs found to create filters!');
         return;
     }
-    
+
     // Clear everything
     container.innerHTML = '';
-    
+
     // Create "All" button
     const allBtn = document.createElement('button');
     allBtn.className = 'filter-btn active';
@@ -2079,7 +2134,7 @@ function generateFilters() {
     allBtn.textContent = 'All';
     allBtn.onclick = () => filterProjects('all', allBtn);
     container.appendChild(allBtn);
-    
+
     // Create button for each tech
     techs.forEach(tech => {
         const btn = document.createElement('button');
@@ -2090,14 +2145,14 @@ function generateFilters() {
         btn.onclick = () => filterProjects(tech, btn);
         container.appendChild(btn);
     });
-    
-    console.log(`✅ Created ${techs.length + 1} filter buttons`);
+
+
 }
 
 // Filter projects based on selected tech
 function filterProjects(tech, clickedBtn) {
-    console.log(`🔍 Filtering by: ${tech}`);
-    
+
+
     // Update active state
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.classList.remove('active');
@@ -2105,28 +2160,28 @@ function filterProjects(tech, clickedBtn) {
     if (clickedBtn) {
         clickedBtn.classList.add('active');
     }
-    
+
     // Filter project cards
     const cards = document.querySelectorAll('.project-card');
     let visibleCount = 0;
-    
+
     cards.forEach((card, index) => {
         const projectId = card.getAttribute('data-project');
         const project = projectsData[projectId];
-        
+
         if (!project) {
             card.style.display = 'none';
             return;
         }
-        
+
         let shouldShow = false;
-        
+
         if (tech === 'all') {
             shouldShow = true;
         } else if (project.techStack && project.techStack.includes(tech)) {
             shouldShow = true;
         }
-        
+
         if (shouldShow) {
             // Show with animation
             setTimeout(() => {
@@ -2149,9 +2204,9 @@ function filterProjects(tech, clickedBtn) {
             }, 200);
         }
     });
-    
-    console.log(`📊 Showing ${visibleCount} projects`);
-    
+
+
+
     // Update counter
     setTimeout(() => updateCounter(visibleCount, cards.length), 300);
 }
@@ -2159,7 +2214,7 @@ function filterProjects(tech, clickedBtn) {
 // Update project counter
 function updateCounter(visible, total) {
     let counter = document.querySelector('.filter-count');
-    
+
     if (!counter) {
         counter = document.createElement('div');
         counter.className = 'filter-count';
@@ -2171,13 +2226,13 @@ function updateCounter(visible, total) {
             font-weight: 500;
             transition: opacity 0.3s ease;
         `;
-        
+
         const controls = document.querySelector('.project-controls');
         if (controls) {
             controls.appendChild(counter);
         }
     }
-    
+
     counter.style.opacity = '0';
     setTimeout(() => {
         if (visible === total) {
@@ -2193,10 +2248,10 @@ function updateCounter(visible, total) {
 function setupSearch() {
     const searchInput = document.getElementById('projectSearch');
     if (!searchInput) return;
-    
+
     searchInput.addEventListener('input', (e) => {
         const term = e.target.value.toLowerCase().trim();
-        
+
         // Reset filters to "All"
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.classList.remove('active');
@@ -2204,19 +2259,19 @@ function setupSearch() {
                 btn.classList.add('active');
             }
         });
-        
+
         const cards = document.querySelectorAll('.project-card');
         let visibleCount = 0;
-        
+
         cards.forEach((card, index) => {
             const projectId = card.getAttribute('data-project');
             const project = projectsData[projectId];
-            
+
             if (!project) {
                 card.style.display = 'none';
                 return;
             }
-            
+
             if (term === '') {
                 // Show all
                 setTimeout(() => {
@@ -2227,12 +2282,12 @@ function setupSearch() {
                 visibleCount++;
                 return;
             }
-            
+
             // Search in title, description, and tech stack
             const title = project.title.toLowerCase();
             const desc = project.description.toLowerCase();
             const techs = project.techStack.join(' ').toLowerCase();
-            
+
             if (title.includes(term) || desc.includes(term) || techs.includes(term)) {
                 setTimeout(() => {
                     card.style.display = 'block';
@@ -2250,45 +2305,43 @@ function setupSearch() {
                 }, 200);
             }
         });
-        
+
         setTimeout(() => updateCounter(visibleCount, cards.length), 250);
     });
-    
-    console.log('✅ Search enhanced with tech stack filtering');
+
+
 }
 
 // Tech badges function (disabled - keeping existing design)
 function addTechBadges() {
-    // Tech badges are already part of your existing HTML design
-    // This function is disabled to avoid duplicates
-    console.log('ℹ️ Tech badges skipped (using existing HTML design)');
+    // Tech badges are already part of existing HTML design
 }
 
 // Main initialization
 async function init() {
-    console.log('🎯 Initializing tech stack filtering...');
-    
+
+
     try {
         // Wait for projectsData
         await waitForProjectsData();
-        
+
         // Generate filters
         generateFilters();
-        
+
         // Add badges
         addTechBadges();
-        
+
         // Setup search
         setupSearch();
-        
+
         // Initial counter
         const cards = document.querySelectorAll('.project-card');
         updateCounter(cards.length, cards.length);
-        
-        console.log('✅ Tech stack filtering ready!');
-        
+
+
+
     } catch (error) {
-        console.error('❌ Initialization failed:', error);
+        console.error('Initialization failed:', error);
     }
 }
 
@@ -2310,7 +2363,7 @@ document.addEventListener('keydown', (e) => {
             search.select();
         }
     }
-    
+
     // Alt + 0-9 for filters
     if (e.altKey && e.key >= '0' && e.key <= '9') {
         e.preventDefault();
@@ -2324,26 +2377,4 @@ document.addEventListener('keydown', (e) => {
 window.filterProjects = filterProjects;
 window.generateFilters = generateFilters;
 
-console.log('✅ Tech filter script loaded');
-console.log('⌨️  Shortcuts: Ctrl+K (search), Alt+0-9 (filters)');
-
-// ============================================
-// CONSOLE EASTER EGG
-// ============================================
-console.log('%c👋 Hello Developer!', 'font-size: 20px; font-weight: bold; color: #6366f1;');
-console.log('%cInterested in the code? Check out the GitHub repo!', 'font-size: 14px; color: #8b5cf6;');
-console.log('%c\nHidden Features:', 'font-size: 16px; font-weight: bold; color: #ec4899;');
-console.log('🔐 Triple-click logo for admin access');
-console.log('⌨️  Ctrl+Shift+A for quick admin login');
-console.log('🎨 System theme auto-detection enabled');
-console.log('📱 Responsive design with mobile-first approach');
-console.log('🔥 Firebase integration for real-time data');
-console.log('📊 Google Sheets integration for data sync');
-console.log('\n💡 Try these commands:');
-console.log('   - viewAllMessages()');
-// Add this at the top of your script.js to verify functions exist
-console.log('showConfirmModal available:', typeof showConfirmModal);
-console.log('showSuccessToast available:', typeof showSuccessToast);
-console.log('loadMessages available:', typeof loadMessages);
-console.log('loadAnalytics available:', typeof loadAnalytics);
-console.log('syncToGoogleSheets available:', typeof syncToGoogleSheets);
+// Console easter egg is in script2.js only — no duplicate needed here

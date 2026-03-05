@@ -1,53 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+
     <!-- SEO Meta Tags -->
     <title>Sriram Kannan - ML Developer | AI Enthusiast | Data Analyst</title>
-    <meta name="description" content="Sriram Kannan - ML Developer, Data Analyst, and AI Enthusiast. Explore my portfolio showcasing innovative AI projects, achievements, and professional experience in Machine Learning and Artificial Intelligence.">
-    <meta name="keywords" content="Machine Learning, AI, Data Science, Python, ML Developer, Sriram Kannan, Portfolio, Artificial Intelligence, Data Analysis, GenAI">
+    <meta name="description"
+        content="Sriram Kannan - ML Developer, Data Analyst, and AI Enthusiast. Explore my portfolio showcasing innovative AI projects, achievements, and professional experience in Machine Learning and Artificial Intelligence.">
+    <meta name="keywords"
+        content="Machine Learning, AI, Data Science, Python, ML Developer, Sriram Kannan, Portfolio, Artificial Intelligence, Data Analysis, GenAI">
     <meta name="author" content="Sriram Kannan">
-    
+
     <!-- Open Graph Meta Tags -->
     <meta property="og:title" content="Sriram Kannan - ML Developer Portfolio">
-    <meta property="og:description" content="Explore innovative AI and ML projects, achievements, and professional experience">
+    <meta property="og:description"
+        content="Explore innovative AI and ML projects, achievements, and professional experience">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://yourwebsite.com">
     <meta property="og:image" content="images/og-image.jpg">
-    
+
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Sriram Kannan - ML Developer Portfolio">
     <meta name="twitter:description" content="Innovative AI & ML Projects">
     <meta name="twitter:image" content="images/twitter-card.jpg">
-    
+
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="images/favicon.ico">
-    <link rel="icon" type="image/png" href="images/favicon.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png"> 
-    
+    <link rel="icon" type="image/png" href="assets/images/icons/favicon.ico">
+    <link rel="icon" type="image/png" href="assets/images/icons/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/images/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/images/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/images/icons/favicon-16x16.png">
+
     <!-- Preconnect for Performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    
+
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#6366f1">
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
+
 <body>
+    <!-- Page Load Progress Bar -->
+    <div id="pageProgress" class="page-progress"></div>
+
+    <!-- Scroll Progress Indicator -->
+    <div id="scrollProgress" class="scroll-progress"></div>
+
+    <!-- Custom Cursor -->
+    <div id="customCursor" class="custom-cursor"></div>
+    <div id="customCursorFollower" class="custom-cursor-follower"></div>
+
+    <!-- Theme Transition Overlay -->
+    <div id="themeTransition" class="theme-transition-overlay"></div>
+
+    <!-- Skip to Content (Accessibility) -->
+    <a href="#home" class="skip-to-content">Skip to main content</a>
     <!-- Preloader -->
     <div id="preloader">
         <div class="loader">
             <div class="spinner"></div>
             <p>Loading Portfolio...</p>
         </div>
+    </div>
+
+    <!-- Background Blobs -->
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+        <div class="blob blob-4"></div>
     </div>
 
     <!-- Particles Background -->
@@ -62,7 +91,6 @@
                     <span></span>
                     <span></span>
                 </div>
-                <!-- SECRET ADMIN ACCESS: Triple click this logo OR Press Ctrl+Shift+A -->
                 <div class="logo" id="secretLogo">SK</div>
             </div>
             <ul class="nav-links">
@@ -75,7 +103,7 @@
                 <li><a href="#experience">Experience</a></li>
                 <li><a href="#contact">Contact</a></li>
             </ul>
-            <div class="theme-toggle" id="themeToggle">
+            <div class="theme-toggle" id="themeToggle" role="button" aria-label="Toggle dark/light theme" tabindex="0">
                 <i class="fas fa-moon"></i>
             </div>
         </nav>
@@ -106,7 +134,8 @@
                             <i class="fas fa-spinner fa-spin"></i> Logging in...
                         </span>
                     </button>
-                    <div id="loginError" class="error-message" style="display: none; text-align: center; margin-top: 1rem;"></div>
+                    <div id="loginError" class="error-message"
+                        style="display: none; text-align: center; margin-top: 1rem;"></div>
                 </form>
             </div>
         </div>
@@ -210,7 +239,7 @@
                             <i class="fas fa-sync"></i> Refresh
                         </button>
                         <button id="markAllRead" class="btn btn-outline">
-                             <i class="fas fa-check-double"></i> Mark All Read
+                            <i class="fas fa-check-double"></i> Mark All Read
                         </button>
                     </div>
                 </div>
@@ -256,10 +285,8 @@
                         <button id="syncNowBtn" class="btn btn-primary">
                             <i class="fas fa-sync"></i> Sync Now
                         </button>
-                        <a href="https://docs.google.com/spreadsheets/d/1fhnlVaxNHzeyaPqQFBzFASWta16RJPH8chJ4bxG_Vxc/edit?usp=sharing/edit" 
-                           target="_blank" 
-                           class="btn btn-secondary" 
-                           id="viewSpreadsheetBtn">
+                        <a href="https://docs.google.com/spreadsheets/d/1fhnlVaxNHzeyaPqQFBzFASWta16RJPH8chJ4bxG_Vxc/edit?usp=sharing/edit"
+                            target="_blank" class="btn btn-secondary" id="viewSpreadsheetBtn">
                             <i class="fas fa-external-link-alt"></i> View Spreadsheet
                         </a>
                         <label class="toggle-switch">
@@ -293,25 +320,37 @@
         <div class="container">
             <h2 class="section-title">About Me</h2>
             <div class="about-content">
-                <div class="profile-photo">
-                    <img src="images/profile.png" alt="Sriram Kannan Profile Photo" loading="lazy">
+                <div class="hero-image-container reveal">
+                    <img src="assets/images/profile/profile.png" alt="Sriram Kannan" class="hero-image" loading="lazy">
+                    <div class="hero-badge"></div>
                 </div>
                 <div class="about-text">
-                    <p id="aboutP1">Hello! I'm a passionate Machine Learning Developer who loves building intelligent systems that learn from data and make real-world impact. My focus is on designing, training, and deploying models that bridge the gap between data and decision-making.</p>
-                    <p id="aboutP2">When I'm not experimenting with algorithms, you'll find me fine-tuning neural networks, exploring advancements in GenAI, or collaborating on open-source AI projects to push the boundaries of innovation.</p>
-                    <p id="aboutP3">When I'm not coding, you'll find me exploring new technologies, contributing to open-source projects, or sharing my knowledge with the developer community.</p>
+                    <p id="aboutP1">Hello! I'm a passionate Machine Learning Developer who loves building intelligent
+                        systems that learn from data and make real-world impact. My focus is on designing, training, and
+                        deploying models that bridge the gap between data and decision-making.</p>
+                    <p id="aboutP2">When I'm not experimenting with algorithms, you'll find me fine-tuning neural
+                        networks, exploring advancements in GenAI, or collaborating on open-source AI projects to push
+                        the boundaries of innovation.</p>
+                    <p id="aboutP3">When I'm not coding, you'll find me exploring new technologies, contributing to
+                        open-source projects, or sharing my knowledge with the developer community.</p>
                     <div class="about-links">
-                        <a href="https://www.linkedin.com/in/sriram-k-99b0432b6/" target="_blank" class="btn btn-outline" rel="noopener">
+                        <a href="https://www.linkedin.com/in/sriram-k-99b0432b6/" target="_blank"
+                            class="btn btn-outline" rel="noopener">
                             <i class="fab fa-linkedin"></i> LinkedIn
                         </a>
-                        <a href="https://github.com/SriramKannan2005" target="_blank" class="btn btn-outline" rel="noopener">
+                        <a href="https://github.com/SriramKannan2005" target="_blank" class="btn btn-outline"
+                            rel="noopener noreferrer">
                             <i class="fab fa-github"></i> GitHub
                         </a>
-                        <a href="resume.pdf" id="viewResumeBtn" class="btn btn-outline">
+                        <a href="https://leetcode.com/u/Sriramkannan2005/" target="_blank" class="btn btn-outline"
+                            rel="noopener noreferrer">
+                            <i class="fas fa-code"></i> LeetCode
+                        </a>
+                        <a href="assets/docs/resume.pdf" id="viewResumeBtn" class="btn btn-outline">
                             <i class="fas fa-file-pdf"></i> Resume
                         </a>
                     </div>
-                    
+
                     <!-- GitHub Stats
                     <div class="github-stats">
                         <h3 style="margin: 2rem 0 1rem 0;">GitHub Activity</h3>
@@ -329,7 +368,7 @@
         <div class="container">
             <h2 class="section-title">Skills & Certifications</h2>
             <p class="section-subtitle">My technical expertise and professional certifications</p>
-            
+
             <div class="skills-grid">
                 <!-- Programming Card -->
                 <div class="skill-category">
@@ -426,9 +465,15 @@
                     </div>
                     <h3>Certifications</h3>
                     <ul class="skill-list">
-                        <li><span class="dot"></span>ChatGPT for Everyone</li>
-                        <li><span class="dot"></span>Python Programming</li>
-                        <li><span class="dot"></span>Python(basic) from HackerRank</li>
+                        <li><a href="#" class="cert-link" data-cert-img="images/certificates/chatgpt-for-everyone.png"
+                                data-cert-title="ChatGPT for Everyone"><span class="dot"></span>ChatGPT for Everyone <i
+                                    class="fas fa-external-link-alt cert-icon"></i></a></li>
+                        <li><a href="#" class="cert-link" data-cert-img="images/certificates/python-programming.png"
+                                data-cert-title="Python Programming"><span class="dot"></span>Python Programming <i
+                                    class="fas fa-external-link-alt cert-icon"></i></a></li>
+                        <li><a href="#" class="cert-link" data-cert-img="images/certificates/python-hackerrank.png"
+                                data-cert-title="Python(basic) from HackerRank"><span class="dot"></span>Python(basic)
+                                from HackerRank <i class="fas fa-external-link-alt cert-icon"></i></a></li>
                     </ul>
                 </div>
             </div>
@@ -462,7 +507,7 @@
         <div class="container">
             <h2 class="section-title">Projects</h2>
             <p class="section-subtitle">Innovative AI & ML Solutions</p>
-            
+
             <!-- Project Search and Filters -->
             <div class="project-controls">
                 <input type="text" id="projectSearch" placeholder="🔍 Search projects..." class="search-input">
@@ -473,85 +518,11 @@
                     <button class="filter-btn" data-filter="web">Web Dev</button>
                 </div>
             </div>
-            
-            <div class="projects-grid">
-                <!-- Project 1 -->
-                <div class="project-card" data-project="1" data-category="ai">
-                    <div class="project-thumbnail">
-                        <img src="images/project1.png" alt="Smart Exam Evaluator" loading="lazy">
-                        <div class="project-overlay">
-                            <button class="view-details">View Details</button>
-                        </div>
-                    </div>
-                    <div class="project-info">
-                        <h3>Smart-Exam-Evaluator</h3>
-                        <p>An AI-powered exam evaluation platform integrating generative intelligence with a personalized admin dashboard for automated and insightful assessments.</p>
-                        <div class="project-meta">
-                            <span class="project-likes">
-                                <i class="fas fa-heart"></i> <span class="like-count">0</span>
-                            </span>
-                            <span class="project-views">
-                                <i class="fas fa-eye"></i> <span class="view-count">0</span>
-                            </span>
-                        </div>
-                        <a href="https://github.com/SriramKannan2005/Smart-Exam-Evaluvator" target="_blank" class="github-link" rel="noopener">
-                            <i class="fab fa-github"></i> Source Code
-                        </a>
-                    </div>
-                </div>
 
-                <!-- Project 2 -->
-                <div class="project-card" data-project="2" data-category="ai">
-                    <div class="project-thumbnail">
-                        <img src="images/project2.png" alt="GenAI Document Intelligence" loading="lazy">
-                        <div class="project-overlay">
-                            <button class="view-details">View Details</button>
-                        </div>
-                    </div>
-                    <div class="project-info">
-                        <h3>GenAI Multi-Document Intelligence System</h3>
-                        <p>An advanced AI-driven platform that analyzes, understands, and extracts insights from multiple documents with precise contextual intelligence.</p>
-                        <div class="project-meta">
-                            <span class="project-likes">
-                                <i class="fas fa-heart"></i> <span class="like-count">0</span>
-                            </span>
-                            <span class="project-views">
-                                <i class="fas fa-eye"></i> <span class="view-count">0</span>
-                            </span>
-                        </div>
-                        <a href="https://github.com/SriramKannan2005/Info-Nexus" target="_blank" class="github-link" rel="noopener">
-                            <i class="fab fa-github"></i> Source Code
-                        </a>
-                    </div>
-                </div>
-                 <!-- Project 3 -->
-                  <div class="project-card" data-project="3" data-category="ai">
-                    <div class="project-thumbnail">
-                          <img src="images/me.png" alt="CineHome+ AI-Powered Personal Cinema" loading="lazy">
-                          <div class="project-overlay">
-                            <button class="view-details">View Details</button>
-                        </div>
-                    </div>
-                    <div class="project-info">
-                         <h3>CineHome+ | AI-Powered Personal Cinema</h3>
-                         <p>
-                            A smart, locally hosted OTT-style web application that transforms your personal video collection into an interactive cinema experience. Featuring gesture-based playback control, AI-powered  movie recommendations, and a chatbot assistant built using Gemini AI.
-                         </p>
-                         <div class="project-meta">
-                            <span class="project-likes">
-                                <i class="fas fa-heart"></i> <span class="like-count">0</span>
-                            </span>
-                            <span class="project-views">
-                                <i class="fas fa-eye"></i> <span class="view-count">0</span>
-                            </span>
-                        </div>
-                        <a href= "https://github.com/SriramKannan2005/media-player" target="_blank" class="github-link" rel="noopener">
-                            <i class="fab fa-github"></i> Source Code
-                        </a>
-                    </div>
-                    </div>
-                </div>
-     </section>
+            <div class="projects-grid" id="projectsGrid">
+                <!-- Projects will be dynamically loaded here by script.js -->
+            </div>
+    </section>
 
     <!-- Achievements Section -->
     <section id="achievements" class="achievements">
@@ -585,6 +556,26 @@
                     <p class="achievement-org">National Competition</p>
                 </div>
             </div>
+
+            <!-- Stats Counter Row -->
+            <div class="stats-counter">
+                <div class="stat-item">
+                    <span class="stat-number" data-target="7">0</span><span class="stat-plus">+</span>
+                    <span class="stat-label">Projects Built</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" data-target="3">0</span><span class="stat-plus">+</span>
+                    <span class="stat-label">Certifications</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" data-target="2">0</span>
+                    <span class="stat-label">Hackathon Awards</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" data-target="2">0</span><span class="stat-plus">+</span>
+                    <span class="stat-label">Internships</span>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -601,7 +592,9 @@
                         <span class="education-year">2023 - Present</span>
                         <h3>Bachelor of Technology in Artificial Intelligence and Data Science </h3>
                         <h4>P.S.R. Engineering College</h4>
-                        <p>Pursuing B.Tech in Artificial Intelligence and Data Science with a focus on Machine Learning, Artificial Intelligence, and Software Development. Actively involved in research projects and technical competitions.</p>
+                        <p>Pursuing B.Tech in Artificial Intelligence and Data Science with a focus on Machine Learning,
+                            Artificial Intelligence, and Software Development. Actively involved in research projects
+                            and technical competitions.</p>
                         <span class="education-badge">Current</span>
                     </div>
                 </div>
@@ -613,7 +606,8 @@
                         <span class="education-year">2021 - 2023</span>
                         <h3>Higher Secondary Education</h3>
                         <h4>BMC MATRIC HIGHER SECONDARY SCHOOL</h4>
-                        <p>Completed higher secondary education with a focus on Mathematics and Computer Science. Achieved excellence in academics and participated in various science competitions.</p>
+                        <p>Completed higher secondary education with a focus on Mathematics and Computer Science.
+                            Achieved excellence in academics and participated in various science competitions.</p>
                     </div>
                 </div>
 
@@ -623,8 +617,9 @@
                     <div class="education-content">
                         <span class="education-year">2008 - 2021</span>
                         <h3>Secondary Education</h3>
-                        <h4>St.ANTONY'S MATRIC HIGHER SECONDARY  SCHOOL</h4>
-                        <p>Completed secondary education with strong foundation in core subjects. Actively participated in coding clubs and mathematics olympiads.</p>
+                        <h4>St.ANTONY'S MATRIC HIGHER SECONDARY SCHOOL</h4>
+                        <p>Completed secondary education with strong foundation in core subjects. Actively participated
+                            in coding clubs and mathematics olympiads.</p>
                     </div>
                 </div>
             </div>
@@ -637,14 +632,15 @@
             <h2 class="section-title">Experience</h2>
             <p class="section-subtitle">Professional Journey</p>
             <div class="timeline">
-                 <!-- Experience 1 -->
+                <!-- Experience 1 -->
                 <div class="timeline-item">
                     <div class="timeline-dot"></div>
                     <div class="timeline-content">
                         <div class="timeline-date">2023-Present </div>
                         <h3>Hackathon Winner & Participant</h3>
                         <h4>Various National Level Competitions</h4>
-                        <p>Participated in multiple national-level hackathons and coding competitions. Won awards for innovative AI solutions in education technology and document processing systems.</p>
+                        <p>Participated in multiple national-level hackathons and coding competitions. Won awards for
+                            innovative AI solutions in education technology and document processing systems.</p>
                     </div>
                 </div>
                 <!-- Experience 2 -->
@@ -654,7 +650,8 @@
                         <div class="timeline-date">2024 - Present</div>
                         <h3>Research and Development Assistant</h3>
                         <h4>SkyGen Mecha's</h4>
-                        <p>Assisted in AI research projects focusing on natural language processing and computer vision. Developed proof-of-concept applications and contributed to academic publications.</p>
+                        <p>Assisted in AI research projects focusing on natural language processing and computer vision.
+                            Developed proof-of-concept applications and contributed to academic publications.</p>
                     </div>
                 </div>
                 <!-- Experience 3 -->
@@ -664,14 +661,15 @@
                         <div class="timeline-date">2024-DEC - 2025-MAY</div>
                         <h3>AI-ML Development Intern</h3>
                         <h4>TARAS SYSTEMS AND SOLUTIONS</h4>
-                        <p>Worked on developing machine learning models for real-world applications.AI  projects focusing on computer vision.</p>
+                        <p>Worked on developing machine learning models for real-world applications.AI projects focusing
+                            on computer vision.</p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    
+
 
     <!-- Contact Section -->
     <section id="contact" class="contact">
@@ -681,22 +679,34 @@
             <div class="contact-content">
                 <div class="contact-info">
                     <h3>Let's Connect!</h3>
-                    <p>I'm always open to discussing new projects, creative ideas, or opportunities to be part of your vision. Whether you need ML solutions, AI consulting, or just want to chat about technology!</p>
+                    <p>I'm always open to discussing new projects, creative ideas, or opportunities to be part of your
+                        vision. Whether you need ML solutions, AI consulting, or just want to chat about technology!</p>
                     <div class="social-links">
-                        <a href="https://www.linkedin.com/in/sriram-k-99b0432b6/" target="_blank" rel="noopener" aria-label="LinkedIn">
+                        <a href="https://www.linkedin.com/in/sriram-k-99b0432b6/" target="_blank" rel="noopener"
+                            aria-label="LinkedIn">
                             <i class="fab fa-linkedin"></i>
                         </a>
-                        <a href="https://github.com/SriramKannan2005" target="_blank" rel="noopener" aria-label="GitHub">
+                        <a href="https://github.com/SriramKannan2005" target="_blank" rel="noopener noreferrer"
+                            aria-label="GitHub">
                             <i class="fab fa-github"></i>
                         </a>
-                        <a href="https://www.instagram.com/_badboy._.captain__?igsh=amdvcHB1cTIwNHNt" target="_blank" rel="noopener" aria-label="Instagram">
+                        <a href="https://leetcode.com/u/Sriramkannan2005/" target="_blank" rel="noopener noreferrer"
+                            aria-label="LeetCode">
+                            <i class="fas fa-code"></i>
+                        </a>
+                        <a href="https://www.instagram.com/_badboy._.captain__?igsh=amdvcHB1cTIwNHNt" target="_blank"
+                            rel="noopener noreferrer" aria-label="Instagram">
                             <i class="fab fa-instagram"></i>
                         </a>
-                        
-                        
+
+
                     </div>
                 </div>
                 <form id="contactForm" class="contact-form">
+                    <!-- Honeypot field for bot protection (hidden from real users) -->
+                    <div class="form-group" style="position:absolute;left:-9999px;" aria-hidden="true">
+                        <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+                    </div>
                     <div class="form-group">
                         <input type="text" id="name" name="name" placeholder="Your Name" required>
                         <span class="error-message"></span>
@@ -750,7 +760,7 @@
             </div>
         </div>
     </div>
-    
+
 
     <!-- Resume Modal -->
     <div id="resumeModal" class="modal">
@@ -758,8 +768,8 @@
             <span class="close" id="closeResumeModal" aria-label="Close resume">&times;</span>
             <div class="resume-modal-header">
                 <h2>SRIRAM KANNAN's CV</h2>
-                <a href="resume.pdf" download class="btn btn-primary">
-                    <i class="fas fa-download"></i> Download PDF
+                <a href="assets/docs/resume.pdf" class="btn btn-primary" download id="downloadResumeBtn">
+                    <i class="fas fa-download"></i> Download Resume
                 </a>
             </div>
             <div class="resume-viewer">
@@ -767,25 +777,25 @@
             </div>
         </div>
     </div>
- 
-<!-- Custom Confirmation Modal -->
-<div id="confirmModal" class="modal">
-    <div class="modal-content confirm-modal-content">
-        <div class="confirm-icon">
-            <i class="fas fa-question-circle"></i>
-        </div>
-        <h2 id="confirmTitle">Confirm Action</h2>
-        <p id="confirmMessage">Are you sure you want to proceed?</p>
-        <div class="confirm-actions">
-            <button id="confirmCancel" class="btn-secondary">
-                <i class="fas fa-times"></i> Cancel
-            </button>
-            <button id="confirmOk" class="btn-primary">
-                <i class="fas fa-check"></i> Confirm
-            </button>
+
+    <!-- Custom Confirmation Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content confirm-modal-content">
+            <div class="confirm-icon">
+                <i class="fas fa-question-circle"></i>
+            </div>
+            <h2 id="confirmTitle">Confirm Action</h2>
+            <p id="confirmMessage">Are you sure you want to proceed?</p>
+            <div class="confirm-actions">
+                <button id="confirmCancel" class="btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button id="confirmOk" class="btn-primary">
+                    <i class="fas fa-check"></i> Confirm
+                </button>
+            </div>
         </div>
     </div>
-</div>
     <!-- Success Message Toast -->
     <div id="successToast" class="success-toast">
         <div class="toast-icon">
@@ -805,6 +815,15 @@
         <i class="fas fa-arrow-up"></i>
     </button>
 
+    <!-- Certificate Lightbox -->
+    <div id="certLightbox" class="cert-lightbox">
+        <div class="cert-lightbox-content">
+            <button class="cert-lightbox-close" aria-label="Close">&times;</button>
+            <h3 id="certLightboxTitle" class="cert-lightbox-title"></h3>
+            <img id="certLightboxImg" src="" alt="Certificate" />
+        </div>
+    </div>
+
     <!-- Floating Contact Button -->
     <button id="floatingContact" class="floating-contact" aria-label="Contact me">
         <i class="fas fa-envelope"></i>
@@ -813,8 +832,11 @@
     <!-- Footer -->
     <footer>
         <div class="container">
-            <p>&copy; 2025 SRIRAM KANNAN. All rights reserved.</p>
-            
+            <p>&copy; <span id="currentYear">2025</span> SRIRAM KANNAN. All rights reserved.</p>
+            <script>document.getElementById('currentYear').textContent = new Date().getFullYear();</script>
+            <p class="visitor-badge" id="visitorBadge"><i class="fas fa-eye"></i> <span id="visitorCount">—</span>
+                portfolio views</p>
+
         </div>
     </footer>
 
@@ -859,24 +881,39 @@
     </script>
 
     <!-- Particles.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js" crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
 
     <!-- Chart.js for Analytics -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js" crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
 
     <!-- Main Script -->
-    <script type="module" src="script.js"></script>
-    <script type="module" src="script2.js"></script>
+    <script type="module" src="js/script.js"></script>
+    <script type="module" src="js/script2.js"></script>
 
-    <!-- Service Worker Registration
+    <!-- Service Worker Registration -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(registration => console.log('SW registered'))
-                    .catch(err => console.log('SW registration failed'));
+                navigator.serviceWorker.register('./service_worker.js')
+                    .then(registration => console.log('SW registered:', registration.scope))
+                    .catch(err => console.log('SW registration failed:', err));
             });
         }
-    </script> -->
+    </script>
+
+    <!-- Cookie Consent Banner -->
+    <div id="cookieConsent" class="cookie-consent" style="display:none;">
+        <div class="cookie-content">
+            <p><i class="fas fa-cookie-bite"></i> This site uses cookies and collects anonymous analytics to improve
+                your experience.</p>
+            <div class="cookie-actions">
+                <button id="acceptCookies" class="btn btn-primary">Accept</button>
+                <button id="declineCookies" class="btn btn-outline">Decline</button>
+            </div>
+        </div>
+    </div>
 </body>
+
 </html>
