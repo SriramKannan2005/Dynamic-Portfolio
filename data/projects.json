@@ -34,8 +34,8 @@
       "description": "A Point of Sale (POS) system designed for chai shops and small food businesses. Features include order management, real-time billing, sales tracking, and a clean, intuitive interface for quick service. Built with vanilla JavaScript for fast, dependency-free operation.",
       "techStack": ["HTML", "CSS", "JavaScript"],
       "github": "https://github.com/SriramKannan2005/The-Chai-Time-POS",
-      "video": "",
-      "image": "",
+      "video": "assets/videos/project4.mp4",
+      "image": "assets/images/projects/project4.png",
       "category": "web",
       "icon": "fas fa-mug-hot",
       "iconColor": ["#f59e0b", "#d97706"]
@@ -45,8 +45,8 @@
       "description": "A full-stack e-commerce platform for wedding flower delivery services. Features secure JWT authentication, product catalog with categories and pricing, flower customization (types & colors), bulk ordering with status tracking, auto-generated PDF bills, and a comprehensive admin dashboard for inventory and order management.",
       "techStack": ["React", "Spring Boot", "MySQL", "JWT", "Spring Security", "Vite"],
       "github": "https://github.com/SriramKannan2005/flower-delivery-application-frontend-",
-      "video": "",
-      "image": "",
+      "video": "assets/videos/project5.mp4",
+      "image": "assets/images/projects/project5.png",
       "category": "web",
       "icon": "fas fa-seedling",
       "iconColor": ["#ec4899", "#f43f5e"]
@@ -56,8 +56,8 @@
       "description": "An end-to-end data analysis and visualization project built using the Job Descriptions Dataset from Kaggle. Features interactive filter-driven insights across salary, geography, qualifications, company size, work type, and job portals. Includes extensive data cleaning, salary parsing, experience extraction, and geospatial mapping.",
       "techStack": ["Python", "Jupyter Notebook", "Data Visualization", "Pandas", "Machine Learning"],
       "github": "https://github.com/SriramKannan2005/Job-Analytics-Dashboard",
-      "video": "",
-      "image": "",
+      "video": "assets/videos/project6.mp4",
+      "image": "assets/images/projects/project6.png",
       "category": "ml",
       "icon": "fas fa-chart-bar",
       "iconColor": ["#3b82f6", "#1d4ed8"]
@@ -67,8 +67,8 @@
       "description": "A sleek, responsive digital clock application featuring real-time display with hours, minutes, and seconds. Supports dark and light themes with smooth CSS animations for an elegant user experience.",
       "techStack": ["HTML", "CSS", "JavaScript"],
       "github": "https://github.com/SriramKannan2005/Digital-Clock",
-      "video": "",
-      "image": "",
+      "video": "assets/videos/project7.mp4",
+      "image": "assets/images/projects/project7.png",
       "category": "web",
       "icon": "fas fa-clock",
       "iconColor": ["#10b981", "#059669"]

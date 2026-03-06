@@ -130,14 +130,6 @@ async function fetchProjects() {
                 </div>`;
             }
 
-            let tagsHTML = '';
-            // Only show up to 3 tags to keep design clean
-            if (project.techStack && project.techStack.length > 0) {
-                tagsHTML = `<div class="project-tags">` +
-                    project.techStack.slice(0, 3).map(tech => `<span>${tech}</span>`).join('') +
-                    `</div>`;
-            }
-
             const cardHTML = `
                 <div class="project-card" data-project="${id}" data-category="${project.category}">
                     <div class="project-thumbnail">
@@ -149,7 +141,6 @@ async function fetchProjects() {
                     <div class="project-info">
                         <h3>${project.title}</h3>
                         <p>${project.description.slice(0, 150)}...</p>
-                        ${tagsHTML}
                         <div class="project-meta">
                             <span class="project-likes"><i class="fas fa-heart"></i> <span class="like-count">0</span></span>
                             <span class="project-views"><i class="fas fa-eye"></i> <span class="view-count">0</span></span>
@@ -525,17 +516,17 @@ if (viewResumeBtn && resumeModal && resumeFrame) {
         if (isIOS) {
             // iOS - use object/embed tag (best compatibility)
             resumeFrame.innerHTML = `
-                <object data="resume.pdf#toolbar=0&navpanes=0&scrollbar=1&view=FitH" 
+                <object data="assets/docs/resume.pdf#toolbar=0&navpanes=0&scrollbar=1&view=FitH" 
                         type="application/pdf" 
                         style="width:100%; height:100%; border:none;">
-                    <embed src="resume.pdf#toolbar=0&navpanes=0&scrollbar=1&view=FitH" 
+                    <embed src="assets/docs/resume.pdf#toolbar=0&navpanes=0&scrollbar=1&view=FitH" 
                            type="application/pdf" 
                            style="width:100%; height:100%; border:none;" />
                 </object>
             `;
         } else {
             // All other devices - direct PDF with no toolbar
-            resumeFrame.src = 'resume.pdf#toolbar=0&navpanes=0&scrollbar=1&view=FitH&zoom=page-fit';
+            resumeFrame.src = 'assets/docs/resume.pdf#toolbar=0&navpanes=0&scrollbar=1&view=FitH&zoom=page-fit';
         }
 
         resumeModal.classList.add('active');
