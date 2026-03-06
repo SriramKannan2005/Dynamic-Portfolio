@@ -338,6 +338,10 @@
                             class="btn btn-outline" rel="noopener">
                             <i class="fab fa-linkedin"></i> LinkedIn
                         </a>
+                        <a href="javascript:void(0)" onclick="openEmailModalFunc()" class="btn btn-outline"
+                            rel="noopener">
+                            <i class="fas fa-envelope"></i> Email
+                        </a>
                         <a href="https://github.com/SriramKannan2005" target="_blank" class="btn btn-outline"
                             rel="noopener noreferrer">
                             <i class="fab fa-github"></i> GitHub
@@ -397,10 +401,10 @@
                     <div class="skill-item">
                         <div class="skill-header">
                             <span>Java</span>
-                            <span>50%</span>
+                            <span>80%</span>
                         </div>
                         <div class="skill-bar">
-                            <div class="skill-progress" data-progress="50"></div>
+                            <div class="skill-progress" data-progress="80"></div>
                         </div>
                     </div>
                     <div class="skill-item">
@@ -465,13 +469,16 @@
                     </div>
                     <h3>Certifications</h3>
                     <ul class="skill-list">
-                        <li><a href="#" class="cert-link" data-cert-img="images/certificates/chatgpt-for-everyone.png"
+                        <li><a href="#" class="cert-link"
+                                data-cert-img="assets/images/certificates/chatgpt-for-everyone.png"
                                 data-cert-title="ChatGPT for Everyone"><span class="dot"></span>ChatGPT for Everyone <i
                                     class="fas fa-external-link-alt cert-icon"></i></a></li>
-                        <li><a href="#" class="cert-link" data-cert-img="images/certificates/python-programming.png"
+                        <li><a href="#" class="cert-link"
+                                data-cert-img="assets/images/certificates/python-programming.png"
                                 data-cert-title="Python Programming"><span class="dot"></span>Python Programming <i
                                     class="fas fa-external-link-alt cert-icon"></i></a></li>
-                        <li><a href="#" class="cert-link" data-cert-img="images/certificates/python-hackerrank.png"
+                        <li><a href="#" class="cert-link"
+                                data-cert-img="assets/images/certificates/python-hackerrank.png"
                                 data-cert-title="Python(basic) from HackerRank"><span class="dot"></span>Python(basic)
                                 from HackerRank <i class="fas fa-external-link-alt cert-icon"></i></a></li>
                     </ul>
@@ -665,6 +672,19 @@
                             on computer vision.</p>
                     </div>
                 </div>
+                <!-- Experience 4 -->
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-date">Nov 2025 - Feb 2026</div>
+                        <h3>Data Analyst Intern</h3>
+                        <h4>NullClass</h4>
+                        <p>Engineered an end-to-end data analytics pipeline to process and clean complex datasets using
+                            Python. Designed and deployed interactive Tableau dashboards featuring advanced geospatial
+                            filtering to deliver actionable hiring insights and facilitate data-driven decision-making.
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -685,6 +705,9 @@
                         <a href="https://www.linkedin.com/in/sriram-k-99b0432b6/" target="_blank" rel="noopener"
                             aria-label="LinkedIn">
                             <i class="fab fa-linkedin"></i>
+                        </a>
+                        <a href="javascript:void(0)" onclick="openEmailModalFunc()" rel="noopener" aria-label="Email">
+                            <i class="fas fa-envelope"></i>
                         </a>
                         <a href="https://github.com/SriramKannan2005" target="_blank" rel="noopener noreferrer"
                             aria-label="GitHub">
@@ -821,6 +844,38 @@
             <button class="cert-lightbox-close" aria-label="Close">&times;</button>
             <h3 id="certLightboxTitle" class="cert-lightbox-title"></h3>
             <img id="certLightboxImg" src="" alt="Certificate" />
+        </div>
+    </div>
+
+    <!-- Email Provider Selection Modal -->
+    <div id="emailModal" class="modal">
+        <div class="modal-content confirm-modal-content" style="max-width: 400px; padding: 2.5rem 2rem;">
+            <span class="close" id="closeEmailModal" aria-label="Close email modal"
+                style="position: absolute; right: 1.5rem; top: 1.5rem;">&times;</span>
+            <div class="confirm-icon" style="background: rgba(99, 102, 241, 0.1); color: var(--primary);">
+                <i class="fas fa-envelope-open-text" style="font-size: 2.5rem;"></i>
+            </div>
+            <h2 style="margin-bottom: 0.5rem; text-align: center;">Send Email</h2>
+            <p style="color: var(--text-secondary); text-align: center; margin-bottom: 2rem;">Choose your preferred
+                email provider to compose a new message.</p>
+
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <a href="https://mail.google.com/mail/?view=cm&fs=1&to=sriramkannan01062005@gmail.com" target="_blank"
+                    rel="noopener" class="btn btn-outline" style="width: 100%; justify-content: center; height: 50px;"
+                    onclick="closeEmailModalFunc()">
+                    <i class="fab fa-google" style="color: #ea4335; font-size: 1.2rem;"></i> Continue with Gmail
+                </a>
+                <a href="https://outlook.live.com/mail/0/deeplink/compose?to=sriramkannan01062005@gmail.com"
+                    target="_blank" rel="noopener" class="btn btn-outline"
+                    style="width: 100%; justify-content: center; height: 50px;" onclick="closeEmailModalFunc()">
+                    <i class="fab fa-microsoft" style="color: #0078d4; font-size: 1.2rem;"></i> Continue with Outlook
+                </a>
+                <a href="mailto:sriramkannan01062005@gmail.com" class="btn btn-outline"
+                    style="width: 100%; justify-content: center; height: 50px; border-color: var(--border-color); color: var(--text-secondary);"
+                    onclick="closeEmailModalFunc()">
+                    <i class="fas fa-desktop" style="font-size: 1.2rem;"></i> Open Default App
+                </a>
+            </div>
         </div>
     </div>
 

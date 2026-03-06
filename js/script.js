@@ -204,8 +204,11 @@ if (hamburger && navLinks) {
 // ============================================
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
+        const href = this.getAttribute('href');
+        if (href === '#') return; // Ignore empty anchor links
+
         e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
+        const target = document.querySelector(href);
         if (target) {
             const headerOffset = 80;
             const elementPosition = target.getBoundingClientRect().top;
@@ -2369,3 +2372,50 @@ window.filterProjects = filterProjects;
 window.generateFilters = generateFilters;
 
 // Console easter egg is in script2.js only — no duplicate needed here
+
+// ============================================
+// EMAIL SELECTION MODAL
+// ============================================
+function openEmailModalFunc() {
+    const emailModal = document.getElementById('emailModal');
+    if (emailModal) {
+        emailModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeEmailModalFunc() {
+    const emailModal = document.getElementById('emailModal');
+    if (emailModal) {
+        emailModal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
+}
+
+// Make globally available
+window.openEmailModalFunc = openEmailModalFunc;
+window.closeEmailModalFunc = closeEmailModalFunc;
+
+// Add event listeners for closing
+document.addEventListener('DOMContentLoaded', () => {
+    const closeEmailModalBtn = document.getElementById('closeEmailModal');
+    const emailModal = document.getElementById('emailModal');
+
+    if (closeEmailModalBtn) {
+        closeEmailModalBtn.addEventListener('click', closeEmailModalFunc);
+    }
+
+    if (emailModal) {
+        emailModal.addEventListener('click', (e) => {
+            if (e.target === emailModal) {
+                closeEmailModalFunc();
+            }
+        });
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && emailModal && emailModal.classList.contains('active')) {
+            closeEmailModalFunc();
+        }
+    });
+});
