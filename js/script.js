@@ -572,6 +572,8 @@ document.addEventListener('keydown', (e) => {
         if (adminLoginModal?.classList.contains('active')) {
             adminLoginModal.classList.remove('active');
             document.body.style.overflow = 'auto';
+            const adminLoginForm = document.getElementById('adminLoginForm');
+            if (adminLoginForm) adminLoginForm.reset();
         }
     }
 
@@ -843,6 +845,7 @@ if (closeAdminLogin && adminLoginModal) {
     closeAdminLogin.addEventListener('click', () => {
         adminLoginModal.classList.remove('active');
         document.body.style.overflow = 'auto';
+        if (adminLoginForm) adminLoginForm.reset();
     });
 }
 
@@ -913,6 +916,7 @@ if (logoutBtn) {
                 await signOut(window.firebaseAuth);
             }
             if (adminPanel) adminPanel.style.display = 'none';
+            if (adminLoginForm) adminLoginForm.reset(); // Clear credentials
         } catch (error) {
             console.error('Logout error:', error);
         }
