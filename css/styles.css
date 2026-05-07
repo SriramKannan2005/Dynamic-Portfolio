@@ -2579,10 +2579,160 @@ footer {
 
 /* Responsive adjustments for admin panel */
 @media (max-width: 768px) {
-    .analytics-cards {
-        grid-template-columns: 1fr;
+    .admin-panel {
+        padding: 0.75rem;
     }
 
+    .admin-header {
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 1rem;
+        text-align: center;
+    }
+
+    .admin-logo h1 {
+        font-size: 1.4rem;
+    }
+
+    .admin-logo i {
+        font-size: 1.5rem;
+    }
+
+    .admin-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+        width: 100%;
+        align-items: center;
+    }
+
+    .admin-user {
+        font-size: 0.8rem;
+        word-break: break-all;
+        text-align: center;
+    }
+
+    .admin-user .btn {
+        padding: 0.4rem 1rem;
+        font-size: 0.85rem;
+    }
+
+    .admin-tabs {
+        gap: 0;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        flex-wrap: nowrap;
+    }
+
+    .admin-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .admin-tab {
+        padding: 0.7rem 1rem;
+        font-size: 0.85rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .analytics-cards {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+
+    .analytics-card {
+        padding: 1rem;
+    }
+
+    .analytics-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+
+    .analytics-label {
+        font-size: 0.65rem;
+    }
+
+    .analytics-number {
+        font-size: 1.3rem;
+    }
+
+    .admin-section {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .admin-section h2 {
+        font-size: 1.1rem;
+    }
+
+    /* Message cards mobile */
+    .messages-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+
+    .messages-actions {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .messages-actions .btn {
+        flex: 1;
+        justify-content: center;
+        padding: 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    .message-card {
+        padding: 1rem;
+    }
+
+    .message-header {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .message-info h4 {
+        font-size: 0.95rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+        align-items: center;
+    }
+
+    .message-actions {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+    }
+
+    .message-actions button {
+        flex: 1;
+        min-width: 0;
+        justify-content: center;
+        text-align: center;
+        padding: 0.5rem 0.6rem;
+        font-size: 0.78rem;
+    }
+
+    .message-body {
+        padding: 0.75rem;
+        font-size: 0.9rem;
+    }
+
+    .messages-container {
+        max-height: none;
+    }
+
+    /* Charts mobile */
+    .chart-container {
+        height: 250px;
+    }
+
+    /* Export & sync mobile */
     .export-buttons {
         flex-direction: column;
     }
@@ -2605,21 +2755,94 @@ footer {
         align-items: flex-start;
         gap: 0.5rem;
     }
+
+    /* Reply modal mobile */
+    #replyOverlay {
+        padding: 0.5rem;
+        align-items: flex-start !important;
+        padding-top: 2rem;
+    }
+
+    #replyModal {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 12px !important;
+        padding: 1rem !important;
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+
+    #replyDraft {
+        font-size: 13px !important;
+        rows: 6;
+    }
+
+    /* Confirm modal mobile */
+    #confirmModal {
+        width: 95% !important;
+        max-width: 100% !important;
+        padding: 1.2rem !important;
+    }
 }
 
 @media (max-width: 480px) {
+    .admin-panel {
+        padding: 0.5rem;
+    }
+
+    .admin-header {
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .admin-logo h1 {
+        font-size: 1.2rem;
+    }
+
+    .analytics-cards {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+    }
+
     .analytics-number {
-        font-size: 1.5rem;
+        font-size: 1.1rem;
     }
 
     .analytics-icon {
-        width: 50px;
-        height: 50px;
-        font-size: 1.5rem;
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+    }
+
+    .analytics-label {
+        font-size: 0.6rem;
+    }
+
+    .admin-tab {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.8rem;
+    }
+
+    .message-actions {
+        flex-direction: column;
+    }
+
+    .message-actions button {
+        width: 100%;
     }
 
     .chart-container {
-        height: 250px;
+        height: 200px;
+    }
+
+    /* Reply modal extra small */
+    #replyModal {
+        padding: 0.75rem !important;
+    }
+
+    .reply-original-msg {
+        max-height: 70px !important;
+        font-size: 12px !important;
     }
 }
 
