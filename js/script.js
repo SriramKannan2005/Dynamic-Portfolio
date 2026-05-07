@@ -1152,12 +1152,16 @@ function displayMessages(messages) {
 
         const categoryColor = categoryColors[msg.category] || '#f59e0b';
 
+        const replyKey = 'replied_' + (msg.id || msg.email + '_' + msg.timestamp);
+        const isReplied = localStorage.getItem(replyKey);
+
         messageCard.innerHTML = `
             <div class="message-header">
                 <div class="message-info">
                     <h4>
                         ${escapeHTML(msg.name)} 
                         ${!msg.read ? '<span class="unread-badge">New</span>' : ''}
+                        ${isReplied ? '<span class="replied-badge">✓ Replied</span>' : ''}
                         ${msg.category ? `<span class="category-badge" style="background: ${categoryColor}; color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; margin-left: 0.5rem; font-weight: 600;">
                             ${escapeHTML(msg.category)}
                         </span>` : ''}
@@ -1165,9 +1169,9 @@ function displayMessages(messages) {
                     <p>${escapeHTML(msg.email)}</p>
                 </div>
                 <div class="message-actions">
-                    <button class="ai-reply-btn" data-name="${escapeHTML(msg.name)}" data-email="${escapeHTML(msg.email)}" data-subject="${escapeHTML(msg.category || 'General')}" data-message="${escapeHTML(msg.message)}">
+                    <button class="ai-reply-btn" data-id="${escapeHTML(msg.id || '')}" data-name="${escapeHTML(msg.name)}" data-email="${escapeHTML(msg.email)}" data-subject="${escapeHTML(msg.category || 'General')}" data-message="${escapeHTML(msg.message)}" data-timestamp="${msg.timestamp || ''}">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:6px"><path d="M3 10h10a8 8 0 0 1 8 8v2M3 10l6 6m-6-6 6-6"/></svg>
-                        AI Reply
+                        ${isReplied ? 'Reply Again' : 'AI Reply'}
                     </button>
                     ${!msg.read ? `<button class="mark-read-btn" data-id="${escapeHTML(msg.id)}">
                         <i class="fas fa-check"></i> Mark Read
@@ -1198,17 +1202,14 @@ function displayMessages(messages) {
     // AI Reply button listeners
     document.querySelectorAll('.ai-reply-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            console.log('AI Reply button clicked', {
-                name: btn.getAttribute('data-name'),
-                email: btn.getAttribute('data-email'),
-                openReplyModalExists: typeof window.openReplyModal === 'function'
-            });
             if (typeof window.openReplyModal === 'function') {
                 window.openReplyModal({
+                    id: btn.getAttribute('data-id'),
                     name: btn.getAttribute('data-name'),
                     email: btn.getAttribute('data-email'),
                     subject: btn.getAttribute('data-subject'),
-                    message: btn.getAttribute('data-message')
+                    message: btn.getAttribute('data-message'),
+                    timestamp: btn.getAttribute('data-timestamp')
                 });
             } else {
                 console.error('openReplyModal is not loaded. admin-reply.js may have failed to load.');

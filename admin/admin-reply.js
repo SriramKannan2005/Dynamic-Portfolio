@@ -6,9 +6,15 @@
    ============================================================ */
 
 // ─── CONFIG ────────────────────────────────────────────────
-// Your Gemini API key (fallback only — admin panel is private)
-const GEMINI_API_KEY = 'AIzaSyC4oUnPnzsMGfJyFH3ERB-K4beYQup5pbg';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + GEMINI_API_KEY;
+// API key loaded from admin/env.js (gitignored — never committed)
+const GEMINI_API_KEY = window.ENV?.GEMINI_API_KEY || '';
+const GEMINI_API_URL = GEMINI_API_KEY
+  ? 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + GEMINI_API_KEY
+  : '';
+
+if (!GEMINI_API_KEY) {
+  console.warn('AI Reply: No Gemini API key found. Create admin/env.js with window.ENV = { GEMINI_API_KEY: "..." }');
+}
 
 // Your name (appears in AI-drafted replies)
 const YOUR_NAME = 'Sriram Kannan';
@@ -24,8 +30,8 @@ let isGenerating = false;    // prevents double-clicks on Generate
 // Called when admin clicks Reply on a message card.
 // Modal opens with EMPTY textarea — NO auto-generation.
 // Admin must explicitly click "Generate Draft".
-function openReplyModal({ name, email, subject, message }) {
-  currentContact = { name, email, subject, message };
+function openReplyModal({ id, name, email, subject, message, timestamp }) {
+  currentContact = { id, name, email, subject, message, timestamp };
   draftReady = false;
 
   // Populate header + original message
@@ -41,22 +47,21 @@ function openReplyModal({ name, email, subject, message }) {
   if (draft) {
     draft.value = '';
     draft.placeholder = "Click 'Generate Draft' to create an AI reply...";
-    draft.style.background = '';
   }
 
   // Reset AI badge
   const badge = document.getElementById('aiEngineBadge');
   if (badge) {
     badge.textContent = 'Not started';
-    badge.style.background = '#f0f0f0';
-    badge.style.color = '#777';
+    badge.style.background = '';
+    badge.style.color = '';
   }
   const statusDot = document.getElementById('aiStatusDot');
   if (statusDot) statusDot.textContent = '';
 
   // Reset buttons to initial state
   setGenerateBtn('idle');
-  setSendBtn(false);   // Send is DISABLED until draft is ready
+  setSendBtn(false);
   const regenBtn = document.getElementById('regenBtn');
   if (regenBtn) regenBtn.style.display = 'none';
   const helperText = document.getElementById('replyHelperText');
@@ -66,8 +71,6 @@ function openReplyModal({ name, email, subject, message }) {
   const overlay = document.getElementById('replyOverlay');
   if (overlay) {
     overlay.style.display = 'flex';
-  } else {
-    console.error('AI Reply: #replyOverlay element not found in DOM');
   }
 }
 
@@ -120,7 +123,6 @@ async function generateDraft() {
   if (draft) {
     draft.value = '';
     draft.placeholder = 'Generating...';
-    draft.style.background = '';
   }
   setGenerateBtn('loading');
   setSendBtn(false);    // Keep Send DISABLED while generating
@@ -156,7 +158,6 @@ async function generateDraft() {
   // Unlock textarea for editing
   if (draft) {
     draft.placeholder = 'Review and edit your reply before sending...';
-    draft.style.background = '#fff';
   }
 
   // Enable Send button — admin can now send
@@ -212,7 +213,7 @@ async function generateWithNano(prompt, draftEl, statusEl) {
     statusEl.textContent = 'Running on-device...';
 
     if (!aiSession) {
-      statusEl.textContent = 'Loading model...';
+      if (statusEl) statusEl.textContent = 'Loading model...';
       // Try new LanguageModel API first, then legacy window.ai
       if (typeof LanguageModel !== 'undefined') {
         aiSession = await LanguageModel.create({
@@ -227,25 +228,49 @@ async function generateWithNano(prompt, draftEl, statusEl) {
       }
     }
 
-    statusEl.textContent = 'Generating on-device...';
+    if (statusEl) statusEl.textContent = 'Generating on-device...';
 
     // Stream the response into the textarea
     const stream = aiSession.promptStreaming(prompt);
     let fullText = '';
 
     for await (const chunk of stream) {
-      fullText = chunk; // chunk is cumulative in the Prompt API
-      draftEl.value = fullText;
+      // Handle both cumulative (newer API) and incremental chunk formats
+      if (typeof chunk === 'string') {
+        // Check if cumulative (chunk gets longer) or incremental
+        fullText = chunk.length > fullText.length ? chunk : fullText + chunk;
+      } else if (chunk?.text) {
+        fullText += chunk.text;
+      } else {
+        fullText += String(chunk);
+      }
+      if (draftEl) draftEl.value = fullText;
     }
 
-    statusEl.textContent = 'Done · on-device';
+    // If Nano returned empty, fall back to API
+    if (!fullText.trim()) {
+      console.warn('Gemini Nano returned empty response, falling back to API');
+      if (statusEl) statusEl.textContent = 'Nano empty — using API...';
+      const badge = document.getElementById('aiEngineBadge');
+      if (badge) {
+        badge.textContent = 'Gemini 2.0 Flash';
+        badge.style.background = '';
+        badge.style.color = '';
+      }
+      await generateWithGeminiAPI(prompt, draftEl, statusEl);
+      return;
+    }
+
+    if (statusEl) statusEl.textContent = 'Done · on-device';
   } catch (err) {
     console.warn('Gemini Nano failed, falling back to API:', err);
-    statusEl.textContent = 'Nano failed — using API...';
+    if (statusEl) statusEl.textContent = 'Nano failed — using API...';
     const badge = document.getElementById('aiEngineBadge');
-    badge.textContent = 'Gemini 2.0 Flash';
-    badge.style.background = '#e8f0fe';
-    badge.style.color = '#3c3399';
+    if (badge) {
+      badge.textContent = 'Gemini 2.0 Flash';
+      badge.style.background = '';
+      badge.style.color = '';
+    }
     await generateWithGeminiAPI(prompt, draftEl, statusEl);
   }
 }
@@ -291,39 +316,95 @@ async function generateWithGeminiAPI(prompt, draftEl, statusEl) {
     statusEl.textContent = 'Done · Gemini API';
   } catch (err) {
     console.error('Gemini API error:', err);
-    draftEl.value = buildFallbackTemplate(currentContact);
-    statusEl.textContent = 'AI unavailable — template used';
-    document.getElementById('aiEngineBadge').textContent = 'Template';
-    document.getElementById('aiEngineBadge').style.background = '#fff3e0';
-    document.getElementById('aiEngineBadge').style.color = '#e65100';
+    if (draftEl) draftEl.value = buildFallbackTemplate(currentContact);
+    if (statusEl) statusEl.textContent = 'AI unavailable — template used';
+    const badge = document.getElementById('aiEngineBadge');
+    if (badge) {
+      badge.textContent = 'Template';
+      badge.style.background = '#fff3e0';
+      badge.style.color = '#e65100';
+    }
   }
 }
 
-// ─── SEND REPLY VIA GMAIL ──────────────────────────────────
-function sendReply() {
+// ─── SEND REPLY ────────────────────────────────────────────
+async function sendReply() {
   if (!currentContact || !draftReady) return;
 
-  const draft = document.getElementById('replyDraft').value.trim();
+  const draftEl = document.getElementById('replyDraft');
+  const draft = draftEl?.value.trim();
   if (!draft) {
     alert('The reply is empty. Please generate or type a reply first.');
     return;
   }
 
-  // ── Confirmation step — admin must confirm before anything is sent ──
-  const confirmed = confirm(
-    `Send this reply to ${currentContact.name || 'this visitor'} at ${currentContact.email}?\n\nClick OK to open Gmail with your reply pre-filled.`
+  // ── Confirmation step — custom modal ──
+  const confirmed = await showConfirm(
+    'Send this reply?',
+    `Your reply will be sent to <strong>${currentContact.name || 'this visitor'}</strong> at <strong>${currentContact.email}</strong>`
   );
   if (!confirmed) return;
 
-  const subject = encodeURIComponent('Re: ' + (currentContact.subject || 'Your message'));
-  const body = encodeURIComponent(draft);
-  const to = encodeURIComponent(currentContact.email || '');
+  const sendBtn = document.getElementById('sendBtn');
+  const subject = 'Re: ' + (currentContact.subject || 'Your message');
+  const SEND_URL = window.ENV?.SEND_EMAIL_URL;
 
-  // Open Gmail compose with everything pre-filled
-  const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${subject}&body=${body}`;
+  // ── Direct send via Google Apps Script ──
+  if (SEND_URL) {
+    // Show sending state
+    if (sendBtn) {
+      sendBtn.disabled = true;
+      sendBtn.textContent = 'Sending...';
+      sendBtn.style.cursor = 'wait';
+    }
+
+    try {
+      const response = await fetch(SEND_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+          to: currentContact.email,
+          subject: subject,
+          body: draft,
+          senderName: YOUR_NAME
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // ✅ Email sent successfully — mark as replied
+        markAsReplied();
+        if (sendBtn) {
+          sendBtn.textContent = '✓ Sent!';
+          sendBtn.style.background = '#10b981';
+        }
+        setTimeout(() => closeReplyModal(), 1200);
+      } else {
+        throw new Error(result.error || 'Failed to send');
+      }
+    } catch (err) {
+      console.error('Email send error:', err);
+      alert('Failed to send email: ' + err.message + '\n\nOpening Gmail compose as fallback...');
+      // Fall back to Gmail compose
+      openGmailCompose(currentContact.email, subject, draft);
+      if (sendBtn) {
+        sendBtn.disabled = false;
+        sendBtn.textContent = 'Send via Gmail ↗';
+        sendBtn.style.cursor = 'pointer';
+      }
+    }
+  } else {
+    // No API URL configured — fall back to Gmail compose
+    openGmailCompose(currentContact.email, subject, draft);
+    closeReplyModal();
+  }
+}
+
+// ─── GMAIL COMPOSE FALLBACK ───────────────────────────────
+function openGmailCompose(to, subject, body) {
+  const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   window.open(gmailUrl, '_blank', 'noopener,noreferrer');
-
-  closeReplyModal();
 }
 
 // ─── BUTTON STATE HELPERS ──────────────────────────────────
@@ -387,11 +468,13 @@ End with: Best regards,\n${YOUR_NAME}`;
 }
 
 // ─── TEMPLATE FALLBACK (when all AI fails) ────────────────
-function buildFallbackTemplate({ name, subject }) {
-  const firstName = (name || 'there').split(' ')[0];
+function buildFallbackTemplate(contact) {
+  const name = contact?.name || 'there';
+  const subject = contact?.subject || 'your query';
+  const firstName = name.split(' ')[0];
   return `Hi ${firstName},
 
-Thank you for reaching out through my portfolio! I appreciate your message regarding "${subject || 'your query'}".
+Thank you for reaching out through my portfolio! I appreciate your message regarding "${subject}".
 
 I'll review it carefully and get back to you as soon as possible. Feel free to connect with me on LinkedIn in the meantime.
 
@@ -404,9 +487,81 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+// ─── REPLY STATUS TRACKING ────────────────────────────────
+function markAsReplied() {
+  if (!currentContact) return;
+  const key = 'replied_' + (currentContact.id || currentContact.email + '_' + currentContact.timestamp);
+  localStorage.setItem(key, new Date().toISOString());
+
+  // Update the message card UI in real-time
+  const btns = document.querySelectorAll('.ai-reply-btn');
+  btns.forEach(btn => {
+    const btnId = btn.getAttribute('data-id');
+    const btnEmail = btn.getAttribute('data-email');
+    const btnTimestamp = btn.getAttribute('data-timestamp');
+    const matchKey = 'replied_' + (btnId || btnEmail + '_' + btnTimestamp);
+    if (matchKey === key) {
+      // Update button text
+      btn.innerHTML = btn.innerHTML.replace('AI Reply', 'Reply Again').replace('Reply Again', 'Reply Again');
+      // Add replied badge to the card header
+      const card = btn.closest('.message-card');
+      if (card) {
+        const h4 = card.querySelector('h4');
+        if (h4 && !h4.querySelector('.replied-badge')) {
+          const badge = document.createElement('span');
+          badge.className = 'replied-badge';
+          badge.textContent = '✓ Replied';
+          h4.appendChild(badge);
+        }
+      }
+    }
+  });
+}
+
+// ─── CUSTOM CONFIRM MODAL ─────────────────────────────────
+let _confirmResolver = null;
+
+function showConfirm(title, message) {
+  return new Promise((resolve) => {
+    _confirmResolver = resolve;
+    const overlay = document.getElementById('confirmOverlay');
+    const titleEl = document.getElementById('confirmTitle');
+    const msgEl = document.getElementById('confirmMessage');
+    if (titleEl) titleEl.textContent = title;
+    if (msgEl) msgEl.innerHTML = message;
+    if (overlay) overlay.style.display = 'flex';
+  });
+}
+
+function resolveConfirm(value) {
+  const overlay = document.getElementById('confirmOverlay');
+  if (overlay) overlay.style.display = 'none';
+  if (_confirmResolver) {
+    _confirmResolver(value);
+    _confirmResolver = null;
+  }
+}
+
+// Close confirm on overlay click or Escape
+document.addEventListener('DOMContentLoaded', () => {
+  const overlay = document.getElementById('confirmOverlay');
+  if (overlay) {
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) resolveConfirm(false);
+    });
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && _confirmResolver) {
+    resolveConfirm(false);
+  }
+});
+
 // ─── EXPOSE FUNCTIONS GLOBALLY ────────────────────────────
 window.openReplyModal = openReplyModal;
 window.closeReplyModal = closeReplyModal;
 window.generateDraft = generateDraft;
 window.regenerateDraft = regenerateDraft;
 window.sendReply = sendReply;
+window.resolveConfirm = resolveConfirm;

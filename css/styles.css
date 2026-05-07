@@ -2482,6 +2482,23 @@ footer {
     border-left: 4px solid var(--accent);
 }
 
+.replied-badge {
+    display: inline-block;
+    background: var(--success, #10b981);
+    color: white;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    margin-left: 0.5rem;
+    letter-spacing: 0.02em;
+}
+
+[data-theme="dark"] .replied-badge {
+    background: #065f46;
+    color: #6ee7b7;
+}
+
 /* Export Buttons */
 .export-buttons {
     display: flex;
