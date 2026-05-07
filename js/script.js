@@ -1198,6 +1198,11 @@ function displayMessages(messages) {
     // AI Reply button listeners
     document.querySelectorAll('.ai-reply-btn').forEach(btn => {
         btn.addEventListener('click', () => {
+            console.log('AI Reply button clicked', {
+                name: btn.getAttribute('data-name'),
+                email: btn.getAttribute('data-email'),
+                openReplyModalExists: typeof window.openReplyModal === 'function'
+            });
             if (typeof window.openReplyModal === 'function') {
                 window.openReplyModal({
                     name: btn.getAttribute('data-name'),
@@ -1205,6 +1210,9 @@ function displayMessages(messages) {
                     subject: btn.getAttribute('data-subject'),
                     message: btn.getAttribute('data-message')
                 });
+            } else {
+                console.error('openReplyModal is not loaded. admin-reply.js may have failed to load.');
+                alert('AI Reply not available — admin-reply.js failed to load. Check browser console (F12) for errors.');
             }
         });
     });
