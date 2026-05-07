@@ -145,6 +145,39 @@
             color: #94a3b8 !important;
         }
 
+        /* Previous replies section */
+        .prev-reply-card {
+            background: #f0f4ff;
+            border-left: 3px solid #6366f1;
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            border-radius: 6px;
+        }
+        .prev-reply-card .prev-reply-date {
+            font-size: 10px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+        .prev-reply-card .prev-reply-text {
+            color: #333;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        [data-theme="dark"] .prev-reply-card {
+            background: #1e293b !important;
+            border-left-color: #818cf8 !important;
+        }
+        [data-theme="dark"] .prev-reply-card .prev-reply-date {
+            color: #64748b !important;
+        }
+        [data-theme="dark"] .prev-reply-card .prev-reply-text {
+            color: #cbd5e1 !important;
+        }
+        [data-theme="dark"] #prevRepliesLabel,
+        [data-theme="dark"] #prevRepliesToggleIcon {
+            color: #818cf8 !important;
+        }
+
         /* Confirm modal animation */
         @keyframes confirmSlideIn {
             from { opacity: 0; transform: scale(0.92) translateY(10px); }
@@ -545,6 +578,16 @@
           <span id="aiStatusDot" style="font-size:12px;color:#aaa;margin-left:auto;"></span>
         </div>
 
+        <!-- Previous replies (populated dynamically from Firebase) -->
+        <div id="previousRepliesSection" style="display:none;margin-bottom:12px;">
+          <div onclick="togglePreviousReplies()" style="cursor:pointer;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#6366f1;margin-bottom:6px;user-select:none;">
+            <span id="prevRepliesToggleIcon">▶</span>
+            <span id="prevRepliesLabel">Previous Replies</span>
+          </div>
+          <div id="previousRepliesList" style="display:none;max-height:150px;overflow-y:auto;border-radius:8px;font-size:12px;line-height:1.5;">
+          </div>
+        </div>
+
         <!-- Draft textarea — EMPTY on open, editable after generation -->
         <textarea
           id="replyDraft"
@@ -620,7 +663,7 @@
             Cancel
           </button>
           <button id="confirmOkBtn" onclick="resolveConfirm(true)" style="flex:1;padding:10px 20px;border-radius:10px;border:none;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;cursor:pointer;font-size:13px;font-weight:600;transition:all 0.15s;box-shadow:0 4px 12px rgba(99,102,241,0.3);">
-            Send ↗
+            Confirm
           </button>
         </div>
 

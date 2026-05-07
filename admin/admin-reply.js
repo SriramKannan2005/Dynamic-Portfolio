@@ -67,11 +67,66 @@ function openReplyModal({ id, name, email, subject, message, timestamp }) {
   const helperText = document.getElementById('replyHelperText');
   if (helperText) helperText.textContent = 'Generate a draft first, then review and send.';
 
+  // Load previous replies from Firebase
+  loadPreviousReplies(id);
+
   // Show modal
   const overlay = document.getElementById('replyOverlay');
   if (overlay) {
     overlay.style.display = 'flex';
   }
+}
+
+// ─── PREVIOUS REPLIES ─────────────────────────────────────
+function loadPreviousReplies(messageId) {
+  const section = document.getElementById('previousRepliesSection');
+  const list = document.getElementById('previousRepliesList');
+  const label = document.getElementById('prevRepliesLabel');
+  const toggleIcon = document.getElementById('prevRepliesToggleIcon');
+
+  if (!section || !list) return;
+
+  // Reset
+  list.innerHTML = '';
+  list.style.display = 'none';
+  if (toggleIcon) toggleIcon.textContent = '▶';
+
+  const replies = (window._repliesMap && window._repliesMap[messageId]) || [];
+
+  if (replies.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+
+  // Populate
+  if (label) label.textContent = `Previous Replies (${replies.length})`;
+  replies.forEach(reply => {
+    const card = document.createElement('div');
+    card.className = 'prev-reply-card';
+    const date = reply.sentAt ? new Date(reply.sentAt).toLocaleString() : 'Unknown date';
+    card.innerHTML = `
+      <div class="prev-reply-date">Sent on ${date}</div>
+      <div class="prev-reply-text">${escapeHTMLReply(reply.replyContent || '')}</div>
+    `;
+    list.appendChild(card);
+  });
+
+  section.style.display = 'block';
+}
+
+function togglePreviousReplies() {
+  const list = document.getElementById('previousRepliesList');
+  const icon = document.getElementById('prevRepliesToggleIcon');
+  if (!list) return;
+  const isHidden = list.style.display === 'none';
+  list.style.display = isHidden ? 'block' : 'none';
+  if (icon) icon.textContent = isHidden ? '▼' : '▶';
+}
+
+function escapeHTMLReply(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
 }
 
 // ─── CLOSE MODAL ───────────────────────────────────────────
@@ -487,22 +542,50 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// ─── REPLY STATUS TRACKING ────────────────────────────────
-function markAsReplied() {
+// ─── REPLY STATUS TRACKING (Firebase + localStorage fallback) ──
+async function markAsReplied() {
   if (!currentContact) return;
-  const key = 'replied_' + (currentContact.id || currentContact.email + '_' + currentContact.timestamp);
+
+  const draft = document.getElementById('replyDraft');
+  const replyContent = draft?.value?.trim() || '';
+  const messageId = currentContact.id || '';
+  const replyData = {
+    messageId: messageId,
+    to: currentContact.email || '',
+    toName: currentContact.name || '',
+    subject: 'Re: ' + (currentContact.subject || 'Your message'),
+    replyContent: replyContent,
+    sentAt: new Date().toISOString(),
+    sentBy: YOUR_NAME
+  };
+
+  // Save to Firebase
+  try {
+    if (window.firebaseDb && window.firebaseModules) {
+      const { collection, addDoc, Timestamp } = window.firebaseModules;
+      replyData.sentAtTimestamp = Timestamp.now();
+      await addDoc(collection(window.firebaseDb, 'replies'), replyData);
+      console.log('✅ Reply saved to Firebase');
+    }
+  } catch (err) {
+    console.warn('Failed to save reply to Firebase:', err);
+  }
+
+  // Also save to localStorage as fallback
+  const key = 'replied_' + (messageId || currentContact.email + '_' + currentContact.timestamp);
   localStorage.setItem(key, new Date().toISOString());
 
   // Update the message card UI in real-time
+  updateMessageCardBadge(messageId);
+}
+
+function updateMessageCardBadge(messageId) {
   const btns = document.querySelectorAll('.ai-reply-btn');
   btns.forEach(btn => {
     const btnId = btn.getAttribute('data-id');
-    const btnEmail = btn.getAttribute('data-email');
-    const btnTimestamp = btn.getAttribute('data-timestamp');
-    const matchKey = 'replied_' + (btnId || btnEmail + '_' + btnTimestamp);
-    if (matchKey === key) {
+    if (btnId === messageId) {
       // Update button text
-      btn.innerHTML = btn.innerHTML.replace('AI Reply', 'Reply Again').replace('Reply Again', 'Reply Again');
+      btn.innerHTML = btn.innerHTML.replace('AI Reply', 'Reply Again');
       // Add replied badge to the card header
       const card = btn.closest('.message-card');
       if (card) {
@@ -565,3 +648,5 @@ window.generateDraft = generateDraft;
 window.regenerateDraft = regenerateDraft;
 window.sendReply = sendReply;
 window.resolveConfirm = resolveConfirm;
+window.showConfirm = showConfirm;
+window.togglePreviousReplies = togglePreviousReplies;

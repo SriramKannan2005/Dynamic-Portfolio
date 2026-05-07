@@ -718,22 +718,27 @@ let confirmResolve = null;
 
 function showConfirmModal(title, message) {
     return new Promise((resolve) => {
-        const confirmModal = document.getElementById('confirmModal');
-        const confirmTitle = document.getElementById('confirmTitle');
-        const confirmMessage = document.getElementById('confirmMessage');
-        const confirmOk = document.getElementById('confirmOk');
-        const confirmCancel = document.getElementById('confirmCancel');
-
-        if (!confirmModal || !confirmTitle || !confirmMessage || !confirmOk || !confirmCancel) {
-            resolve(confirm(message));
+        // Use admin-reply.js custom confirm if available (overlay-based)
+        if (typeof window.showConfirm === 'function') {
+            window.showConfirm(title, message).then(resolve);
             return;
         }
 
-        confirmResolve = resolve;
-        confirmTitle.textContent = title;
-        confirmMessage.textContent = message;
-        confirmModal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        // Try overlay-based modal directly
+        const confirmOverlay = document.getElementById('confirmOverlay');
+        const confirmTitleEl = document.getElementById('confirmTitle');
+        const confirmMessageEl = document.getElementById('confirmMessage');
+
+        if (confirmOverlay && confirmTitleEl && confirmMessageEl) {
+            confirmTitleEl.textContent = title;
+            confirmMessageEl.innerHTML = message;
+            confirmOverlay.style.display = 'flex';
+            confirmResolve = resolve;
+            return;
+        }
+
+        // Final fallback: native confirm
+        resolve(confirm(message));
     });
 }
 
@@ -1097,18 +1102,38 @@ async function loadMessages() {
 
     try {
         let messages = [];
+        let repliesMap = {}; // messageId -> array of reply objects
 
         if (window.firebaseDb && window.firebaseModules) {
             const { collection, getDocs, query, orderBy } = window.firebaseModules;
+
+            // Fetch messages
             const q = query(collection(window.firebaseDb, 'messages'), orderBy('timestamp', 'desc'));
             const querySnapshot = await getDocs(q);
-
             querySnapshot.forEach((doc) => {
                 messages.push({ id: doc.id, ...doc.data() });
             });
+
+            // Fetch replies
+            try {
+                const repliesQuery = query(collection(window.firebaseDb, 'replies'), orderBy('sentAt', 'desc'));
+                const repliesSnapshot = await getDocs(repliesQuery);
+                repliesSnapshot.forEach((doc) => {
+                    const reply = { id: doc.id, ...doc.data() };
+                    if (reply.messageId) {
+                        if (!repliesMap[reply.messageId]) repliesMap[reply.messageId] = [];
+                        repliesMap[reply.messageId].push(reply);
+                    }
+                });
+            } catch (e) {
+                console.warn('Could not load replies:', e);
+            }
         }
 
-        displayMessages(messages);
+        // Store globally for the reply modal to access
+        window._repliesMap = repliesMap;
+
+        displayMessages(messages, repliesMap);
         const messageCount = document.getElementById('messageCount');
         if (messageCount) {
             messageCount.textContent = messages.length;
@@ -1119,7 +1144,7 @@ async function loadMessages() {
     }
 }
 
-function displayMessages(messages) {
+function displayMessages(messages, repliesMap = {}) {
     const messagesContainer = document.getElementById('messagesContainer');
     if (!messagesContainer) return;
 
@@ -1152,8 +1177,10 @@ function displayMessages(messages) {
 
         const categoryColor = categoryColors[msg.category] || '#f59e0b';
 
-        const replyKey = 'replied_' + (msg.id || msg.email + '_' + msg.timestamp);
-        const isReplied = localStorage.getItem(replyKey);
+        // Check Firebase first, then localStorage fallback
+        const firebaseReplies = repliesMap[msg.id] || [];
+        const isReplied = firebaseReplies.length > 0 || localStorage.getItem('replied_' + msg.id);
+        const replyCount = firebaseReplies.length;
 
         messageCard.innerHTML = `
             <div class="message-header">
@@ -1161,7 +1188,7 @@ function displayMessages(messages) {
                     <h4>
                         ${escapeHTML(msg.name)} 
                         ${!msg.read ? '<span class="unread-badge">New</span>' : ''}
-                        ${isReplied ? '<span class="replied-badge">✓ Replied</span>' : ''}
+                        ${isReplied ? `<span class="replied-badge">✓ Replied${replyCount > 1 ? ' (' + replyCount + ')' : ''}</span>` : ''}
                         ${msg.category ? `<span class="category-badge" style="background: ${categoryColor}; color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; margin-left: 0.5rem; font-weight: 600;">
                             ${escapeHTML(msg.category)}
                         </span>` : ''}
