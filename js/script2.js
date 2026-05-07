@@ -634,7 +634,7 @@ console.log('%c👋 Hello Developer!', 'font-size: 20px; font-weight: bold; colo
 console.log('%cInterested in the code? Check out the GitHub repo!', 'font-size: 14px; color: #8b5cf6;');
 console.log('%c\n🚀 Hidden Features:', 'font-size: 16px; font-weight: bold; color: #ec4899;');
 console.log('🔐 Triple-click logo for admin access');
-console.log('⌨️  Ctrl+Shift+A for quick admin login');
+console.log('⌨️  Ctrl+Shift+A → Admin page');
 console.log('🎨 System theme auto-detection enabled');
 console.log('📱 Responsive design with mobile-first approach');
 console.log('🔥 Firebase integration for real-time data');

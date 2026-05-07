@@ -1397,6 +1397,61 @@ nav {
     font-size: 0.95rem;
 }
 
+.achievement-subtitle {
+    color: var(--text-light);
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    font-style: italic;
+    opacity: 0.85;
+}
+
+/* Skill Pills Grid */
+.skill-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    justify-content: center;
+}
+
+.skill-pill {
+    display: inline-block;
+    padding: 0.45rem 1.1rem;
+    background: var(--bg-secondary);
+    color: var(--primary);
+    border: 1.5px solid var(--primary);
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: default;
+}
+
+.skill-pill:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* Project Tech Pills (fallback cards) */
+.project-tech-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+}
+
+.tech-pill {
+    display: inline-block;
+    padding: 0.25rem 0.7rem;
+    background: var(--bg);
+    color: var(--primary);
+    border: 1px solid var(--primary);
+    border-radius: 14px;
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+
 /* Education Section */
 .education {
     padding: 6rem 0;

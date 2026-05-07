@@ -18,14 +18,14 @@
     <meta property="og:description"
         content="Explore innovative AI and ML projects, achievements, and professional experience">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://yourwebsite.com">
-    <meta property="og:image" content="images/og-image.jpg">
+    <meta property="og:url" content="https://sriramkannan.netlify.app">
+    <meta property="og:image" content="assets/images/profile/profile.png">
 
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Sriram Kannan - ML Developer Portfolio">
     <meta name="twitter:description" content="Innovative AI & ML Projects">
-    <meta name="twitter:image" content="images/twitter-card.jpg">
+    <meta name="twitter:image" content="assets/images/profile/profile.png">
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="assets/images/icons/favicon.ico">
@@ -109,196 +109,7 @@
         </nav>
     </header>
 
-    <!-- Admin Login Modal -->
-    <div id="adminLoginModal" class="modal">
-        <div class="modal-content admin-modal">
-            <span class="close" id="closeAdminLogin">&times;</span>
-            <div class="admin-login-container">
-                <div class="admin-login-header">
-                    <i class="fas fa-shield-alt"></i>
-                    <h2>Admin Access</h2>
-                    <p>Enter your credentials to continue</p>
-                </div>
-                <form id="adminLoginForm" class="admin-login-form">
-                    <div class="form-group">
-                        <label><i class="fas fa-envelope"></i> Email</label>
-                        <input type="email" id="adminEmail" placeholder="admin@example.com" required>
-                    </div>
-                    <div class="form-group">
-                        <label><i class="fas fa-lock"></i> Password</label>
-                        <input type="password" id="adminPassword" placeholder="Enter password" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary admin-login-btn">
-                        <span class="btn-text">Login</span>
-                        <span class="btn-loader" style="display: none;">
-                            <i class="fas fa-spinner fa-spin"></i> Logging in...
-                        </span>
-                    </button>
-                    <div id="loginError" class="error-message"
-                        style="display: none; text-align: center; margin-top: 1rem;"></div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Admin Panel -->
-    <div id="adminPanel" class="admin-panel" style="display: none;">
-        <div class="admin-header">
-            <div class="admin-logo">
-                <i class="fas fa-user-shield"></i>
-                <h1>Admin Dashboard</h1>
-            </div>
-            <div class="admin-actions">
-                <span class="admin-user"><i class="fas fa-user"></i> <span id="adminUserEmail"></span></span>
-                <button id="logoutBtn" class="btn btn-outline">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
-            </div>
-        </div>
-
-        <div class="admin-tabs">
-            <button class="admin-tab active" data-tab="analytics">
-                <i class="fas fa-chart-line"></i> Analytics
-            </button>
-            <button class="admin-tab" data-tab="messages">
-                <i class="fas fa-envelope"></i> Messages <span id="messageCount" class="badge">0</span>
-            </button>
-            <button class="admin-tab" data-tab="export">
-                <i class="fas fa-download"></i> Export & Sync
-            </button>
-        </div>
-
-        <!-- Analytics Tab -->
-        <div class="admin-tab-content active" id="analyticsTab">
-            <div class="analytics-cards">
-                <div class="analytics-card">
-                    <div class="analytics-icon" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">
-                        <i class="fas fa-eye"></i>
-                    </div>
-                    <div class="analytics-info">
-                        <h3>Total Views</h3>
-                        <p class="analytics-number" id="totalViews">0</p>
-                    </div>
-                </div>
-                <div class="analytics-card">
-                    <div class="analytics-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
-                        <i class="fas fa-envelope"></i>
-                    </div>
-                    <div class="analytics-info">
-                        <h3>Total Messages</h3>
-                        <p class="analytics-number" id="totalMessages">0</p>
-                    </div>
-                </div>
-                <div class="analytics-card">
-                    <div class="analytics-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
-                        <i class="fas fa-calendar-day"></i>
-                    </div>
-                    <div class="analytics-info">
-                        <h3>Today's Views</h3>
-                        <p class="analytics-number" id="todayViews">0</p>
-                    </div>
-                </div>
-                <div class="analytics-card">
-                    <div class="analytics-icon" style="background: linear-gradient(135deg, #ec4899, #db2777);">
-                        <i class="fas fa-bell"></i>
-                    </div>
-                    <div class="analytics-info">
-                        <h3>Unread Messages</h3>
-                        <p class="analytics-number" id="unreadMessages">0</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="admin-section">
-                <h2><i class="fas fa-chart-area"></i> Visitor Trends (Last 7 Days)</h2>
-                <div class="chart-container">
-                    <canvas id="visitorChart"></canvas>
-                </div>
-            </div>
-
-            <div class="admin-section">
-                <h2><i class="fas fa-pie-chart"></i> Message Categories</h2>
-                <div class="chart-container">
-                    <canvas id="messageTypeChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Messages Tab -->
-        <div class="admin-tab-content" id="messagesTab">
-            <div class="admin-section">
-                <div class="messages-header">
-                    <h2><i class="fas fa-inbox"></i> Contact Messages</h2>
-                    <div class="message-filters">
-                        <button class="filter-btn active" data-filter="all">All</button>
-                        <button class="filter-btn" data-filter="unread">Unread</button>
-                        <button class="filter-btn" data-filter="read">Read</button>
-                    </div>
-                    <div class="messages-actions">
-                        <button id="refreshMessages" class="btn btn-outline">
-                            <i class="fas fa-sync"></i> Refresh
-                        </button>
-                        <button id="markAllRead" class="btn btn-outline">
-                            <i class="fas fa-check-double"></i> Mark All Read
-                        </button>
-                    </div>
-                </div>
-                <div id="messagesContainer" class="messages-container">
-                    <div class="loading-messages">
-                        <i class="fas fa-spinner fa-spin"></i> Loading messages...
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Export & Sync Tab -->
-        <div class="admin-tab-content" id="exportTab">
-            <div class="admin-section">
-                <h2><i class="fas fa-file-export"></i> Export Data</h2>
-                <div class="export-buttons">
-                    <button id="exportExcel" class="btn btn-primary">
-                        <i class="fas fa-file-excel"></i> Export to Excel (CSV)
-                    </button>
-                    <button id="exportCSV" class="btn btn-secondary">
-                        <i class="fas fa-file-csv"></i> Export to CSV
-                    </button>
-                    <button id="exportJSON" class="btn btn-outline">
-                        <i class="fas fa-file-code"></i> Export to JSON
-                    </button>
-                </div>
-            </div>
-
-            <div class="admin-section">
-                <h2><i class="fab fa-google"></i> Google Sheets Integration</h2>
-                <div class="sheets-config">
-                    <div class="config-info">
-                        <p><i class="fas fa-link"></i> <strong>Connected URL:</strong></p>
-                        <code>https://script.google.com/macros/s/AKfycbyXugbD4LsHO69PKlsx3S01Tbty2rmQ-v-JYeWsgtFLvGlxVad4kMd6-U2u9lnvAq07lg/exec</code>
-                    </div>
-                    <div class="sync-status">
-                        <span id="syncStatus" class="status-indicator">
-                            <i class="fas fa-circle"></i> Not synced yet
-                        </span>
-                        <span id="lastSync" class="last-sync-time"></span>
-                    </div>
-                    <div class="sync-controls">
-                        <button id="syncNowBtn" class="btn btn-primary">
-                            <i class="fas fa-sync"></i> Sync Now
-                        </button>
-                        <a href="https://docs.google.com/spreadsheets/d/1fhnlVaxNHzeyaPqQFBzFASWta16RJPH8chJ4bxG_Vxc/edit?usp=sharing/edit"
-                            target="_blank" class="btn btn-secondary" id="viewSpreadsheetBtn">
-                            <i class="fas fa-external-link-alt"></i> View Spreadsheet
-                        </a>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="autoSyncToggle">
-                            <span class="toggle-slider"></span>
-                            <span class="toggle-label">Auto-sync (every 30 min)</span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Admin panel moved to separate /admin route for security -->
 
     <!-- Home Section -->
     <section id="home" class="home">
@@ -325,20 +136,19 @@
                     <div class="hero-badge"></div>
                 </div>
                 <div class="about-text">
-                    <p id="aboutP1">Hello! I'm a passionate Machine Learning Developer who loves building intelligent
-                        systems that learn from data and make real-world impact. My focus is on designing, training, and
-                        deploying models that bridge the gap between data and decision-making.</p>
-                    <p id="aboutP2">When I'm not experimenting with algorithms, you'll find me fine-tuning neural
-                        networks, exploring advancements in GenAI, or collaborating on open-source AI projects to push
-                        the boundaries of innovation.</p>
-                    <p id="aboutP3">When I'm not coding, you'll find me exploring new technologies, contributing to
-                        open-source projects, or sharing my knowledge with the developer community.</p>
+                    <p id="aboutP1">I'm a Machine Learning Developer and Data Analyst pursuing B.Tech in AI &amp; Data Science
+                        at P.S.R. Engineering College. I specialise in designing and deploying intelligent systems
+                        — from NLP pipelines and computer vision models to end-to-end GenAI applications with
+                        retrieval-augmented generation.</p>
+                    <p id="aboutP2">Beyond the code, I'm an active hackathon competitor (2 national-level wins), an IoT
+                        innovation grant recipient, and an open-source contributor. I thrive at the intersection
+                        of research and real-world impact.</p>
                     <div class="about-links">
                         <a href="https://www.linkedin.com/in/sriram-k-99b0432b6/" target="_blank"
-                            class="btn btn-outline" rel="noopener">
+                            class="btn btn-outline" rel="noopener noreferrer">
                             <i class="fab fa-linkedin"></i> LinkedIn
                         </a>
-                        <a href="javascript:void(0)" onclick="openEmailModalFunc()" class="btn btn-outline"
+                        <a href="mailto:sriramkannan01062005@gmail.com" onclick="if(typeof openEmailModalFunc==='function'){event.preventDefault();openEmailModalFunc();}" class="btn btn-outline"
                             rel="noopener">
                             <i class="fas fa-envelope"></i> Email
                         </a>
@@ -374,91 +184,62 @@
             <p class="section-subtitle">My technical expertise and professional certifications</p>
 
             <div class="skills-grid">
-                <!-- Programming Card -->
+                <!-- Programming Languages Card -->
                 <div class="skill-category">
                     <div class="skill-icon">
                         <i class="fas fa-code"></i>
                     </div>
-                    <h3>Programming</h3>
-                    <div class="skill-item">
-                        <div class="skill-header">
-                            <span>Python</span>
-                            <span>85%</span>
-                        </div>
-                        <div class="skill-bar">
-                            <div class="skill-progress" data-progress="85"></div>
-                        </div>
-                    </div>
-                    <div class="skill-item">
-                        <div class="skill-header">
-                            <span>C</span>
-                            <span>80%</span>
-                        </div>
-                        <div class="skill-bar">
-                            <div class="skill-progress" data-progress="80"></div>
-                        </div>
-                    </div>
-                    <div class="skill-item">
-                        <div class="skill-header">
-                            <span>Java</span>
-                            <span>80%</span>
-                        </div>
-                        <div class="skill-bar">
-                            <div class="skill-progress" data-progress="80"></div>
-                        </div>
-                    </div>
-                    <div class="skill-item">
-                        <div class="skill-header">
-                            <span>FIREBASE </span>
-                            <span>60%</span>
-                        </div>
-                        <div class="skill-bar">
-                            <div class="skill-progress" data-progress="60"></div>
-                        </div>
+                    <h3>Programming Languages</h3>
+                    <div class="skill-pills">
+                        <span class="skill-pill">Python</span>
+                        <span class="skill-pill">C</span>
+                        <span class="skill-pill">Java</span>
+                        <span class="skill-pill">SQL</span>
                     </div>
                 </div>
 
-                <!-- Technologies Card -->
+                <!-- ML & AI Frameworks Card -->
+                <div class="skill-category">
+                    <div class="skill-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>ML &amp; AI Frameworks</h3>
+                    <div class="skill-pills">
+                        <span class="skill-pill">Scikit-learn</span>
+                        <span class="skill-pill">TensorFlow</span>
+                        <span class="skill-pill">LangChain</span>
+                        <span class="skill-pill">HuggingFace</span>
+                        <span class="skill-pill">OpenCV</span>
+                    </div>
+                </div>
+
+                <!-- GenAI & Agentic Card -->
+                <div class="skill-category">
+                    <div class="skill-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3>GenAI &amp; Agentic</h3>
+                    <div class="skill-pills">
+                        <span class="skill-pill">LLM Fine-tuning</span>
+                        <span class="skill-pill">RAG</span>
+                        <span class="skill-pill">Prompt Engineering</span>
+                        <span class="skill-pill">Agentic AI</span>
+                    </div>
+                </div>
+
+                <!-- Tools & Platforms Card -->
                 <div class="skill-category">
                     <div class="skill-icon">
                         <i class="fas fa-laptop-code"></i>
                     </div>
-                    <h3>Technologies</h3>
-                    <div class="skill-item">
-                        <div class="skill-header">
-                            <span>Machine Learning</span>
-                            <span>70%</span>
-                        </div>
-                        <div class="skill-bar">
-                            <div class="skill-progress" data-progress="70"></div>
-                        </div>
-                    </div>
-                    <div class="skill-item">
-                        <div class="skill-header">
-                            <span>GENERATIVE AI</span>
-                            <span>90%</span>
-                        </div>
-                        <div class="skill-bar">
-                            <div class="skill-progress" data-progress="90"></div>
-                        </div>
-                    </div>
-                    <div class="skill-item">
-                        <div class="skill-header">
-                            <span>AGENTIC AI</span>
-                            <span>75%</span>
-                        </div>
-                        <div class="skill-bar">
-                            <div class="skill-progress" data-progress="75"></div>
-                        </div>
-                    </div>
-                    <div class="skill-item">
-                        <div class="skill-header">
-                            <span>MS Office</span>
-                            <span>95%</span>
-                        </div>
-                        <div class="skill-bar">
-                            <div class="skill-progress" data-progress="95"></div>
-                        </div>
+                    <h3>Tools &amp; Platforms</h3>
+                    <div class="skill-pills">
+                        <span class="skill-pill">Firebase</span>
+                        <span class="skill-pill">Git</span>
+                        <span class="skill-pill">Tableau</span>
+                        <span class="skill-pill">VS Code</span>
+                        <span class="skill-pill">Jupyter</span>
+                        <span class="skill-pill">Google Colab</span>
                     </div>
                 </div>
 
@@ -469,15 +250,15 @@
                     </div>
                     <h3>Certifications</h3>
                     <ul class="skill-list">
-                        <li><a href="#" class="cert-link"
+                        <li><a href="https://www.coursera.org" target="_blank" rel="noopener noreferrer" class="cert-link"
                                 data-cert-img="assets/images/certificates/chatgpt-for-everyone.png"
                                 data-cert-title="ChatGPT for Everyone"><span class="dot"></span>ChatGPT for Everyone <i
                                     class="fas fa-external-link-alt cert-icon"></i></a></li>
-                        <li><a href="#" class="cert-link"
+                        <li><a href="https://www.coursera.org" target="_blank" rel="noopener noreferrer" class="cert-link"
                                 data-cert-img="assets/images/certificates/python-programming.png"
                                 data-cert-title="Python Programming"><span class="dot"></span>Python Programming <i
                                     class="fas fa-external-link-alt cert-icon"></i></a></li>
-                        <li><a href="#" class="cert-link"
+                        <li><a href="https://www.hackerrank.com/certificates" target="_blank" rel="noopener noreferrer" class="cert-link"
                                 data-cert-img="assets/images/certificates/python-hackerrank.png"
                                 data-cert-title="Python(basic) from HackerRank"><span class="dot"></span>Python(basic)
                                 from HackerRank <i class="fas fa-external-link-alt cert-icon"></i></a></li>
@@ -527,7 +308,70 @@
             </div>
 
             <div class="projects-grid" id="projectsGrid">
-                <!-- Projects will be dynamically loaded here by script.js -->
+                <!-- Hardcoded fallback project cards (JS will replace these) -->
+                <div class="project-card" data-project="1" data-category="ai">
+                    <div class="project-thumbnail">
+                        <img src="assets/images/projects/project1.png" alt="Smart Exam Evaluator" loading="lazy">
+                        <div class="project-overlay">
+                            <button class="view-details" data-id="1">View Details</button>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <h3>Smart-Exam-Evaluator</h3>
+                        <p>An AI-powered exam evaluation system that automates grading of handwritten answer sheets using Google Gemini, Flask, and OpenCV.</p>
+                        <div class="project-tech-pills">
+                            <span class="tech-pill">Flask</span>
+                            <span class="tech-pill">Gemini API</span>
+                            <span class="tech-pill">OpenCV</span>
+                            <span class="tech-pill">ML</span>
+                        </div>
+                        <a href="https://github.com/SriramKannan2005/Smart-Exam-Evaluvator" target="_blank" rel="noopener noreferrer" class="github-link">
+                            <i class="fab fa-github"></i> Source Code
+                        </a>
+                    </div>
+                </div>
+                <div class="project-card" data-project="2" data-category="ai">
+                    <div class="project-thumbnail">
+                        <img src="assets/images/projects/project2.png" alt="GenAI Multi-Document Intelligence" loading="lazy">
+                        <div class="project-overlay">
+                            <button class="view-details" data-id="2">View Details</button>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <h3>GenAI Multi-Document Intelligence System</h3>
+                        <p>An advanced AI-powered document analysis platform that enables users to upload, analyze, and query multiple documents simultaneously.</p>
+                        <div class="project-tech-pills">
+                            <span class="tech-pill">NLP</span>
+                            <span class="tech-pill">Gemini API</span>
+                            <span class="tech-pill">Flask</span>
+                            <span class="tech-pill">Chart.js</span>
+                        </div>
+                        <a href="https://github.com/SriramKannan2005/Info-Nexus" target="_blank" rel="noopener noreferrer" class="github-link">
+                            <i class="fab fa-github"></i> Source Code
+                        </a>
+                    </div>
+                </div>
+                <div class="project-card" data-project="3" data-category="ai">
+                    <div class="project-thumbnail">
+                        <img src="assets/images/projects/project3.png" alt="CineHome+ AI Cinema" loading="lazy">
+                        <div class="project-overlay">
+                            <button class="view-details" data-id="3">View Details</button>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <h3>CineHome+ | AI-Powered Personal Cinema</h3>
+                        <p>An intelligent, locally hosted OTT-style platform with gesture-based controls, AI chat assistance, and smart recommendations.</p>
+                        <div class="project-tech-pills">
+                            <span class="tech-pill">MediaPipe</span>
+                            <span class="tech-pill">OpenCV</span>
+                            <span class="tech-pill">Gemini API</span>
+                            <span class="tech-pill">Flask</span>
+                        </div>
+                        <a href="https://github.com/SriramKannan2005/media-player" target="_blank" rel="noopener noreferrer" class="github-link">
+                            <i class="fab fa-github"></i> Source Code
+                        </a>
+                    </div>
+                </div>
             </div>
     </section>
 
@@ -542,8 +386,9 @@
                     <div class="achievement-icon grant-icon">
                         <i class="fas fa-money-bill-wave"></i>
                     </div>
-                    <h3>Grant Received for IOT Innovation</h3>
-                    <p class="achievement-org">Thiran-2k25</p>
+                    <h3>Grant Received for IoT Innovation</h3>
+                    <p class="achievement-org">Thiran-2K25</p>
+                    <p class="achievement-subtitle">Funded smart agriculture sensor prototype</p>
                 </div>
 
                 <!-- Achievement 2 -->
@@ -553,6 +398,7 @@
                     </div>
                     <h3>2nd Prize in National Level Hackathon</h3>
                     <p class="achievement-org">HACKSPHERE 2025</p>
+                    <p class="achievement-subtitle">120+ teams · AI-powered document processing</p>
                 </div>
                 <!-- Achievement 3 -->
                 <div class="achievement-card">
@@ -560,26 +406,27 @@
                         <i class="fas fa-star"></i>
                     </div>
                     <h3>Top 10 in HACKSPORA-2K25 National Level Hackathon</h3>
-                    <p class="achievement-org">National Competition</p>
+                    <p class="achievement-org">National Level</p>
+                    <p class="achievement-subtitle">Top 10 of 200+ teams · GenAI solution</p>
                 </div>
             </div>
 
             <!-- Stats Counter Row -->
             <div class="stats-counter">
                 <div class="stat-item">
-                    <span class="stat-number" data-target="7">0</span><span class="stat-plus">+</span>
+                    <span class="stat-number" data-target="5">5</span><span class="stat-plus">+</span>
                     <span class="stat-label">Projects Built</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-number" data-target="3">0</span><span class="stat-plus">+</span>
+                    <span class="stat-number" data-target="3">3</span><span class="stat-plus">+</span>
                     <span class="stat-label">Certifications</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-number" data-target="2">0</span>
+                    <span class="stat-number" data-target="2">2</span>
                     <span class="stat-label">Hackathon Awards</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-number" data-target="2">0</span><span class="stat-plus">+</span>
+                    <span class="stat-number" data-target="2">2</span><span class="stat-plus">+</span>
                     <span class="stat-label">Internships</span>
                 </div>
             </div>
@@ -643,7 +490,7 @@
                 <div class="timeline-item">
                     <div class="timeline-dot"></div>
                     <div class="timeline-content">
-                        <div class="timeline-date">2023-Present </div>
+                        <div class="timeline-date">Aug 2023 – Present</div>
                         <h3>Hackathon Winner & Participant</h3>
                         <h4>Various National Level Competitions</h4>
                         <p>Participated in multiple national-level hackathons and coding competitions. Won awards for
@@ -654,7 +501,7 @@
                 <div class="timeline-item">
                     <div class="timeline-dot"></div>
                     <div class="timeline-content">
-                        <div class="timeline-date">2024 - Present</div>
+                        <div class="timeline-date">Jan 2024 – Present</div>
                         <h3>Research and Development Assistant</h3>
                         <h4>SkyGen Mecha's</h4>
                         <p>Assisted in AI research projects focusing on natural language processing and computer vision.
@@ -665,7 +512,7 @@
                 <div class="timeline-item">
                     <div class="timeline-dot"></div>
                     <div class="timeline-content">
-                        <div class="timeline-date">2024-DEC - 2025-MAY</div>
+                        <div class="timeline-date">Dec 2024 – May 2025</div>
                         <h3>AI-ML Development Intern</h3>
                         <h4>TARAS SYSTEMS AND SOLUTIONS</h4>
                         <p>Worked on developing machine learning models for real-world applications.AI projects focusing
@@ -676,7 +523,7 @@
                 <div class="timeline-item">
                     <div class="timeline-dot"></div>
                     <div class="timeline-content">
-                        <div class="timeline-date">Nov 2025 - Feb 2026</div>
+                        <div class="timeline-date">Nov 2025 – Feb 2026</div>
                         <h3>Data Analyst Intern</h3>
                         <h4>NullClass</h4>
                         <p>Engineered an end-to-end data analytics pipeline to process and clean complex datasets using
@@ -702,11 +549,11 @@
                     <p>I'm always open to discussing new projects, creative ideas, or opportunities to be part of your
                         vision. Whether you need ML solutions, AI consulting, or just want to chat about technology!</p>
                     <div class="social-links">
-                        <a href="https://www.linkedin.com/in/sriram-k-99b0432b6/" target="_blank" rel="noopener"
+                        <a href="https://www.linkedin.com/in/sriram-k-99b0432b6/" target="_blank" rel="noopener noreferrer"
                             aria-label="LinkedIn">
                             <i class="fab fa-linkedin"></i>
                         </a>
-                        <a href="javascript:void(0)" onclick="openEmailModalFunc()" rel="noopener" aria-label="Email">
+                        <a href="mailto:sriramkannan01062005@gmail.com" onclick="if(typeof openEmailModalFunc==='function'){event.preventDefault();openEmailModalFunc();}" rel="noopener" aria-label="Email">
                             <i class="fas fa-envelope"></i>
                         </a>
                         <a href="https://github.com/SriramKannan2005" target="_blank" rel="noopener noreferrer"
@@ -717,11 +564,6 @@
                             aria-label="LeetCode">
                             <i class="fas fa-code"></i>
                         </a>
-                        <a href="https://www.instagram.com/_badboy._.captain__?igsh=amdvcHB1cTIwNHNt" target="_blank"
-                            rel="noopener noreferrer" aria-label="Instagram">
-                            <i class="fab fa-instagram"></i>
-                        </a>
-
 
                     </div>
                 </div>
@@ -772,7 +614,7 @@
                         <div id="modalTechStack" class="tech-tags"></div>
                     </div>
                     <div class="modal-links">
-                        <a id="modalGithub" href="#" target="_blank" class="btn btn-primary" rel="noopener">
+                        <a id="modalGithub" href="#" target="_blank" class="btn btn-primary" rel="noopener noreferrer">
                             <i class="fab fa-github"></i> GitHub
                         </a>
                         <button class="btn btn-secondary" id="likeProjectBtn">
@@ -861,12 +703,12 @@
 
             <div style="display: flex; flex-direction: column; gap: 1rem;">
                 <a href="https://mail.google.com/mail/?view=cm&fs=1&to=sriramkannan01062005@gmail.com" target="_blank"
-                    rel="noopener" class="btn btn-outline" style="width: 100%; justify-content: center; height: 50px;"
+                    rel="noopener noreferrer" class="btn btn-outline" style="width: 100%; justify-content: center; height: 50px;"
                     onclick="closeEmailModalFunc()">
                     <i class="fab fa-google" style="color: #ea4335; font-size: 1.2rem;"></i> Continue with Gmail
                 </a>
                 <a href="https://outlook.live.com/mail/0/deeplink/compose?to=sriramkannan01062005@gmail.com"
-                    target="_blank" rel="noopener" class="btn btn-outline"
+                    target="_blank" rel="noopener noreferrer" class="btn btn-outline"
                     style="width: 100%; justify-content: center; height: 50px;" onclick="closeEmailModalFunc()">
                     <i class="fab fa-microsoft" style="color: #0078d4; font-size: 1.2rem;"></i> Continue with Outlook
                 </a>

@@ -18,7 +18,8 @@ window.escapeHTML = escapeHTML;
 // COOKIE CONSENT MANAGEMENT
 // ============================================
 function hasAnalyticsConsent() {
-    return localStorage.getItem('cookieConsent') === 'accepted';
+    const consent = localStorage.getItem('cookieConsent');
+    return consent === 'accepted';
 }
 
 function initCookieConsent() {
@@ -42,6 +43,7 @@ function initCookieConsent() {
         declineBtn.addEventListener('click', () => {
             localStorage.setItem('cookieConsent', 'declined');
             banner.style.display = 'none';
+            // Ensure no analytics scripts are initialised after decline
         });
     }
 }
@@ -110,7 +112,8 @@ let projectIds = [];
 // ============================================
 async function fetchProjects() {
     try {
-        const response = await fetch('data/projects.json');
+        const basePath = window.location.pathname.includes('/admin') ? '../' : '';
+        const response = await fetch(basePath + 'data/projects.json');
         projectsData = await response.json();
         projectIds = Object.keys(projectsData);
 
@@ -145,7 +148,7 @@ async function fetchProjects() {
                             <span class="project-likes"><i class="fas fa-heart"></i> <span class="like-count">0</span></span>
                             <span class="project-views"><i class="fas fa-eye"></i> <span class="view-count">0</span></span>
                         </div>
-                        <a href="${project.github}" target="_blank" class="github-link" rel="noopener">
+                        <a href="${project.github}" target="_blank" class="github-link" rel="noopener noreferrer">
                             <i class="fab fa-github"></i> Source Code
                         </a>
                     </div>
@@ -826,19 +829,20 @@ if (secretLogo) {
 }
 
 function showAdminLogin() {
-    if (window.firebaseAuth && window.firebaseModules) {
-        const { onAuthStateChanged } = window.firebaseModules;
-        onAuthStateChanged(window.firebaseAuth, (user) => {
-            if (user) {
-                showAdminPanel(user);
-            } else {
-                if (adminLoginModal) {
-                    adminLoginModal.classList.add('active');
-                    document.body.style.overflow = 'hidden';
-                }
-            }
-        });
+    // If already on admin page, show login wrapper
+    if (window.location.pathname.includes('/admin')) {
+        const loginWrapper = document.getElementById('adminLoginWrapper');
+        if (loginWrapper) {
+            loginWrapper.style.display = 'flex';
+        }
+        if (adminLoginModal) {
+            adminLoginModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        return;
     }
+    // From main site, redirect to admin page
+    window.location.href = 'admin/index.html';
 }
 
 if (closeAdminLogin && adminLoginModal) {
@@ -893,6 +897,10 @@ function showAdminPanel(user) {
     adminPanel.style.display = 'block';
     document.body.style.overflow = 'auto';
 
+    // Hide login wrapper on admin page
+    const loginWrapper = document.getElementById('adminLoginWrapper');
+    if (loginWrapper) loginWrapper.style.display = 'none';
+
     const adminUserEmail = document.getElementById('adminUserEmail');
     if (adminUserEmail) adminUserEmail.textContent = user.email;
 
@@ -916,12 +924,20 @@ if (logoutBtn) {
                 await signOut(window.firebaseAuth);
             }
             if (adminPanel) adminPanel.style.display = 'none';
-            if (adminLoginForm) adminLoginForm.reset(); // Clear credentials
+            if (adminLoginForm) adminLoginForm.reset();
+
+            // On admin page, show login wrapper again
+            const loginWrapper = document.getElementById('adminLoginWrapper');
+            if (loginWrapper) loginWrapper.style.display = 'flex';
         } catch (error) {
             console.error('Logout error:', error);
         }
     });
 }
+
+// Make admin functions globally available
+window.showAdminPanel = showAdminPanel;
+window.showAdminLogin = showAdminLogin;
 
 // ============================================
 // ADMIN TABS
@@ -1149,6 +1165,10 @@ function displayMessages(messages) {
                     <p>${escapeHTML(msg.email)}</p>
                 </div>
                 <div class="message-actions">
+                    <button class="ai-reply-btn" data-name="${escapeHTML(msg.name)}" data-email="${escapeHTML(msg.email)}" data-subject="${escapeHTML(msg.category || 'General')}" data-message="${escapeHTML(msg.message)}">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:6px"><path d="M3 10h10a8 8 0 0 1 8 8v2M3 10l6 6m-6-6 6-6"/></svg>
+                        AI Reply
+                    </button>
                     ${!msg.read ? `<button class="mark-read-btn" data-id="${escapeHTML(msg.id)}">
                         <i class="fas fa-check"></i> Mark Read
                     </button>` : ''}
@@ -1173,6 +1193,20 @@ function displayMessages(messages) {
 
     document.querySelectorAll('.mark-read-btn').forEach(btn => {
         btn.addEventListener('click', () => markAsRead(btn.getAttribute('data-id')));
+    });
+
+    // AI Reply button listeners
+    document.querySelectorAll('.ai-reply-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (typeof window.openReplyModal === 'function') {
+                window.openReplyModal({
+                    name: btn.getAttribute('data-name'),
+                    email: btn.getAttribute('data-email'),
+                    subject: btn.getAttribute('data-subject'),
+                    message: btn.getAttribute('data-message')
+                });
+            }
+        });
     });
 }
 
@@ -1996,13 +2030,11 @@ function loadAdminContent() {
         const homeTagline = document.getElementById('homeTagline');
         const aboutP1 = document.getElementById('aboutP1');
         const aboutP2 = document.getElementById('aboutP2');
-        const aboutP3 = document.getElementById('aboutP3');
 
         if (savedContent.homeHeading && homeHeading) homeHeading.textContent = savedContent.homeHeading;
         if (savedContent.homeTagline && homeTagline) homeTagline.textContent = savedContent.homeTagline;
         if (savedContent.aboutP1 && aboutP1) aboutP1.textContent = savedContent.aboutP1;
         if (savedContent.aboutP2 && aboutP2) aboutP2.textContent = savedContent.aboutP2;
-        if (savedContent.aboutP3 && aboutP3) aboutP3.textContent = savedContent.aboutP3;
     }
 }
 

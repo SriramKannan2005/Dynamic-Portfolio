@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Admin Dashboard - Sriram Kannan</title>
+
+    <link rel="icon" type="image/png" href="../assets/images/icons/favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="../css/styles.css">
+
+    <style>
+        /* Admin-only overrides */
+        body {
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .admin-login-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .admin-back-link {
+            position: fixed;
+            top: 1.5rem;
+            left: 1.5rem;
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.3s;
+            z-index: 100;
+        }
+
+        .admin-back-link:hover {
+            color: var(--primary);
+        }
+
+        /* AI Reply Button */
+        .ai-reply-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 14px;
+            border-radius: 8px;
+            border: 1px solid #1a73e8;
+            background: #fff;
+            color: #1a73e8;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+        }
+        .ai-reply-btn:hover {
+            background: #e8f0fe;
+            transform: translateY(-1px);
+        }
+        .ai-reply-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Dark mode overrides for the reply modal */
+        [data-theme="dark"] #replyModal {
+            background: #1e293b;
+            color: #e2e8f0;
+        }
+        [data-theme="dark"] #replyModal #replyToName {
+            color: #f1f5f9;
+        }
+        [data-theme="dark"] #replyModal #replyToEmail {
+            color: #94a3b8;
+        }
+        [data-theme="dark"] #replyModal .reply-original-msg {
+            background: #0f172a;
+            color: #94a3b8;
+        }
+        [data-theme="dark"] #replyDraft {
+            background: #0f172a;
+            border-color: #334155;
+            color: #e2e8f0;
+        }
+        [data-theme="dark"] #regenBtn {
+            background: #1e293b;
+            border-color: #334155;
+            color: #94a3b8;
+        }
+        [data-theme="dark"] #regenBtn:hover {
+            background: #334155;
+        }
+        [data-theme="dark"] .ai-reply-btn {
+            background: transparent;
+            border-color: #60a5fa;
+            color: #60a5fa;
+        }
+        [data-theme="dark"] .ai-reply-btn:hover {
+            background: rgba(96, 165, 250, 0.1);
+        }
+        [data-theme="dark"] #generateBtn {
+            background: rgba(96, 165, 250, 0.15);
+            border-color: #60a5fa;
+            color: #60a5fa;
+        }
+        [data-theme="dark"] #sendBtn:not(:disabled) {
+            background: #3b82f6;
+        }
+        [data-theme="dark"] #replyHelperText {
+            color: #64748b;
+        }
+        [data-theme="dark"] #replyDraft::placeholder {
+            color: #64748b;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Custom Cursor -->
+    <div id="customCursor" class="custom-cursor"></div>
+    <div id="customCursorFollower" class="custom-cursor-follower"></div>
+
+    <!-- Page Progress -->
+    <div id="pageProgress" class="page-progress"></div>
+    <div id="scrollProgress" class="scroll-progress"></div>
+
+    <!-- Background Blobs -->
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+        <div class="blob blob-4"></div>
+    </div>
+
+    <!-- Particles Background -->
+    <div id="particles-js"></div>
+
+    <!-- Theme Toggle (fixed position) -->
+    <div class="theme-toggle" id="themeToggle" role="button" aria-label="Toggle dark/light theme" tabindex="0"
+        style="position: fixed; top: 1.5rem; right: 1.5rem; z-index: 100;">
+        <i class="fas fa-moon"></i>
+    </div>
+
+    <a href="../index.html" class="admin-back-link">
+        <i class="fas fa-arrow-left"></i> Back to Portfolio
+    </a>
+
+    <!-- Admin Login (shown by default, hidden after auth) -->
+    <div class="admin-login-wrapper" id="adminLoginWrapper">
+        <div class="modal-content admin-modal" style="position: relative; animation: modalSlideIn 0.3s;">
+            <div class="admin-login-container">
+                <div class="admin-login-header">
+                    <i class="fas fa-shield-alt"></i>
+                    <h2>Admin Access</h2>
+                    <p>Enter your credentials to continue</p>
+                </div>
+                <form id="adminLoginForm" class="admin-login-form">
+                    <div class="form-group">
+                        <label><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" id="adminEmail" placeholder="admin@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-lock"></i> Password</label>
+                        <input type="password" id="adminPassword" placeholder="Enter password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary admin-login-btn">
+                        <span class="btn-text">Login</span>
+                        <span class="btn-loader" style="display: none;">
+                            <i class="fas fa-spinner fa-spin"></i> Logging in...
+                        </span>
+                    </button>
+                    <div id="loginError" class="error-message"
+                        style="display: none; text-align: center; margin-top: 1rem;"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Panel (hidden until authenticated) -->
+    <div id="adminPanel" class="admin-panel" style="display: none;">
+        <div class="admin-header">
+            <div class="admin-logo">
+                <i class="fas fa-user-shield"></i>
+                <h1>Admin Dashboard</h1>
+            </div>
+            <div class="admin-actions">
+                <span class="admin-user"><i class="fas fa-user"></i> <span id="adminUserEmail"></span></span>
+                <button id="logoutBtn" class="btn btn-outline">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+
+        <div class="admin-tabs">
+            <button class="admin-tab active" data-tab="analytics">
+                <i class="fas fa-chart-line"></i> Analytics
+            </button>
+            <button class="admin-tab" data-tab="messages">
+                <i class="fas fa-envelope"></i> Messages <span id="messageCount" class="badge">0</span>
+            </button>
+            <button class="admin-tab" data-tab="export">
+                <i class="fas fa-download"></i> Export & Sync
+            </button>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div class="admin-tab-content active" id="analyticsTab">
+            <div class="analytics-cards">
+                <div class="analytics-card">
+                    <div class="analytics-icon" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <div class="analytics-info">
+                        <h3>Total Views</h3>
+                        <p class="analytics-number" id="totalViews">0</p>
+                    </div>
+                </div>
+                <div class="analytics-card">
+                    <div class="analytics-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="analytics-info">
+                        <h3>Total Messages</h3>
+                        <p class="analytics-number" id="totalMessages">0</p>
+                    </div>
+                </div>
+                <div class="analytics-card">
+                    <div class="analytics-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                        <i class="fas fa-calendar-day"></i>
+                    </div>
+                    <div class="analytics-info">
+                        <h3>Today's Views</h3>
+                        <p class="analytics-number" id="todayViews">0</p>
+                    </div>
+                </div>
+                <div class="analytics-card">
+                    <div class="analytics-icon" style="background: linear-gradient(135deg, #ec4899, #db2777);">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <div class="analytics-info">
+                        <h3>Unread Messages</h3>
+                        <p class="analytics-number" id="unreadMessages">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-section">
+                <h2><i class="fas fa-chart-area"></i> Visitor Trends (Last 7 Days)</h2>
+                <div class="chart-container">
+                    <canvas id="visitorChart"></canvas>
+                </div>
+            </div>
+
+            <div class="admin-section">
+                <h2><i class="fas fa-pie-chart"></i> Message Categories</h2>
+                <div class="chart-container">
+                    <canvas id="messageTypeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages Tab -->
+        <div class="admin-tab-content" id="messagesTab">
+            <div class="admin-section">
+                <div class="messages-header">
+                    <h2><i class="fas fa-inbox"></i> Contact Messages</h2>
+                    <div class="message-filters">
+                        <button class="filter-btn active" data-filter="all">All</button>
+                        <button class="filter-btn" data-filter="unread">Unread</button>
+                        <button class="filter-btn" data-filter="read">Read</button>
+                    </div>
+                    <div class="messages-actions">
+                        <button id="refreshMessages" class="btn btn-outline">
+                            <i class="fas fa-sync"></i> Refresh
+                        </button>
+                        <button id="markAllRead" class="btn btn-outline">
+                            <i class="fas fa-check-double"></i> Mark All Read
+                        </button>
+                    </div>
+                </div>
+                <div id="messagesContainer" class="messages-container">
+                    <div class="loading-messages">
+                        <i class="fas fa-spinner fa-spin"></i> Loading messages...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export & Sync Tab -->
+        <div class="admin-tab-content" id="exportTab">
+            <div class="admin-section">
+                <h2><i class="fas fa-file-export"></i> Export Data</h2>
+                <div class="export-buttons">
+                    <button id="exportExcel" class="btn btn-primary">
+                        <i class="fas fa-file-excel"></i> Export to Excel (CSV)
+                    </button>
+                    <button id="exportCSV" class="btn btn-secondary">
+                        <i class="fas fa-file-csv"></i> Export to CSV
+                    </button>
+                    <button id="exportJSON" class="btn btn-outline">
+                        <i class="fas fa-file-code"></i> Export to JSON
+                    </button>
+                </div>
+            </div>
+
+            <div class="admin-section">
+                <h2><i class="fab fa-google"></i> Google Sheets Integration</h2>
+                <div class="sheets-config">
+                    <div class="config-info">
+                        <p><i class="fas fa-link"></i> <strong>Connected URL:</strong></p>
+                        <code>https://script.google.com/macros/s/AKfycbyXugbD4LsHO69PKlsx3S01Tbty2rmQ-v-JYeWsgtFLvGlxVad4kMd6-U2u9lnvAq07lg/exec</code>
+                    </div>
+                    <div class="sync-status">
+                        <span id="syncStatus" class="status-indicator">
+                            <i class="fas fa-circle"></i> Not synced yet
+                        </span>
+                        <span id="lastSync" class="last-sync-time"></span>
+                    </div>
+                    <div class="sync-controls">
+                        <button id="syncNowBtn" class="btn btn-primary">
+                            <i class="fas fa-sync"></i> Sync Now
+                        </button>
+                        <a href="https://docs.google.com/spreadsheets/d/1fhnlVaxNHzeyaPqQFBzFASWta16RJPH8chJ4bxG_Vxc/edit?usp=sharing/edit"
+                            target="_blank" rel="noopener noreferrer" class="btn btn-secondary"
+                            id="viewSpreadsheetBtn">
+                            <i class="fas fa-external-link-alt"></i> View Spreadsheet
+                        </a>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="autoSyncToggle">
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-label">Auto-sync (every 30 min)</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Toast -->
+    <div id="successToast" class="success-toast">
+        <div class="toast-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="toast-content">
+            <h3>Success!</h3>
+            <p>Operation completed.</p>
+        </div>
+        <button class="toast-close" aria-label="Close notification">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <!-- Firebase Configuration (same as main site) -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, deleteDoc, doc, updateDoc, where, Timestamp, increment } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCKNYfxM0NR2Enlzl3xgivQl51oJw_UZNw",
+            authDomain: "sriram-kannan.firebaseapp.com",
+            projectId: "sriram-kannan",
+            storageBucket: "sriram-kannan.firebasestorage.app",
+            messagingSenderId: "122441642719",
+            appId: "1:122441642719:web:b7f2081f18d1354b692f6a",
+            measurementId: "G-Q5P40N2ELY"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.firebaseAuth = auth;
+        window.firebaseDb = db;
+        window.firebaseModules = {
+            signInWithEmailAndPassword,
+            signOut,
+            onAuthStateChanged,
+            collection,
+            addDoc,
+            getDocs,
+            query,
+            orderBy,
+            deleteDoc,
+            doc,
+            updateDoc,
+            where,
+            Timestamp,
+            increment
+        };
+
+        // Auto-check auth state — if already logged in, show panel immediately
+        onAuthStateChanged(auth, (user) => {
+            if (user && typeof window.showAdminPanel === 'function') {
+                window.showAdminPanel(user);
+            }
+        });
+    </script>
+
+    <!-- Particles.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js" crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js" crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+
+    <!-- Main Script (contains all admin logic: login, panel, messages, analytics, export, sync) -->
+    <script type="module" src="../js/script.js"></script>
+
+    <!-- Script2 (particles, dark mode, custom cursor, progress bars, theme toggle) -->
+    <script src="../js/script2.js"></script>
+
+    <!-- Theme Toggle for admin page -->
+    <script>
+        (function () {
+            const toggle = document.getElementById('themeToggle');
+            if (!toggle) return;
+
+            // Load saved theme
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+                const icon = toggle.querySelector('i');
+                if (icon) {
+                    if (savedTheme === 'dark') {
+                        icon.classList.remove('fa-moon');
+                        icon.classList.add('fa-sun');
+                    }
+                }
+            }
+
+            toggle.addEventListener('click', () => {
+                const current = document.documentElement.getAttribute('data-theme');
+                const next = current === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', next);
+                localStorage.setItem('theme', next);
+                const icon = toggle.querySelector('i');
+                if (icon) {
+                    icon.classList.toggle('fa-moon');
+                    icon.classList.toggle('fa-sun');
+                }
+            });
+        })();
+    </script>
+
+    <!-- AI Reply Modal -->
+    <div id="replyOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;">
+      <div id="replyModal" style="background:#fff;border-radius:16px;padding:1.5rem;width:92%;max-width:580px;font-family:system-ui,sans-serif;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+
+        <!-- Header -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+          <div>
+            <div style="font-size:16px;font-weight:600;color:#111;" id="replyToName">Reply to —</div>
+            <div style="font-size:12px;color:#888;margin-top:2px;" id="replyToEmail"></div>
+          </div>
+          <button onclick="closeReplyModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:#aaa;line-height:1;" aria-label="Close">&times;</button>
+        </div>
+
+        <!-- Original message preview -->
+        <div class="reply-original-msg" style="background:#f5f5f5;border-radius:8px;padding:10px 14px;font-size:13px;color:#555;margin-bottom:1rem;max-height:90px;overflow-y:auto;line-height:1.5;">
+          <span style="font-size:11px;font-weight:600;color:#999;display:block;margin-bottom:4px;">THEIR MESSAGE</span>
+          <span id="replyOriginalMsg"></span>
+        </div>
+
+        <!-- AI engine badge + status -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <span style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;">AI Engine</span>
+          <span id="aiEngineBadge" style="font-size:11px;padding:3px 10px;border-radius:99px;font-weight:500;background:#f0f0f0;color:#777;">Not started</span>
+          <span id="aiStatusDot" style="font-size:12px;color:#aaa;margin-left:auto;"></span>
+        </div>
+
+        <!-- Draft textarea — EMPTY on open, editable after generation -->
+        <textarea
+          id="replyDraft"
+          rows="9"
+          placeholder="Click 'Generate Draft' to create an AI reply..."
+          style="width:100%;box-sizing:border-box;border:1px solid #e0e0e0;border-radius:8px;padding:12px;font-size:14px;font-family:system-ui,sans-serif;line-height:1.6;resize:vertical;color:#111;outline:none;background:#fafafa;"
+        ></textarea>
+
+        <!-- Action buttons row -->
+        <div style="display:flex;gap:10px;margin-top:12px;align-items:center;">
+
+          <!-- Generate Draft button — primary action on open -->
+          <button
+            onclick="generateDraft()"
+            id="generateBtn"
+            style="padding:9px 18px;border-radius:8px;border:1px solid #1a73e8;background:#e8f0fe;color:#1a73e8;cursor:pointer;font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;"
+          >
+            <span id="generateBtnIcon">✦</span>
+            <span id="generateBtnLabel">Generate Draft</span>
+          </button>
+
+          <!-- Regenerate — only visible after first draft -->
+          <button
+            onclick="regenerateDraft()"
+            id="regenBtn"
+            style="display:none;padding:9px 16px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;color:#555;"
+          >
+            ↺ Regenerate
+          </button>
+
+          <!-- Spacer -->
+          <div style="flex:1;"></div>
+
+          <!-- Send button — DISABLED until draft is ready -->
+          <button
+            onclick="sendReply()"
+            id="sendBtn"
+            disabled
+            style="padding:9px 20px;border-radius:8px;border:none;background:#ccc;color:#fff;cursor:not-allowed;font-size:13px;font-weight:500;transition:background 0.2s;"
+            title="Generate a draft first"
+          >
+            Send via Gmail ↗
+          </button>
+
+        </div>
+
+        <!-- Helper text under buttons -->
+        <div id="replyHelperText" style="font-size:11px;color:#aaa;margin-top:8px;text-align:right;">
+          Generate a draft first, then review and send.
+        </div>
+
+      </div>
+    </div>
+
+    <!-- AI Reply Logic -->
+    <script src="admin-reply.js"></script>
+</body>
+
+</html>
