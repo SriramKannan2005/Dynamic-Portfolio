@@ -627,23 +627,7 @@ revealElements.forEach(element => {
     revealObserver.observe(element);
 });
 
-// ============================================
-// CONSOLE EASTER EGG
-// ============================================
-console.log('%c👋 Hello Developer!', 'font-size: 20px; font-weight: bold; color: #6366f1;');
-console.log('%cInterested in the code? Check out the GitHub repo!', 'font-size: 14px; color: #8b5cf6;');
-console.log('%c\n🚀 Hidden Features:', 'font-size: 16px; font-weight: bold; color: #ec4899;');
-console.log('🔐 Triple-click logo for admin access');
-console.log('⌨️  Ctrl+Shift+A → Admin page');
-console.log('🎨 System theme auto-detection enabled');
-console.log('📱 Responsive design with mobile-first approach');
-console.log('🔥 Firebase integration for real-time data');
-console.log('📊 Google Sheets integration for data sync');
-console.log('🔍 Ctrl+/ to focus search');
-console.log('\n💡 Try these commands:');
-console.log('   - viewAllMessages()');
-console.log('   - trackProjectView(projectId)');
-console.log('   - likeProject(projectId)');
+
 
 // ============================================
 // PERFORMANCE MONITORING
@@ -654,7 +638,6 @@ if (window.performance && window.PerformanceNavigationTiming) {
             const [entry] = performance.getEntriesByType('navigation');
             if (entry) {
                 const pageLoadTime = Math.round(entry.loadEventEnd - entry.startTime);
-                console.log(`Page loaded in ${pageLoadTime}ms`);
             }
         }, 0);
     });

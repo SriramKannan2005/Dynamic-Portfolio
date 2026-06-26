@@ -1067,6 +1067,22 @@ nav {
     box-shadow: 0 10px 30px var(--shadow);
 }
 
+.hero-image-container {
+    flex-shrink: 0;
+    position: relative;
+    width: 500px;
+    height: 500px;
+}
+
+.hero-image {
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 5px solid var(--primary);
+    box-shadow: 0 10px 30px var(--shadow);
+}
+
 .about-text {
     flex: 1;
 }
@@ -1762,6 +1778,16 @@ footer {
         height: 250px;
     }
 
+    .hero-image-container {
+        width: 420px;
+        height: 420px;
+    }
+
+    .hero-image {
+        width: 420px;
+        height: 420px;
+    }
+
     .projects-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -1851,6 +1877,17 @@ footer {
     .profile-photo img {
         width: 220px;
         height: 220px;
+    }
+
+    .hero-image-container {
+        width: 360px;
+        height: 360px;
+        margin: 0 auto;
+    }
+
+    .hero-image {
+        width: 360px;
+        height: 360px;
     }
 
     .about-text p {
@@ -2086,6 +2123,18 @@ footer {
     .profile-photo img {
         width: 180px;
         height: 180px;
+        border: 4px solid var(--primary);
+    }
+
+    .hero-image-container {
+        width: 300px;
+        height: 300px;
+        margin: 0 auto;
+    }
+
+    .hero-image {
+        width: 300px;
+        height: 300px;
         border: 4px solid var(--primary);
     }
 
