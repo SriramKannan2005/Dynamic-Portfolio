@@ -2823,7 +2823,7 @@ footer {
 
     #replyDraft {
         font-size: 13px !important;
-        rows: 6;
+        grid-row: 6;
     }
 
     /* Confirm modal mobile */
