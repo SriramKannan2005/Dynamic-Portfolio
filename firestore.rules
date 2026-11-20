@@ -52,6 +52,19 @@ service cloud.firestore {
         && data().createdAt == request.time
         && data().read == false
         && (!('source' in data()) || data().source == 'portfolio');
+      // TEMPORARY: the previous site (still live until the React build is deployed)
+      // sends {name, email, message, category, timestamp, date, read}. Same field
+      // validation, minus the server timestamp. Remove once the new site is live.
+      allow create: if data().keys().hasOnly(['name', 'email', 'message', 'category', 'timestamp', 'date', 'read'])
+        && data().keys().hasAll(['name', 'email', 'message', 'timestamp', 'read'])
+        && isStr(data().name, 1, 100)
+        && isStr(data().email, 5, 254)
+        && data().email.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]{2,}$')
+        && isStr(data().message, 1, 5000)
+        && (!('category' in data()) || data().category in ['Job Inquiry', 'Collaboration', 'Technical Question', 'Feedback', 'General'])
+        && isStr(data().timestamp, 20, 40)
+        && optStr('date', 60)
+        && data().read == false;
       allow read, update, delete: if isAdmin();
     }
 

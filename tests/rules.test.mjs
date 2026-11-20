@@ -39,6 +39,14 @@ await test('message rejects client-chosen createdAt', () => assertFails(addDoc(c
 await test('message rejects overlong text', () => assertFails(addDoc(collection(anon, 'messages'), msg({ message: 'x'.repeat(5001) }))));
 await test('message rejects bad email', () => assertFails(addDoc(collection(anon, 'messages'), msg({ email: 'not-an-email' }))));
 await test('message rejects unknown category', () => assertFails(addDoc(collection(anon, 'messages'), msg({ category: 'Spam' }))));
+// Temporary compatibility with the previous (still live) site's contact form
+const legacy = (o = {}) => ({ name: 'Old Form', email: 'old@example.com', message: 'Sent from the old site.', category: 'General', timestamp: new Date().toISOString(), date: new Date().toLocaleString(), read: false, ...o });
+await test('legacy site message shape accepted', () => assertSucceeds(addDoc(collection(anon, 'messages'), legacy())));
+await test('legacy shape still rejects read:true', () => assertFails(addDoc(collection(anon, 'messages'), legacy({ read: true }))));
+await test('legacy shape still rejects extra fields', () => assertFails(addDoc(collection(anon, 'messages'), legacy({ replied: true }))));
+await test('legacy shape still rejects bad email', () => assertFails(addDoc(collection(anon, 'messages'), legacy({ email: 'nope' }))));
+await test('legacy shape still rejects unknown category', () => assertFails(addDoc(collection(anon, 'messages'), legacy({ category: 'Spam' }))));
+await test('legacy shape still rejects overlong message', () => assertFails(addDoc(collection(anon, 'messages'), legacy({ message: 'x'.repeat(5001) }))));
 await test('anonymous cannot read messages', () => assertFails(getDocs(collection(anon, 'messages'))));
 await test('non-admin signed-in user cannot read messages', () => assertFails(getDocs(collection(stranger, 'messages'))));
 await test('non-admin cannot read a single message', () => assertFails(getDoc(doc(stranger, 'messages', 'm1'))));
