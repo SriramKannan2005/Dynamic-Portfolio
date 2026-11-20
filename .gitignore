@@ -5,3 +5,20 @@
 
 # Admin runtime config (contains API keys)
 admin/env.js
+
+# Local-only secrets backup
+.local-secrets/
+
+# Build output
+node_modules/
+dist/
+.netlify/
+.firebase/
+*.log
+
+# Firebase service-account keys: never commit
+*-firebase-adminsdk-*.json
+serviceAccount*.json
+
+# Browser-test artifacts
+.playwright-mcp/
