@@ -11,6 +11,7 @@ import { useInbox } from './inbox';
 import { ReplyModal } from './ReplyModal';
 import { syncNow } from './Export';
 import { useToast } from './feedback';
+import { followUpState, isLive, today as todayKey } from './Messages';
 
 const ago = (t: Date) => {
   const s = Math.round((Date.now() - t.getTime()) / 1000);
@@ -24,6 +25,7 @@ const greeting = () => { const h = new Date().getHours(); return h < 12 ? 'Good 
 const ACTION_LABEL: Record<string, string> = {
   'auth.signin': 'Signed in', 'message.delete': 'Deleted', 'messages.export': 'Exported', 'sheets.sync': 'Synced',
   'reply.send': 'Replied', 'reply.gmail': 'Replied (Gmail)', 'content.save': 'Site content', 'content.reset': 'Site content', 'templates.save': 'Templates',
+  'message.purge': 'Trash emptied', 'sender.block': 'Blocked', 'sender.unblock': 'Unblocked', 'backup.download': 'Backup', 'contacts.export': 'Exported',
 };
 export const actionLabel = (a: string) => ACTION_LABEL[a] ?? a;
 
@@ -41,13 +43,17 @@ export function Overview({ name }: { name: string }) {
     fetchAudit(12).then(setAudit).catch(() => setAudit([]));
   }, []);
 
-  const unread = (list ?? []).filter((m) => !m.read && !m.archived);
-  const pending = (list ?? []).filter((m) => !m.replied && !m.archived);
+  const live = (list ?? []).filter(isLive);
+  const unread = live.filter((m) => !m.read && !m.archived);
+  const pending = live.filter((m) => !m.replied && !m.archived);
+  const due = live.filter((m) => followUpState(m) === 'due').sort((a, b) => String(a.followUpAt).localeCompare(String(b.followUpAt)));
+  const doneFollowUp = (m: Message) => updateMessages([m.id], { followUpAt: null })
+    .then(() => toast('success', 'Reminder done', m.name)).catch((e) => toast('error', 'Update failed', (e as Error).message));
   const today = week?.days[week.days.length - 1];
 
   const feed = useMemo(() => {
     const items: { t: Date; icon: string; text: string; sub?: string; msg?: Message }[] = [];
-    (list ?? []).slice(0, 10).forEach((m) => { const t = msgDate(m); if (t) items.push({ t, icon: 'mail', text: `Message from ${m.name}`, sub: m.subject || m.message.slice(0, 80), msg: m }); });
+    (list ?? []).filter(isLive).slice(0, 10).forEach((m) => { const t = msgDate(m); if (t) items.push({ t, icon: 'mail', text: `Message from ${m.name}`, sub: m.subject || m.message.slice(0, 80), msg: m }); });
     (audit ?? []).forEach((a) => { const t = a.at?.toDate?.(); if (t) items.push({ t, icon: a.action.startsWith('reply') ? 'reply' : a.action.includes('delete') ? 'trash' : 'activity', text: actionLabel(a.action), sub: a.detail }); });
     return items.sort((a, b) => +b.t - +a.t).slice(0, 12);
   }, [list, audit]);
@@ -121,6 +127,25 @@ export function Overview({ name }: { name: string }) {
           </div>
         </div>
       </div>
+
+      {due.length > 0 && (
+        <div className="panel glass panel-due">
+          <div className="panel-head"><h2><Icon id="bell" /> Follow-ups due <span className="count-pill">{due.length}</span></h2><Link to="/admin/messages?folder=followup" className="panel-link">All reminders →</Link></div>
+          <ul className="queue">
+            {due.slice(0, 6).map((m) => (
+              <li key={m.id}>
+                <div className="queue-main">
+                  <b>{m.name}</b> <span className="chip">{m.category ?? 'General'}</span>
+                  <p>{m.note ? `Note: ${m.note}` : (m.subject ? `${m.subject}: ` : '') + m.message.slice(0, 120)}</p>
+                  <time className="mono muted">{m.followUpAt! < todayKey() ? 'overdue since ' : 'due '}{new Date(`${m.followUpAt}T00:00`).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</time>
+                </div>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => doneFollowUp(m)}><Icon id="check" /><span>Done</span></button>
+                <button type="button" className="btn btn-primary btn-sm" onClick={(e) => reply(m, e.currentTarget)} aria-haspopup="dialog"><Icon id="spark" /><span>AI Reply</span></button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="panel glass">
         <div className="panel-head"><h2>Recent activity</h2><Link to="/admin/settings#activity" className="panel-link">Full activity log →</Link></div>

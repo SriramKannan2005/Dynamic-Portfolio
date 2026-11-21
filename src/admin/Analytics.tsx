@@ -190,6 +190,7 @@ export function Analytics() {
 
   return (
     <section aria-labelledby="anTitle">
+      <p className="print-only print-head">Portfolio analytics · last {range} days · generated {new Date().toLocaleString()}</p>
       <div className="admin-head">
         <h1 id="anTitle">Analytics</h1>
         <div className="admin-head-actions">
@@ -197,6 +198,7 @@ export function Analytics() {
             {RANGES.map((r) => <button key={r} type="button" className={`seg-btn${range === r ? ' is-active' : ''}`} aria-pressed={range === r} onClick={() => setRange(r)}>{r} days</button>)}
           </div>
           <button type="button" className="btn btn-ghost" onClick={exportCsv} disabled={!data}><Icon id="download" /><span>CSV</span></button>
+          <button type="button" className="btn btn-ghost" onClick={() => window.print()} disabled={!data} title="Print or save as PDF"><Icon id="printer" /><span>Report</span></button>
           <button type="button" className="btn btn-ghost" onClick={() => load(range)} disabled={loading}><Icon id="refresh" /><span>{loading ? 'Loading…' : 'Refresh'}</span></button>
         </div>
       </div>

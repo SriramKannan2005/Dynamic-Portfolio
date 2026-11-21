@@ -1,6 +1,22 @@
 import { defineConfig, loadEnv, type Plugin, type ViteDevServer } from 'vite';
 import react from '@vitejs/plugin-react';
 import type { IncomingMessage } from 'node:http';
+import { rmSync } from 'node:fs';
+import { resolve } from 'node:path';
+
+/**
+ * Demo videos stay in public/assets/videos (kept in the repo) but are not shipped:
+ * the site no longer shows them and they made deploys heavy.
+ */
+function dropVideosFromBuild(): Plugin {
+  let outDir = 'dist';
+  return {
+    name: 'drop-videos-from-build',
+    apply: 'build',
+    configResolved(c) { outDir = c.build.outDir; },
+    closeBundle() { rmSync(resolve(outDir, 'assets/videos'), { recursive: true, force: true }); },
+  };
+}
 
 /**
  * Dev-only: serve netlify/functions/<name>.mts at /.netlify/functions/<name>
@@ -47,7 +63,7 @@ function netlifyFunctionsDev(env: Record<string, string>): Plugin {
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
-    plugins: [react(), netlifyFunctionsDev(env)],
+    plugins: [react(), netlifyFunctionsDev(env), dropVideosFromBuild()],
     build: {
       target: 'es2020',
       sourcemap: false,

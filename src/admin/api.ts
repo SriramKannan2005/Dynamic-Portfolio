@@ -25,7 +25,21 @@ export interface Message {
   starred?: boolean;
   archived?: boolean;
   note?: string;
+  /** Spam folder (and optionally the sender is blocked) */
+  spam?: boolean;
+  /** ISO time it was moved to Trash; purged after TRASH_DAYS */
+  trashedAt?: string;
+  /** YYYY-MM-DD follow-up reminder */
+  followUpAt?: string;
+  /** Number of replies sent (derived live from the replies collection) */
+  replyCount?: number;
 }
+export const TRASH_DAYS = 30;
+export type MessagePatch = {
+  read?: boolean; starred?: boolean; archived?: boolean; spam?: boolean; category?: string;
+  /** null removes the field */
+  trashedAt?: string | null; followUpAt?: string | null;
+};
 export interface Reply {
   id: string;
   messageId: string;
@@ -73,35 +87,49 @@ export function subscribeMessages(
 ): () => void {
   let unsub = () => {};
   let cancelled = false;
+  let unsubReplies = () => {};
   (async () => {
     const d = await db();
-    const legacyReplied = await getDocs(collection(d, 'replies'))
-      .then((r) => new Set(r.docs.map((x) => String(x.data().messageId ?? ''))))
-      .catch(() => new Set<string>());
     if (cancelled) return;
+    // Both collections are live: a reply sent from any tab bumps the count at once.
+    // replyCounts comes from the "replies" collection (the old admin only recorded
+    // replies there, never on the message), so old replies are counted too.
+    let replyCounts = new Map<string, number>();
+    let raw: Message[] | null = null;
+    const emit = () => {
+      if (!raw) return;
+      onData(raw.map((m) => {
+        const n = replyCounts.get(m.id) ?? 0;
+        return n ? { ...m, replied: true, replyCount: n } : m;
+      }));
+    };
+    unsubReplies = onSnapshot(collection(d, 'replies'), (snap) => {
+      const next = new Map<string, number>();
+      snap.docs.forEach((x) => { const id = String(x.data().messageId ?? ''); if (id) next.set(id, (next.get(id) ?? 0) + 1); });
+      replyCounts = next;
+      emit();
+    }, () => { /* counts are optional; the inbox still works without them */ });
     let first = true;
     unsub = onSnapshot(query(collection(d, 'messages'), orderBy('timestamp', 'desc'), limit(1000)), (snap) => {
-      const list = snap.docs.map((x) => {
-        const m = { id: x.id, ...(x.data() as Omit<Message, 'id'>) };
-        return legacyReplied.has(m.id) ? { ...m, replied: true } : m;
-      });
+      raw = snap.docs.map((x) => ({ id: x.id, ...(x.data() as Omit<Message, 'id'>) }));
       if (!first) {
-        const added = snap.docChanges().filter((c) => c.type === 'added' && !c.doc.metadata.hasPendingWrites).map((c) => list.find((m) => m.id === c.doc.id)!).filter(Boolean);
+        const added = snap.docChanges().filter((c) => c.type === 'added' && !c.doc.metadata.hasPendingWrites).map((c) => raw!.find((m) => m.id === c.doc.id)!).filter(Boolean);
         if (added.length) onNew(added);
       }
       first = false;
-      onData(list);
+      emit();
     }, (e) => onError(e));
   })().catch(onError);
-  return () => { cancelled = true; unsub(); };
+  return () => { cancelled = true; unsub(); unsubReplies(); };
 }
 
 /** Batched field updates (read / starred / archived) on many messages. */
-export async function updateMessages(ids: string[], patch: Partial<Pick<Message, 'read' | 'starred' | 'archived'>>) {
+export async function updateMessages(ids: string[], patch: MessagePatch) {
   const d = await db();
+  const data = Object.fromEntries(Object.entries(patch).map(([k, v]) => [k, v === null ? deleteField() : v]));
   for (let i = 0; i < ids.length; i += 450) {
     const batch = writeBatch(d);
-    ids.slice(i, i + 450).forEach((id) => batch.update(doc(d, 'messages', id), patch));
+    ids.slice(i, i + 450).forEach((id) => batch.update(doc(d, 'messages', id), data));
     await batch.commit();
   }
 }
@@ -233,7 +261,7 @@ export async function saveSyncState(patch: SyncState) {
 }
 
 /* ---------------- Netlify Functions ---------------- */
-export async function callFunction<T>(name: 'ai-draft' | 'send-reply' | 'sheets-sync', init: { method?: 'GET' | 'POST'; body?: unknown } = {}): Promise<T> {
+export async function callFunction<T>(name: 'ai-draft' | 'send-reply' | 'sheets-sync' | 'status', init: { method?: 'GET' | 'POST'; body?: unknown } = {}): Promise<T> {
   const auth = await getAuthInstance();
   const user = auth.currentUser;
   if (!user) throw new Error('Not signed in.');
@@ -335,4 +363,35 @@ export async function saveOverrides(o: Omit<SiteOverrides, 'updatedAt' | 'update
 }
 export async function resetOverrides() {
   await deleteDoc(doc(await db(), 'siteContent', 'live'));
+}
+
+/* ---------------- blocked senders (enforced by firestore.rules) ---------------- */
+export interface Blocked { id: string; email: string; reason?: string; at?: string }
+/** Doc id is the lowercased address: the rules check exists(blockedSenders/<email.lower()>). */
+export const blockKey = (email: string) => email.trim().toLowerCase();
+export async function blockSender(email: string, reason = '') {
+  const key = blockKey(email);
+  await setDoc(doc(await db(), 'blockedSenders', key), { email: key, reason: reason.slice(0, 200), at: new Date().toISOString() });
+  logAction('sender.block', `Blocked ${key}${reason ? `: ${reason}` : ''}`);
+}
+export async function unblockSender(email: string) {
+  const key = blockKey(email);
+  await deleteDoc(doc(await db(), 'blockedSenders', key));
+  logAction('sender.unblock', `Unblocked ${key}`);
+}
+export async function fetchBlocked(): Promise<Blocked[]> {
+  const snap = await getDocs(collection(await db(), 'blockedSenders'));
+  return snap.docs.map((x) => ({ id: x.id, ...(x.data() as Omit<Blocked, 'id'>) })).sort((a, b) => String(b.at).localeCompare(String(a.at)));
+}
+
+/* ---------------- full backup ---------------- */
+export async function fetchBackup() {
+  const d = await db();
+  const all = async (name: string) => getDocs(collection(d, name)).then((s) => s.docs.map((x) => ({ id: x.id, ...x.data() }))).catch(() => null);
+  const one = async (c: string, id: string) => getDoc(doc(d, c, id)).then((s) => (s.exists() ? s.data() : null)).catch(() => null);
+  const [messages, replies, auditLog, blockedSenders, templates, sheetsSync, siteContent] = await Promise.all([
+    all('messages'), all('replies'), all('auditLog'), all('blockedSenders'),
+    one('admin', 'templates'), one('admin', 'sheetsSync'), one('siteContent', 'live'),
+  ]);
+  return { exportedAt: new Date().toISOString(), project: 'portfolio-admin', messages, replies, auditLog, blockedSenders, templates, sheetsSync, siteContent };
 }

@@ -18,6 +18,7 @@ import { ExportTab, useAutoSync, syncNow } from './Export';
 import { Overview } from './Overview';
 import { ContentTab } from './ContentTab';
 import { Settings } from './Settings';
+import { People } from './People';
 import { CommandPalette, type Command } from './CommandPalette';
 import { ReplyModal } from './ReplyModal';
 import { InboxProvider, useInbox } from './inbox';
@@ -26,6 +27,7 @@ import { logAction } from './api';
 import '../site/styles.css';
 import './admin.css';
 import './admin-v2.css';
+import './admin-v3.css';
 
 type Status = 'loading' | 'signedOut' | 'admin' | 'needsClaim' | 'setup' | 'misconfigured';
 export const IDLE_FLAG = 'sk-admin-idle-out';
@@ -101,6 +103,7 @@ const TABS = [
   ['overview', 'Overview', 'grid'],
   ['analytics', 'Analytics', 'chart'],
   ['messages', 'Messages', 'mail'],
+  ['people', 'People', 'users'],
   ['content', 'Content', 'edit'],
   ['export', 'Export', 'download'],
   ['settings', 'Settings', 'gear'],
@@ -131,6 +134,11 @@ function Dashboard({ user, onSignOut }: { user: User; onSignOut: () => void }) {
     const commands: Command[] = [
       ...TABS.map(([id, label, icon]) => ({ id: `go-${id}`, group: 'Go to', icon, label, run: go(`/admin/${id}`) })),
       { id: 'unread', group: 'Messages', icon: 'mail', label: 'Open the inbox', keywords: 'unread messages', run: go('/admin/messages') },
+      { id: 'followup', group: 'Messages', icon: 'bell', label: 'Follow-up reminders', keywords: 'remind due', run: go('/admin/messages?folder=followup') },
+      { id: 'spam', group: 'Messages', icon: 'ban', label: 'Spam folder', keywords: 'junk', run: go('/admin/messages?folder=spam') },
+      { id: 'trash', group: 'Messages', icon: 'trash', label: 'Trash', keywords: 'deleted restore', run: go('/admin/messages?folder=trash') },
+      { id: 'blocked', group: 'Actions', icon: 'ban', label: 'Blocked senders', keywords: 'block list', run: go('/admin/settings#blocked') },
+      { id: 'status', group: 'Actions', icon: 'shield', label: 'System status', keywords: 'health check config', run: go('/admin/settings') },
       { id: 'theme', group: 'Actions', icon: 'sun', label: 'Toggle light / dark theme', keywords: 'dark mode', run: () => { setTheme(currentTheme() === 'light' ? 'dark' : 'light'); modal.close(); } },
       { id: 'sync', group: 'Actions', icon: 'refresh', label: 'Sync messages to Google Sheets', keywords: 'spreadsheet', run: () => {
         modal.close();
@@ -189,6 +197,7 @@ function Dashboard({ user, onSignOut }: { user: User; onSignOut: () => void }) {
           <Route path="overview" element={<Overview name={user.displayName || user.email || ''} />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="messages" element={<Messages />} />
+          <Route path="people" element={<People />} />
           <Route path="content" element={<ContentTab />} />
           <Route path="export" element={<ExportTab />} />
           <Route path="settings" element={<Settings />} />

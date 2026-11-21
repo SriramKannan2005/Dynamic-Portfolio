@@ -35,7 +35,6 @@ function normalize(d: Draft): Omit<SiteOverrides, 'updatedAt' | 'updatedBy'> {
     if (x.hook?.trim() && x.hook.trim() !== p.hook) o.hook = x.hook.trim().slice(0, LIMITS.hook);
     if (x.description?.trim() && x.description.trim() !== p.description) o.description = x.description.trim().slice(0, LIMITS.description);
     if (x.demo?.trim() && x.demo.trim() !== (p.links?.demo ?? '')) o.demo = x.demo.trim();
-    if (x.video?.trim() && x.video.trim() !== (p.video ?? '')) o.video = x.video.trim();
     if (Object.keys(o).length) projects[p.id] = o;
   }
   const out: Omit<SiteOverrides, 'updatedAt' | 'updatedBy'> = {};
@@ -76,7 +75,7 @@ export function ContentTab() {
     ...(draft.announcement.link.trim() && !safeUrl(draft.announcement.link) ? ['announcement link'] : []),
     ...baseProjects.flatMap((p) => {
       const x = draft.projects[p.id] ?? {};
-      return [x.demo?.trim() && !safeUrl(x.demo) ? `${p.title} demo` : '', x.video?.trim() && !safeUrl(x.video) ? `${p.title} video` : ''].filter(Boolean);
+      return x.demo?.trim() && !safeUrl(x.demo) ? [`${p.title} demo`] : [];
     }),
   ];
 
@@ -181,12 +180,8 @@ export function ContentTab() {
                           <input value={x.hook ?? ''} maxLength={LIMITS.hook} placeholder={p.hook} onChange={(e) => setP(p.id, { hook: e.target.value })} /></label>
                         <label className="text-field"><span>Description</span>
                           <textarea rows={3} value={x.description ?? ''} maxLength={LIMITS.description} placeholder={p.description} onChange={(e) => setP(p.id, { description: e.target.value })} /></label>
-                        <div className="two-col">
-                          <label className="text-field"><span>Live demo link</span>
-                            <input value={x.demo ?? ''} maxLength={LIMITS.url} placeholder={p.links?.demo || 'https://…'} aria-invalid={!!x.demo?.trim() && !safeUrl(x.demo)} onChange={(e) => setP(p.id, { demo: e.target.value })} /></label>
-                          <label className="text-field"><span>Video (mp4 path or https)</span>
-                            <input value={x.video ?? ''} maxLength={LIMITS.url} placeholder={p.video || '/assets/videos/…'} aria-invalid={!!x.video?.trim() && !safeUrl(x.video)} onChange={(e) => setP(p.id, { video: e.target.value })} /></label>
-                        </div>
+                        <label className="text-field"><span>Live demo link</span>
+                          <input value={x.demo ?? ''} maxLength={LIMITS.url} placeholder={p.links?.demo || 'https://…'} aria-invalid={!!x.demo?.trim() && !safeUrl(x.demo)} onChange={(e) => setP(p.id, { demo: e.target.value })} /></label>
                         <p className="muted">Leave a field empty to keep the text from data/projects.json (shown greyed out).</p>
                       </div>
                     )} />

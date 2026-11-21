@@ -116,6 +116,20 @@ await test('site content rejects unknown keys', () => assertFails(setDoc(doc(adm
 await test('site content only in the fixed doc', () => assertFails(setDoc(doc(admin, 'siteContent', 'other'), live())));
 await test('site content projects must be a map', () => assertFails(setDoc(doc(admin, 'siteContent', 'live'), live({ projects: 'all' }))));
 
+// ---- blocked senders ----
+const block = (email, o = {}) => ({ email, reason: 'spam', at: new Date().toISOString(), ...o });
+await test('admin can block a sender', () => assertSucceeds(setDoc(doc(admin, 'blockedSenders', 'spammer@bad.com'), block('spammer@bad.com'))));
+await test('message from a blocked sender is refused', () => assertFails(addDoc(collection(anon, 'messages'), msg({ email: 'spammer@bad.com' }))));
+await test('block is case-insensitive', () => assertFails(addDoc(collection(anon, 'messages'), msg({ email: 'Spammer@BAD.com' }))));
+await test('legacy form also respects the block list', () => assertFails(addDoc(collection(anon, 'messages'), legacy({ email: 'spammer@bad.com' }))));
+await test('other senders still get through', () => assertSucceeds(addDoc(collection(anon, 'messages'), msg({ email: 'friend@good.com' }))));
+await test('block doc id must equal the lowercased email', () => assertFails(setDoc(doc(admin, 'blockedSenders', 'Mixed@Case.com'), block('Mixed@Case.com'))));
+await test('block doc rejects extra fields', () => assertFails(setDoc(doc(admin, 'blockedSenders', 'x@y.co'), block('x@y.co', { ip: '1.1.1.1' }))));
+await test('public cannot read the block list', () => assertFails(getDocs(collection(anon, 'blockedSenders'))));
+await test('non-admin cannot block', () => assertFails(setDoc(doc(stranger, 'blockedSenders', 'a@b.co'), block('a@b.co'))));
+await test('admin can unblock', () => assertSucceeds(deleteDoc(doc(admin, 'blockedSenders', 'spammer@bad.com'))));
+await test('unblocked sender can write again', () => assertSucceeds(addDoc(collection(anon, 'messages'), msg({ email: 'spammer@bad.com' }))));
+
 // ---- default deny ----
 await test('unknown collection denied for public', () => assertFails(addDoc(collection(anon, 'whatever'), { a: 1 })));
 await test('unknown collection denied for non-admin read', () => assertFails(getDocs(collection(stranger, 'whatever'))));

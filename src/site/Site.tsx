@@ -11,6 +11,7 @@ import {
   initFooterField, initTimeline, initRoleRotator, initMotionToggle, prefersReduced,
 } from './lib/ui.js';
 import './styles.css';
+import './sections.css';
 
 type SceneApi = { intro(): void; setTheme(t: string): void; refresh(): void };
 
@@ -65,6 +66,17 @@ export default function Site() {
     initReveals();
     initCounters(document.querySelectorAll('#main [data-count-to]'), { reduced });
     initMagnetic(document.querySelectorAll('.magnetic'), { reduced });
+    // Cursor-following light on .spot cards (achievements, certificates, education,
+    // experience): one delegated listener writes --mx / --my on the hovered card.
+    const onSpot = (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse') return;
+      const el = (e.target as Element | null)?.closest?.('.spot') as HTMLElement | null;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      el.style.setProperty('--mx', `${e.clientX - r.left}px`);
+      el.style.setProperty('--my', `${e.clientY - r.top}px`);
+    };
+    document.addEventListener('pointermove', onSpot, { passive: true });
     const timeline = initTimeline();
 
     // Scene module downloads now; it is created after the loader reveals the hero.
@@ -139,6 +151,7 @@ export default function Site() {
       window.removeEventListener('resize', onScroll);
       logo?.removeEventListener('click', onLogoClick);
       document.removeEventListener('keydown', onKey);
+      document.removeEventListener('pointermove', onSpot);
       clearTimeout(clickTimer);
     };
   }, []);

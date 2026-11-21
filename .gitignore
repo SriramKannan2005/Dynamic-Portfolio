@@ -22,3 +22,6 @@ serviceAccount*.json
 
 # Browser-test artifacts
 .playwright-mcp/
+
+# Source resumes dropped in the project root (published copies live in public/assets/docs)
+/*.pdf

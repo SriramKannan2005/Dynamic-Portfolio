@@ -8,6 +8,7 @@ import { useConfirm, useToast } from './feedback';
 import { chime, usePrefs, type Prefs } from './prefs';
 import { SHORTCUTS } from './Messages';
 import { actionLabel } from './Overview';
+import { BackupPanel, BlockedPanel, StatusPanel } from './SettingsPanels';
 
 function TemplatesPanel() {
   const toast = useToast();
@@ -143,7 +144,12 @@ export function Settings() {
           <p className="muted">An in-page toast and the unread count in the tab title are always on.</p>
         </div>
       </div>
+      <StatusPanel />
       <TemplatesPanel />
+      <div className="chart-grid chart-grid-even">
+        <BlockedPanel />
+        <BackupPanel />
+      </div>
       <ActivityPanel />
       <div className="panel glass">
         <h2>Keyboard shortcuts</h2>

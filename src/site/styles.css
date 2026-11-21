@@ -13,6 +13,7 @@
   --surface: rgba(20, 20, 36, 0.62);
   --surface-solid: #12121f;
   --surface-2: rgba(32, 32, 56, 0.7);
+  --field-solid: #1c1c30;     /* --surface-2 flattened over the card: solid fill for autofill */
   --line: rgba(148, 152, 255, 0.16);
   --line-strong: rgba(148, 152, 255, 0.32);
   --text: #ececf6;
@@ -44,6 +45,7 @@
   --surface: rgba(255, 255, 255, 0.72);
   --surface-solid: #ffffff;
   --surface-2: rgba(238, 238, 250, 0.9);
+  --field-solid: #f0f0fb;
   --line: rgba(79, 70, 229, 0.14);
   --line-strong: rgba(79, 70, 229, 0.3);
   --text: #12121c;
@@ -368,9 +370,7 @@ html:not(.js) .hero-inner > *, html.app-failed .hero-inner > * { opacity: 1 !imp
 /* ---------- 4. Projects ---------- */
 .featured-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 22px; }
 .featured-grid .pcard { grid-column: span 2; }
-.featured-grid .pcard:nth-child(1) { grid-column: span 4; }
-.featured-grid .pcard:nth-child(2) { grid-column: span 2; }
-.featured-grid .pcard:nth-child(n+3) { grid-column: span 2; }
+.featured-grid .pcard.is-lead { grid-column: span 4; }
 .more-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
 
 .pcard { perspective: 1100px; position: relative; }
@@ -399,17 +399,13 @@ html:not(.js) .hero-inner > *, html.app-failed .hero-inner > * { opacity: 1 !imp
   position: relative; aspect-ratio: 16 / 9; margin: 10px 10px 0; border-radius: calc(var(--radius) - 6px); overflow: hidden;
   transform: translateZ(24px); background: var(--bg-2);
 }
-.featured-grid .pcard:nth-child(1) .pcard-media { aspect-ratio: 21 / 9; }
+.featured-grid .pcard.is-lead .pcard-media { aspect-ratio: 21 / 9; }
 .pcard-media img { width: 100%; height: 100%; object-fit: cover; transition: transform .8s var(--ease); }
 .pcard:hover .pcard-media img { transform: scale(1.05); }
 .pcard-badge {
   position: absolute; top: 12px; left: 12px; z-index: 2; font: 600 11px/1 var(--font-mono); letter-spacing: .1em; text-transform: uppercase;
   padding: 7px 10px; border-radius: 8px; background: rgba(7,7,13,.75); color: #e0e7ff; border: 1px solid rgba(165,180,252,.4);
   backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-}
-.pcard-play {
-  position: absolute; right: 12px; bottom: 12px; z-index: 2; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%;
-  background: rgba(7,7,13,.7); color: #fff; border: 1px solid rgba(255,255,255,.25);
 }
 .pcard-body { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 10px; flex: 1; transform-style: preserve-3d; }
 .pcard-cat { font: 500 11px/1 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--cyan); transform: translateZ(30px); }
@@ -565,54 +561,7 @@ html.js .tl-item.is-in .tl-card { opacity: 1; transform: none; }
 .tl-points li::before { content: ""; position: absolute; left: 2px; top: .62em; width: 6px; height: 6px; border-radius: 2px; background: var(--violet); transform: rotate(45deg); }
 .tl-card .chips { transform: none; }
 
-/* ---------- 6. Achievements ---------- */
-.badges { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 18px; perspective: 1000px; }
-.badge { transform-style: preserve-3d; animation: floaty 6s ease-in-out infinite; animation-delay: calc(var(--i) * -1.2s); }
-.badge-card {
-  position: relative; height: 100%; padding: 26px 20px 22px; text-align: center; transform-style: preserve-3d;
-  transition: transform .7s var(--ease-spring), border-color .3s, box-shadow .3s;
-  background:
-    linear-gradient(var(--surface-solid), var(--surface-solid)) padding-box,
-    linear-gradient(160deg, rgba(99,102,241,.6), rgba(167,139,250,.15) 40%, rgba(34,211,238,.5)) border-box;
-  border: 1px solid transparent; border-radius: 22px;
-}
-.badge:hover .badge-card, .badge:focus-within .badge-card { transform: rotateY(16deg) rotateX(6deg) translateZ(20px); box-shadow: 0 30px 60px -28px rgba(99,102,241,.6); }
-.badge-icon {
-  display: grid; place-items: center; width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%; transform: translateZ(40px);
-  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.35), transparent 50%), var(--grad); color: #fff;
-  box-shadow: 0 12px 30px -10px var(--glow);
-}
-.badge-icon .ic { width: 30px; height: 30px; }
-.badge h3 { font-size: 17px; margin-bottom: 6px; transform: translateZ(26px); }
-.badge p { color: var(--text-2); font-size: 14px; margin: 0; transform: translateZ(16px); }
-.badge-metric { margin-top: 14px; transform: translateZ(30px); }
-.badge-metric b { display: block; font: 700 30px/1 var(--font-head); font-variant-numeric: tabular-nums; color: var(--text); }
-.badge-metric small { font-size: 12px; color: var(--text-3); font-family: var(--font-mono); letter-spacing: .06em; text-transform: uppercase; }
-.badge a.badge-link { position: absolute; inset: 0; border-radius: inherit; }
-@keyframes floaty { 0%, 100% { transform: translateY(0) rotateX(0) rotateY(0); } 50% { transform: translateY(-10px) rotateX(3deg) rotateY(-4deg); } }
-
-.certs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.cert {
-  display: flex; align-items: center; gap: 14px; width: 100%; padding: 12px; text-align: left;
-  transition: transform .35s var(--ease), border-color .3s;
-}
-.cert:hover { transform: translateY(-4px); border-color: var(--line-strong); }
-.cert-thumb { width: 92px; aspect-ratio: 4 / 3; flex: none; border-radius: 10px; overflow: hidden; background: #fff; }
-.cert-thumb img { width: 100%; height: 100%; object-fit: cover; }
-.cert b { display: block; font-family: var(--font-head); font-size: 15.5px; line-height: 1.25; }
-.cert small { color: var(--text-3); font-size: 13px; }
-
-/* ---------- 7. Education ---------- */
-.edu { display: grid; gap: 14px; }
-.edu-item { display: grid; grid-template-columns: 56px 1fr auto; gap: 18px; align-items: center; padding: 22px; }
-.edu-icon { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 16px; background: var(--surface-2); color: var(--brand-ink); border: 1px solid var(--line); }
-.edu-icon .ic { width: 26px; height: 26px; }
-.edu-item h3 { font-size: 19px; margin-bottom: 4px; }
-.edu-item p { margin: 0; color: var(--text-2); font-size: 14.5px; }
-.edu-side { text-align: right; }
-.edu-period { font: 500 13px/1 var(--font-mono); color: var(--cyan); display: block; margin-bottom: 8px; }
-.edu-score { display: inline-block; font-weight: 600; font-size: 14px; padding: 6px 10px; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--line); }
-.edu-item:first-child { border-color: var(--line-strong); }
+/* ---------- 6-7. Achievements, certifications, education: see sections.css ---------- */
 
 /* ---------- 8. Contact ---------- */
 .contact-grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 22px; align-items: start; }
@@ -632,6 +581,21 @@ html.js .tl-item.is-in .tl-card { opacity: 1; transform: none; }
 .field input:focus, .field textarea:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 4px rgba(99,102,241,.2); }
 .field input:focus + label, .field textarea:focus + label,
 .field input:not(:placeholder-shown) + label, .field textarea:not(:placeholder-shown) + label { transform: translateY(-11px) scale(.78); color: var(--brand-ink); }
+/* Browser autofill (saved email/password): the value isn't "shown" to CSS, so float the
+   label explicitly, and paint over the browser's own autofill colours with the theme's.
+   Kept as separate rules: an unknown pseudo-class would invalidate a combined selector. */
+.field input:-webkit-autofill + label { transform: translateY(-11px) scale(.78); color: var(--brand-ink); }
+.field input:autofill + label { transform: translateY(-11px) scale(.78); color: var(--brand-ink); }
+.field input:-webkit-autofill,
+.field input:-webkit-autofill:hover {
+  -webkit-text-fill-color: var(--text); caret-color: var(--text);
+  -webkit-box-shadow: 0 0 0 1000px var(--field-solid) inset; box-shadow: 0 0 0 1000px var(--field-solid) inset;
+  transition: background-color 9999s ease-out 0s; /* keeps Chrome from flashing its colour back */
+}
+.field input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--field-solid) inset, 0 0 0 4px rgba(99,102,241,.2);
+  box-shadow: 0 0 0 1000px var(--field-solid) inset, 0 0 0 4px rgba(99,102,241,.2);
+}
 .field.is-invalid input, .field.is-invalid textarea { border-color: #f87171; }
 .field-err { color: #fca5a5; font-size: 13px; margin: 6px 4px 0; min-height: 0; }
 :root[data-theme="light"] .field-err { color: #b91c1c; }
@@ -744,8 +708,8 @@ html.reduced-motion .ic-motion-off { display: block; }
 /* ---------- Responsive ---------- */
 @media (max-width: 1080px) {
   .featured-grid { grid-template-columns: repeat(2, 1fr); }
-  .featured-grid .pcard:nth-child(n) { grid-column: span 1; }
-  .featured-grid .pcard:nth-child(1) { grid-column: span 2; }
+  .featured-grid .pcard { grid-column: span 1; }
+  .featured-grid .pcard.is-lead { grid-column: span 2; }
   .pipeline { grid-template-columns: repeat(3, 1fr); }
   .pipeline .stage:nth-child(3)::after { display: none; }
   .results { grid-template-columns: repeat(2, 1fr); }
@@ -773,15 +737,12 @@ html.reduced-motion .ic-motion-off { display: block; }
 @media (max-width: 640px) {
   .logo-text { display: none; }
   .featured-grid { grid-template-columns: 1fr; }
-  .featured-grid .pcard:nth-child(n) { grid-column: auto; }
-  .featured-grid .pcard:nth-child(1) .pcard-media { aspect-ratio: 16 / 9; }
+  .featured-grid .pcard, .featured-grid .pcard.is-lead { grid-column: auto; }
+  .featured-grid .pcard.is-lead .pcard-media { aspect-ratio: 16 / 9; }
   .skill-groups { grid-template-columns: 1fr; }
   .pipeline { grid-template-columns: 1fr; gap: 12px; }
   .stage:not(:last-child)::after, .pipeline .stage:nth-child(3)::after { display: block; top: 100%; left: 24px; width: 2px; height: 12px; }
   .results { grid-template-columns: 1fr 1fr; }
-  .edu-item { grid-template-columns: 44px 1fr; }
-  .edu-icon { width: 44px; height: 44px; border-radius: 12px; }
-  .edu-side { grid-column: 2; text-align: left; }
   .modal { padding: 8px; }
   .modal-panel { max-height: calc(100dvh - 16px); }
   .hero-hint { display: none; }

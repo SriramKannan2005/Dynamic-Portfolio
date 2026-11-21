@@ -1,4 +1,204 @@
 {
+  "1": {
+    "title": "Smart Exam Evaluator",
+    "hook": "Grades handwritten MCQ answer sheets in seconds.",
+    "description": "Reads scanned, handwritten multiple-choice answer sheets with Gemini OCR and OpenCV, scores them against the key, and exports per-student and consolidated Excel reports.",
+    "techStack": [
+      "Flask",
+      "Gemini",
+      "OpenCV",
+      "OpenPyXL"
+    ],
+    "github": "https://github.com/SriramKannan2005/Smart-Exam-Evaluvator",
+    "video": "/assets/videos/smart.mp4",
+    "image": "/assets/images/projects/project1.png",
+    "category": "ai",
+    "icon": "fas fa-robot",
+    "featured": true,
+    "order": 4,
+    "links": {
+      "github": "https://github.com/SriramKannan2005/Smart-Exam-Evaluvator"
+    },
+    "poster": {
+      "hueA": 210,
+      "hueB": 160,
+      "shape": "cubes"
+    }
+  },
+  "2": {
+    "title": "Info-Nexus",
+    "hook": "GenAI multi-document intelligence with cited answers.",
+    "description": "Upload many documents and query them together. Answers come back with citations to the source passages, alongside live analytics on the document set.",
+    "techStack": [
+      "Flask",
+      "Gemini API",
+      "FAISS",
+      "LangChain",
+      "Chart.js"
+    ],
+    "github": "https://github.com/SriramKannan2005/Info-Nexus",
+    "video": "/assets/videos/doc.mp4",
+    "image": "/assets/images/projects/project2.png",
+    "category": "ai",
+    "icon": "fas fa-file-alt",
+    "featured": true,
+    "order": 3,
+    "links": {
+      "github": "https://github.com/SriramKannan2005/Info-Nexus"
+    },
+    "poster": {
+      "hueA": 265,
+      "hueB": 320,
+      "shape": "sphere"
+    }
+  },
+  "3": {
+    "title": "CineHome+",
+    "hook": "A local OTT-style cinema you control with hand gestures.",
+    "description": "Turns a personal video library into an OTT-style platform with MediaPipe gesture controls, an AI chat assistant and recommendations powered by Gemini 2.5 Flash.",
+    "techStack": [
+      "Flask",
+      "MediaPipe",
+      "OpenCV",
+      "Gemini 2.5 Flash",
+      "JavaScript"
+    ],
+    "github": "https://github.com/SriramKannan2005/media-player",
+    "video": "/assets/videos/me.mp4",
+    "image": "/assets/images/projects/project3.png",
+    "category": "ai",
+    "icon": "fas fa-film",
+    "featured": true,
+    "order": 5,
+    "links": {
+      "github": "https://github.com/SriramKannan2005/media-player"
+    },
+    "poster": {
+      "hueA": 350,
+      "hueB": 30,
+      "shape": "knot"
+    }
+  },
+  "4": {
+    "title": "The Chai Time POS",
+    "hook": "Point-of-sale for a chai shop, in vanilla JS.",
+    "description": "Order management, real-time billing and sales tracking for small food businesses. Vanilla JavaScript front end with Firebase.",
+    "techStack": [
+      "JavaScript",
+      "HTML",
+      "CSS",
+      "Firebase"
+    ],
+    "github": "https://github.com/SriramKannan2005/The-Chai-Time-POS",
+    "video": "/assets/videos/project4.mp4",
+    "image": "/assets/images/projects/project4.png",
+    "category": "web",
+    "icon": "fas fa-mug-hot",
+    "iconColor": [
+      "#f59e0b",
+      "#d97706"
+    ],
+    "featured": false,
+    "order": 6,
+    "links": {
+      "github": "https://github.com/SriramKannan2005/The-Chai-Time-POS",
+      "demo": "https://chai-time.netlify.app"
+    },
+    "poster": {
+      "hueA": 35,
+      "hueB": 12,
+      "shape": "ico"
+    }
+  },
+  "5": {
+    "title": "Wedding Flowers Delivery App",
+    "hook": "Full-stack flower ordering with JWT auth and an admin dashboard.",
+    "description": "Catalogue, customisation, bulk orders with status tracking and PDF bills. React front end on a Spring Boot + MySQL API secured with JWT.",
+    "techStack": [
+      "React",
+      "Spring Boot",
+      "MySQL",
+      "JWT"
+    ],
+    "github": "https://github.com/SriramKannan2005/flower-delivery-application-frontend-",
+    "video": "/assets/videos/project5.mp4",
+    "image": "/assets/images/projects/project5.png",
+    "category": "web",
+    "icon": "fas fa-seedling",
+    "iconColor": [
+      "#ec4899",
+      "#f43f5e"
+    ],
+    "featured": false,
+    "order": 7,
+    "links": {
+      "github": "https://github.com/SriramKannan2005/flower-delivery-application-frontend-"
+    },
+    "poster": {
+      "hueA": 320,
+      "hueB": 285,
+      "shape": "knot"
+    }
+  },
+  "6": {
+    "title": "Job Analytics Dashboard",
+    "hook": "Geospatial and salary analytics over a large job-postings dataset.",
+    "description": "Cleaning, salary parsing and experience extraction in Python/Pandas, with filter-driven geospatial and salary views. Built during the NullClass internship.",
+    "techStack": [
+      "Python",
+      "Pandas",
+      "Jupyter",
+      "Tableau"
+    ],
+    "github": "https://github.com/SriramKannan2005/Job-Analytics-Dashboard",
+    "video": "/assets/videos/project6.mp4",
+    "image": "/assets/images/projects/project6.png",
+    "category": "ml",
+    "icon": "fas fa-chart-bar",
+    "iconColor": [
+      "#3b82f6",
+      "#1d4ed8"
+    ],
+    "featured": false,
+    "order": 8,
+    "links": {
+      "github": "https://github.com/SriramKannan2005/Job-Analytics-Dashboard"
+    },
+    "poster": {
+      "hueA": 180,
+      "hueB": 225,
+      "shape": "sphere"
+    }
+  },
+  "7": {
+    "title": "Digital Clock",
+    "hook": "A themeable real-time clock with smooth CSS animation.",
+    "description": "Hours, minutes and seconds in real time, with dark and light themes and CSS transitions.",
+    "techStack": [
+      "HTML",
+      "CSS",
+      "JavaScript"
+    ],
+    "github": "https://github.com/SriramKannan2005/Digital-Clock",
+    "video": "/assets/videos/project7.mp4",
+    "image": "/assets/images/projects/project7.png",
+    "category": "web",
+    "icon": "fas fa-clock",
+    "iconColor": [
+      "#10b981",
+      "#059669"
+    ],
+    "featured": false,
+    "order": 12,
+    "links": {
+      "github": "https://github.com/SriramKannan2005/Digital-Clock"
+    },
+    "poster": {
+      "hueA": 195,
+      "hueB": 255,
+      "shape": "ico"
+    }
+  },
   "forensix": {
     "title": "ForensiX AI",
     "hook": "Multi-modal forensics that explains why an image or document looks tampered.",
@@ -111,147 +311,6 @@
       "github": "https://github.com/SriramKannan2005/HCDA-project"
     }
   },
-  "2": {
-    "title": "Info-Nexus",
-    "hook": "GenAI multi-document intelligence with cited answers.",
-    "description": "Upload many documents and query them together. Answers come back with citations to the source passages, alongside live analytics on the document set.",
-    "techStack": [
-      "Flask",
-      "Gemini API",
-      "FAISS",
-      "LangChain",
-      "Chart.js"
-    ],
-    "github": "https://github.com/SriramKannan2005/Info-Nexus",
-    "video": "/assets/videos/doc.mp4",
-    "image": "/assets/images/projects/project2.png",
-    "category": "ai",
-    "icon": "fas fa-file-alt",
-    "featured": true,
-    "order": 3,
-    "links": {
-      "github": "https://github.com/SriramKannan2005/Info-Nexus"
-    }
-  },
-  "1": {
-    "title": "Smart Exam Evaluator",
-    "hook": "Grades handwritten MCQ answer sheets in seconds.",
-    "description": "Reads scanned, handwritten multiple-choice answer sheets with Gemini OCR and OpenCV, scores them against the key, and exports per-student and consolidated Excel reports.",
-    "techStack": [
-      "Flask",
-      "Gemini",
-      "OpenCV",
-      "OpenPyXL"
-    ],
-    "github": "https://github.com/SriramKannan2005/Smart-Exam-Evaluvator",
-    "video": "/assets/videos/smart.mp4",
-    "image": "/assets/images/projects/project1.png",
-    "category": "ai",
-    "icon": "fas fa-robot",
-    "featured": true,
-    "order": 4,
-    "links": {
-      "github": "https://github.com/SriramKannan2005/Smart-Exam-Evaluvator"
-    }
-  },
-  "3": {
-    "title": "CineHome+",
-    "hook": "A local OTT-style cinema you control with hand gestures.",
-    "description": "Turns a personal video library into an OTT-style platform with MediaPipe gesture controls, an AI chat assistant and recommendations powered by Gemini 2.5 Flash.",
-    "techStack": [
-      "Flask",
-      "MediaPipe",
-      "OpenCV",
-      "Gemini 2.5 Flash",
-      "JavaScript"
-    ],
-    "github": "https://github.com/SriramKannan2005/media-player",
-    "video": "/assets/videos/me.mp4",
-    "image": "/assets/images/projects/project3.png",
-    "category": "ai",
-    "icon": "fas fa-film",
-    "featured": true,
-    "order": 5,
-    "links": {
-      "github": "https://github.com/SriramKannan2005/media-player"
-    }
-  },
-  "4": {
-    "title": "The Chai Time POS",
-    "hook": "Point-of-sale for a chai shop, in vanilla JS.",
-    "description": "Order management, real-time billing and sales tracking for small food businesses. Vanilla JavaScript front end with Firebase.",
-    "techStack": [
-      "JavaScript",
-      "HTML",
-      "CSS",
-      "Firebase"
-    ],
-    "github": "https://github.com/SriramKannan2005/The-Chai-Time-POS",
-    "video": "/assets/videos/project4.mp4",
-    "image": "/assets/images/projects/project4.png",
-    "category": "web",
-    "icon": "fas fa-mug-hot",
-    "iconColor": [
-      "#f59e0b",
-      "#d97706"
-    ],
-    "featured": false,
-    "order": 6,
-    "links": {
-      "github": "https://github.com/SriramKannan2005/The-Chai-Time-POS",
-      "demo": "https://chai-time.netlify.app"
-    }
-  },
-  "5": {
-    "title": "Wedding Flowers Delivery App",
-    "hook": "Full-stack flower ordering with JWT auth and an admin dashboard.",
-    "description": "Catalogue, customisation, bulk orders with status tracking and PDF bills. React front end on a Spring Boot + MySQL API secured with JWT.",
-    "techStack": [
-      "React",
-      "Spring Boot",
-      "MySQL",
-      "JWT"
-    ],
-    "github": "https://github.com/SriramKannan2005/flower-delivery-application-frontend-",
-    "video": "/assets/videos/project5.mp4",
-    "image": "/assets/images/projects/project5.png",
-    "category": "web",
-    "icon": "fas fa-seedling",
-    "iconColor": [
-      "#ec4899",
-      "#f43f5e"
-    ],
-    "featured": false,
-    "order": 7,
-    "links": {
-      "github": "https://github.com/SriramKannan2005/flower-delivery-application-frontend-"
-    }
-  },
-  "6": {
-    "title": "Job Analytics Dashboard",
-    "hook": "Geospatial and salary analytics over a large job-postings dataset.",
-    "description": "Cleaning, salary parsing and experience extraction in Python/Pandas, with filter-driven geospatial and salary views. Built during the NullClass internship.",
-    "techStack": [
-      "Python",
-      "Pandas",
-      "Jupyter",
-      "Tableau"
-    ],
-    "github": "https://github.com/SriramKannan2005/Job-Analytics-Dashboard",
-    "video": "/assets/videos/project6.mp4",
-    "image": "/assets/images/projects/project6.png",
-    "category": "ml",
-    "icon": "fas fa-chart-bar",
-    "iconColor": [
-      "#3b82f6",
-      "#1d4ed8"
-    ],
-    "featured": false,
-    "order": 8,
-    "links": {
-      "github": "https://github.com/SriramKannan2005/Job-Analytics-Dashboard"
-    }
-  },
   "churn": {
     "title": "Customer Churn Prediction",
     "hook": "Segment customers, predict churn, serve it over REST.",
@@ -327,30 +386,6 @@
     },
     "links": {
       "github": "https://github.com/SriramKannan2005/Vaibinox-event-website-"
-    }
-  },
-  "7": {
-    "title": "Digital Clock",
-    "hook": "A themeable real-time clock with smooth CSS animation.",
-    "description": "Hours, minutes and seconds in real time, with dark and light themes and CSS transitions.",
-    "techStack": [
-      "HTML",
-      "CSS",
-      "JavaScript"
-    ],
-    "github": "https://github.com/SriramKannan2005/Digital-Clock",
-    "video": "/assets/videos/project7.mp4",
-    "image": "/assets/images/projects/project7.png",
-    "category": "web",
-    "icon": "fas fa-clock",
-    "iconColor": [
-      "#10b981",
-      "#059669"
-    ],
-    "featured": false,
-    "order": 12,
-    "links": {
-      "github": "https://github.com/SriramKannan2005/Digital-Clock"
     }
   }
 }

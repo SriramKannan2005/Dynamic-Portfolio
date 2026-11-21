@@ -1,31 +1,21 @@
-import type { ReactNode } from 'react';
-import { Icon } from '../shared/Icon';
+import { lazy, Suspense, type ReactNode } from 'react';
 import { useModal } from '../shared/Modal';
 import { content } from './content';
+import './resume.css';
 
-const track = (id: string) => { import('./tracking').then((t) => t.trackResumeDownload(id)).catch(() => {}); };
+// The viewer (and pdf.js inside it) is only downloaded when someone opens it.
+const ResumeViewer = lazy(() => import('./ResumeViewer').then((m) => ({ default: m.ResumeViewer })));
 
-function ResumeChooser() {
-  return (
-    <div className="chooser">
-      <h2 id="modalTitle">Download a resume</h2>
-      <p>Pick the version that fits the role.</p>
-      <div className="chooser-list">
-        {content.resumes.map((r, i) => (
-          <a
-            key={r.id} className="chooser-opt" href={r.file} download={r.filename ?? true}
-            onClick={() => track(r.id)} {...(i === 0 ? { autoFocus: true } : {})}
-          >
-            <Icon id="download" />
-            <span><b>{r.label}</b><small>{r.description}{r.updated ? ` · updated ${r.updated}` : ''}</small></span>
-          </a>
-        ))}
-      </div>
-    </div>
+export function openResumeViewer(modal: ReturnType<typeof useModal>, origin?: HTMLElement | null, initial = 0) {
+  modal.open(
+    <Suspense fallback={<div className="rv rv-boot" role="status"><span className="rv-spinner" aria-hidden="true" />Opening resumes…</div>}>
+      <ResumeViewer resumes={content.resumes} initial={initial} />
+    </Suspense>,
+    { origin, label: 'Resume viewer' },
   );
 }
 
-/** Any "Resume" button: opens the chooser (falls back to the first PDF without JS). */
+/** Any "Resume" button: opens the viewer (without JS it still downloads the first PDF). */
 export function ResumeButton({ className, children }: { className: string; children: ReactNode }) {
   const modal = useModal();
   const first = content.resumes[0];
@@ -37,7 +27,7 @@ export function ResumeButton({ className, children }: { className: string; child
       aria-haspopup="dialog"
       onClick={(e) => {
         e.preventDefault();
-        modal.open(<ResumeChooser />, { origin: e.currentTarget, narrow: true });
+        openResumeViewer(modal, e.currentTarget);
       }}
     >
       {children}

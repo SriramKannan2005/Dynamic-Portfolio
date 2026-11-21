@@ -139,6 +139,18 @@ await test('ai-draft reports busy when every model is overloaded', async () => {
   const r = await draft(draftReq()); const j = await r.json() as { error?: string };
   return r.status === 503 && /busy/i.test(j.error ?? '');
 });
+// status: booleans only, never values
+process.env.GEMINI_API_KEY = 'super-secret-value';
+delete process.env.SHEETS_SYNC_URL;
+const statusFn = (await import("../netlify/functions/status.mts")).default;
+await test('status reports configuration as booleans only', async () => {
+  const r = await statusFn(new Request('http://x', { headers: { authorization: `Bearer ${unsigned}` } }));
+  const text = await r.text();
+  const j = JSON.parse(text) as { configured: Record<string, boolean> };
+  return r.status === 200 && j.configured.ai === true && j.configured.sheets === false && !/GEMINI_API_KEY|SHEETS_SYNC_URL/.test(text) && !text.includes('super-secret-value');
+});
+await test('status requires an admin token', async () => (await statusFn(new Request("http://x"))).status === 401);
+
 (globalThis as Record<string, unknown>).__SK_DEV_EMULATOR__ = false;
 globalThis.fetch = realFetch;
 

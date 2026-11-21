@@ -1,23 +1,30 @@
 /**
- * Inbox: live list (shared listener), folders (Inbox / Starred / Archived / All),
- * filters, search with highlighting (?q= so the command palette can deep-link),
- * multi-select bulk actions, private notes, and Gmail-style keyboard shortcuts.
+ * Inbox: live list (shared listener), folders (Inbox / Follow-up / Starred / Archived /
+ * Spam / Trash / All), filters, search with highlighting (?q= so the command palette
+ * can deep-link), multi-select bulk actions, private notes, re-categorising, follow-up
+ * reminders, spam + sender blocking, soft delete with Undo, and keyboard shortcuts.
  */
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Icon } from '../shared/Icon';
 import { Select } from '../shared/Select';
 import { useModal } from '../shared/Modal';
-import { CATEGORIES, deleteMessages, msgDate, setNote, updateMessages, logAction, type Message } from './api';
+import {
+  CATEGORIES, TRASH_DAYS, blockSender, dayKey, deleteMessages, logAction, msgDate, setNote, updateMessages,
+  type Message, type MessagePatch,
+} from './api';
 import { useConfirm, useToast } from './feedback';
 import { useInbox } from './inbox';
 import { ReplyModal } from './ReplyModal';
 import { download, messagesCsv, stamp } from './Export';
 
-type Folder = 'inbox' | 'starred' | 'archived' | 'all';
+type Folder = 'inbox' | 'followup' | 'starred' | 'archived' | 'spam' | 'trash' | 'all';
 type Status = 'any' | 'unread' | 'read' | 'pending' | 'replied';
 const PAGE = 40;
-const FOLDERS: [Folder, string][] = [['inbox', 'Inbox'], ['starred', 'Starred'], ['archived', 'Archived'], ['all', 'All']];
+const FOLDERS: [Folder, string, string?][] = [
+  ['inbox', 'Inbox'], ['followup', 'Follow-up', 'bell'], ['starred', 'Starred', 'star'], ['archived', 'Archived', 'archive'],
+  ['spam', 'Spam', 'ban'], ['trash', 'Trash', 'trash'], ['all', 'All'],
+];
 
 export const SHORTCUTS: [string, string][] = [
   ['j / k', 'Next / previous message'],
@@ -27,12 +34,26 @@ export const SHORTCUTS: [string, string][] = [
   ['e', 'Archive / unarchive'],
   ['u', 'Mark read / unread'],
   ['n', 'Add or edit a note'],
-  ['#', 'Delete (asks first)'],
+  ['f', 'Follow up tomorrow / clear'],
+  ['!', 'Mark as spam'],
+  ['#', 'Move to Trash (Undo available)'],
   ['/', 'Search'],
   ['Esc', 'Clear the selection'],
   ['Ctrl + K', 'Command palette (anywhere in admin)'],
   ['?', 'Show these shortcuts'],
 ];
+
+export const today = () => dayKey(new Date());
+export const inDays = (n: number) => { const d = new Date(); d.setDate(d.getDate() + n); return dayKey(d); };
+export const isLive = (m: Message) => !m.trashedAt && !m.spam;
+/** "due" (today or overdue) / "later" / null */
+export const followUpState = (m: Message): 'due' | 'later' | null => (!m.followUpAt ? null : m.followUpAt <= today() ? 'due' : 'later');
+const prettyDay = (key: string) => {
+  if (key === today()) return 'today';
+  if (key === inDays(1)) return 'tomorrow';
+  if (key < today()) return `overdue (${new Date(`${key}T00:00`).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })})`;
+  return new Date(`${key}T00:00`).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
+};
 
 export function ShortcutsHelp() {
   return (
@@ -84,6 +105,27 @@ function NoteEditor({ m, onDone }: { m: Message; onDone: () => void }) {
   );
 }
 
+/** Mark as spam, optionally blocking the sender(s) at the database level. */
+function SpamDialog({ list, onDone }: { list: Message[]; onDone: (block: boolean) => void }) {
+  const modal = useModal();
+  const emails = [...new Set(list.map((m) => m.email.trim().toLowerCase()))];
+  const [block, setBlock] = useState(true);
+  return (
+    <div className="confirm">
+      <h2 id="modalTitle">{list.length === 1 ? 'Mark as spam?' : `Mark ${list.length} messages as spam?`}</h2>
+      <p>{list.length === 1 ? `The message from ${list[0].name} moves to the Spam folder.` : 'They move to the Spam folder.'}</p>
+      <label className="check-row">
+        <input type="checkbox" checked={block} onChange={(e) => setBlock(e.target.checked)} />
+        <span>Also block {emails.length === 1 ? <b>{emails[0]}</b> : `these ${emails.length} senders`}: new messages from {emails.length === 1 ? 'it' : 'them'} are refused by the database.</span>
+      </label>
+      <div className="confirm-actions">
+        <button type="button" className="btn btn-ghost" autoFocus onClick={() => modal.close()}>Cancel</button>
+        <button type="button" className="btn btn-danger" onClick={() => { modal.close(); onDone(block); }}>{block ? 'Spam + block' : 'Mark as spam'}</button>
+      </div>
+    </div>
+  );
+}
+
 export function Messages() {
   const toast = useToast();
   const confirm = useConfirm();
@@ -91,16 +133,23 @@ export function Messages() {
   const { list, error } = useInbox();
   const [params, setParams] = useSearchParams();
   const urlQ = params.get('q') ?? '';
+  const urlFolder = params.get('folder') as Folder | null;
   // Local state drives the input; the URL is a mirror (for deep links from the
   // command palette). Driving the input from the URL drops fast keystrokes.
-  const [q, setQState] = useState(urlQ);
+  const [q, setQ] = useState(urlQ);
   const lastPushed = useRef(urlQ);
-  useEffect(() => { if (urlQ !== lastPushed.current) { lastPushed.current = urlQ; setQState(urlQ); } }, [urlQ]);
+  useEffect(() => { if (urlQ !== lastPushed.current) { lastPushed.current = urlQ; setQ(urlQ); } }, [urlQ]);
   useEffect(() => {
-    const t = setTimeout(() => { if (q !== lastPushed.current) { lastPushed.current = q; setParams(q ? { q } : {}, { replace: true }); } }, 250);
+    const t = setTimeout(() => {
+      if (q !== lastPushed.current) {
+        lastPushed.current = q;
+        setParams((p) => { const n = new URLSearchParams(p); if (q) n.set('q', q); else n.delete('q'); return n; }, { replace: true });
+      }
+    }, 250);
     return () => clearTimeout(t);
   }, [q, setParams]);
-  const [folder, setFolder] = useState<Folder>('inbox');
+  const [folder, setFolder] = useState<Folder>(urlFolder && FOLDERS.some(([f]) => f === urlFolder) ? urlFolder : 'inbox');
+  useEffect(() => { if (urlFolder && FOLDERS.some(([f]) => f === urlFolder)) setFolder(urlFolder); }, [urlFolder]);
   const [status, setStatus] = useState<Status>('any');
   const [cat, setCat] = useState('all');
   const [sort, setSort] = useState<'new' | 'old'>('new');
@@ -110,31 +159,44 @@ export function Messages() {
   const [noteFor, setNoteFor] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
-
-  const setQ = setQState;
   const needle = q.trim().toLowerCase();
 
-  const counts = useMemo(() => {
-    const l = list ?? [];
-    return {
-      inbox: l.filter((m) => !m.archived).length,
-      starred: l.filter((m) => m.starred).length,
-      archived: l.filter((m) => m.archived).length,
-      all: l.length,
-    };
-  }, [list]);
+  // Empty the trash of anything older than TRASH_DAYS (once per visit)
+  const purged = useRef(false);
+  useEffect(() => {
+    if (!list || purged.current) return;
+    purged.current = true;
+    const cutoff = Date.now() - TRASH_DAYS * 86_400_000;
+    const old = list.filter((m) => m.trashedAt && Date.parse(m.trashedAt) < cutoff);
+    if (!old.length) return;
+    deleteMessages(old.map((m) => m.id))
+      .then(() => { logAction('message.purge', `Auto-deleted ${old.length} message${old.length === 1 ? '' : 's'} trashed over ${TRASH_DAYS} days ago`); toast('info', `Emptied ${old.length} old message${old.length === 1 ? '' : 's'} from Trash`, `Trash keeps messages for ${TRASH_DAYS} days.`); })
+      .catch(() => {});
+  }, [list, toast]);
 
+  const inFolder = useCallback((m: Message, f: Folder) => {
+    switch (f) {
+      case 'trash': return !!m.trashedAt;
+      case 'spam': return !m.trashedAt && !!m.spam;
+      case 'inbox': return isLive(m) && !m.archived;
+      case 'followup': return isLive(m) && !!m.followUpAt;
+      case 'starred': return isLive(m) && !!m.starred;
+      case 'archived': return isLive(m) && !!m.archived;
+      default: return isLive(m);
+    }
+  }, []);
+
+  const counts = useMemo(() => Object.fromEntries(FOLDERS.map(([f]) => [f, (list ?? []).filter((m) => inFolder(m, f)).length])) as Record<Folder, number>, [list, inFolder]);
+  const dueCount = useMemo(() => (list ?? []).filter((m) => isLive(m) && followUpState(m) === 'due').length, [list]);
   const catCounts = useMemo(() => {
     const c: Record<string, number> = {};
-    (list ?? []).forEach((m) => { const k = m.category ?? 'General'; c[k] = (c[k] ?? 0) + 1; });
+    (list ?? []).filter(isLive).forEach((m) => { const k = m.category ?? 'General'; c[k] = (c[k] ?? 0) + 1; });
     return c;
   }, [list]);
 
   const filtered = useMemo(() => {
     const out = (list ?? []).filter((m) => {
-      if (folder === 'inbox' && m.archived) return false;
-      if (folder === 'archived' && !m.archived) return false;
-      if (folder === 'starred' && !m.starred) return false;
+      if (!inFolder(m, folder)) return false;
       if (cat !== 'all' && (m.category ?? 'General') !== cat) return false;
       if (status === 'unread' && m.read) return false;
       if (status === 'read' && !m.read) return false;
@@ -143,11 +205,11 @@ export function Messages() {
       if (!needle) return true;
       return [m.name, m.email, m.subject, m.message, m.note].some((v) => (v ?? '').toLowerCase().includes(needle));
     });
+    if (folder === 'followup') return out.sort((a, b) => String(a.followUpAt).localeCompare(String(b.followUpAt)));
     return sort === 'old' ? out.reverse() : out;
-  }, [list, folder, cat, status, needle, sort]);
+  }, [list, folder, cat, status, needle, sort, inFolder]);
   const visible = filtered.slice(0, shown);
 
-  // Selection only ever contains messages that are still visible
   useEffect(() => {
     setSelected((s) => {
       const ids = new Set(filtered.map((m) => m.id));
@@ -164,24 +226,48 @@ export function Messages() {
   const run = useCallback(async (fn: () => Promise<unknown>, ok: string, fail = 'Update failed') => {
     try { await fn(); if (ok) toast('success', ok); } catch (e) { toast('error', fail, (e as Error).message); }
   }, [toast]);
+  const patchMany = (ms: Message[], patch: MessagePatch, ok: string) => run(() => updateMessages(ms.map((m) => m.id), patch), ok);
 
-  const patchMany = (ms: Message[], patch: Parameters<typeof updateMessages>[1], ok: string) =>
-    run(() => updateMessages(ms.map((m) => m.id), patch), ok);
-
-  const removeMany = async (ms: Message[], origin?: HTMLElement | null) => {
+  /** Soft delete: moves to Trash, with Undo in the toast. */
+  const trashMany = async (ms: Message[]) => {
+    if (!ms.length) return;
+    const ids = ms.map((m) => m.id);
+    try {
+      await updateMessages(ids, { trashedAt: new Date().toISOString() });
+      setSelected(new Set());
+      toast('info', ms.length === 1 ? 'Moved to Trash' : `${ms.length} messages moved to Trash`, `Kept for ${TRASH_DAYS} days.`, {
+        label: 'Undo', run: () => { updateMessages(ids, { trashedAt: null }).catch((e) => toast('error', 'Undo failed', (e as Error).message)); },
+      });
+    } catch (e) { toast('error', 'Could not move to Trash', (e as Error).message); }
+  };
+  const restoreMany = (ms: Message[]) => { setSelected(new Set()); return patchMany(ms, { trashedAt: null }, ms.length === 1 ? 'Restored' : `${ms.length} messages restored`); };
+  const destroyMany = async (ms: Message[], origin?: HTMLElement | null, all = false) => {
     if (!ms.length) return;
     const one = ms.length === 1;
     const ok = await confirm({
-      title: one ? 'Delete this message?' : `Delete ${ms.length} messages?`,
-      text: one ? `The message from ${ms[0].name} will be permanently deleted. This cannot be undone.` : `${ms.length} messages will be permanently deleted. This cannot be undone. Archive keeps them out of the inbox without deleting.`,
-      confirmLabel: 'Delete', danger: true, origin,
+      title: all ? 'Empty the trash?' : one ? 'Delete forever?' : `Delete ${ms.length} messages forever?`,
+      text: `${one ? 'This message' : `${ms.length} messages`} will be permanently deleted. This cannot be undone.`,
+      confirmLabel: all ? 'Empty trash' : 'Delete forever', danger: true, origin,
     });
     if (!ok) return;
     await run(async () => {
       await deleteMessages(ms.map((m) => m.id));
       setSelected(new Set());
-      logAction('message.delete', one ? `Deleted message from ${ms[0].name} <${ms[0].email}>` : `Deleted ${ms.length} messages`);
-    }, one ? 'Message deleted' : `${ms.length} messages deleted`, 'Delete failed');
+      logAction('message.delete', one ? `Permanently deleted message from ${ms[0].name} <${ms[0].email}>` : `Permanently deleted ${ms.length} messages${all ? ' (emptied trash)' : ''}`);
+    }, one ? 'Deleted forever' : `${ms.length} messages deleted forever`, 'Delete failed');
+  };
+  const spamMany = (ms: Message[], origin?: HTMLElement | null) => {
+    if (!ms.length) return;
+    modal.open(<SpamDialog list={ms} onDone={async (block) => {
+      await run(async () => {
+        await updateMessages(ms.map((m) => m.id), { spam: true, read: true });
+        if (block) {
+          const emails = [...new Set(ms.map((m) => m.email.trim().toLowerCase()))];
+          await Promise.all(emails.map((e) => blockSender(e, 'Marked as spam')));
+        }
+        setSelected(new Set());
+      }, block ? 'Marked as spam and blocked' : 'Marked as spam');
+    }} />, { narrow: true, origin });
   };
 
   const reply = useCallback((m: Message, origin?: HTMLElement | null) => {
@@ -196,15 +282,15 @@ export function Messages() {
   };
 
   // ---- keyboard shortcuts ----
-  const stateRef = useRef({ visible, active, selected });
-  stateRef.current = { visible, active, selected };
+  const stateRef = useRef({ visible, active, folder });
+  stateRef.current = { visible, active, folder };
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       const t = e.target as HTMLElement;
       if (t.closest('input, textarea, select, [contenteditable="true"], .dd')) return;
-      if (document.querySelector('.modal')) return; // a dialog is open
-      const { visible: vis, active: act } = stateRef.current;
+      if (document.querySelector('.modal')) return;
+      const { visible: vis, active: act, folder: fol } = stateRef.current;
       const cur = vis[act];
       const move = (to: number) => {
         const n = Math.max(0, Math.min(vis.length - 1, to));
@@ -229,7 +315,9 @@ export function Messages() {
           else if (e.key === 'e') { e.preventDefault(); patchMany([cur], { archived: !cur.archived }, cur.archived ? 'Moved to inbox' : 'Archived'); }
           else if (e.key === 'u') { e.preventDefault(); patchMany([cur], { read: !cur.read }, ''); }
           else if (e.key === 'n') { e.preventDefault(); setNoteFor(cur.id); }
-          else if (e.key === '#') { e.preventDefault(); removeMany([cur]); }
+          else if (e.key === 'f') { e.preventDefault(); patchMany([cur], { followUpAt: cur.followUpAt ? null : inDays(1) }, cur.followUpAt ? 'Reminder cleared' : 'Follow up tomorrow'); }
+          else if (e.key === '!') { e.preventDefault(); if (!cur.spam) spamMany([cur]); }
+          else if (e.key === '#') { e.preventDefault(); if (fol === 'trash') destroyMany([cur]); else trashMany([cur]); }
       }
     };
     document.addEventListener('keydown', onKey);
@@ -237,30 +325,43 @@ export function Messages() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modal, reply]);
 
+  const unreadInbox = (list ?? []).filter((m) => isLive(m) && !m.read && !m.archived);
+  const inTrash = folder === 'trash';
+  const inSpam = folder === 'spam';
+
   return (
     <section aria-labelledby="msgTitle">
       <div className="admin-head">
-        <h1 id="msgTitle">Messages {list && <span className="count-pill">{(list ?? []).filter((m) => !m.read && !m.archived).length} unread</span>}</h1>
+        <h1 id="msgTitle">Messages {list && <span className="count-pill">{unreadInbox.length} unread</span>}</h1>
         <div className="admin-head-actions">
           <span className="live-dot mono" title="Updates arrive automatically"><span aria-hidden="true" />Live</span>
           <button type="button" className="btn btn-ghost" onClick={(e) => modal.open(<ShortcutsHelp />, { narrow: true, origin: e.currentTarget })}><Icon id="keyboard" /><span>Shortcuts</span></button>
-          <button type="button" className="btn btn-ghost" onClick={(e) => {
-            const unread = (list ?? []).filter((m) => !m.read && !m.archived);
-            if (!unread.length) { toast('info', 'Nothing to mark', 'All inbox messages are already read.'); return; }
-            const origin = e.currentTarget;
-            confirm({ title: 'Mark all as read?', text: `${unread.length} unread message${unread.length === 1 ? '' : 's'} will be marked as read.`, confirmLabel: 'Mark all read', origin })
-              .then((ok) => { if (ok) patchMany(unread, { read: true }, 'All messages marked as read'); });
-          }}><Icon id="check" /><span>Mark all read</span></button>
+          {inTrash ? (
+            <button type="button" className="btn btn-ghost btn-danger-ghost" disabled={!counts.trash}
+              onClick={(e) => destroyMany((list ?? []).filter((m) => m.trashedAt), e.currentTarget, true)}><Icon id="trash" /><span>Empty trash</span></button>
+          ) : (
+            <button type="button" className="btn btn-ghost" onClick={(e) => {
+              if (!unreadInbox.length) { toast('info', 'Nothing to mark', 'All inbox messages are already read.'); return; }
+              const origin = e.currentTarget;
+              confirm({ title: 'Mark all as read?', text: `${unreadInbox.length} unread message${unreadInbox.length === 1 ? '' : 's'} will be marked as read.`, confirmLabel: 'Mark all read', origin })
+                .then((ok) => { if (ok) patchMany(unreadInbox, { read: true }, 'All messages marked as read'); });
+            }}><Icon id="check" /><span>Mark all read</span></button>
+          )}
         </div>
       </div>
 
       <div className="folder-tabs" role="tablist" aria-label="Folders">
-        {FOLDERS.map(([id, label]) => (
-          <button key={id} type="button" role="tab" aria-selected={folder === id} className={`folder-tab${folder === id ? ' is-active' : ''}`} onClick={() => setFolder(id)}>
-            {id === 'starred' && <Icon id="star" />}{id === 'archived' && <Icon id="archive" />}{label}<span className="folder-count">{counts[id]}</span>
+        {FOLDERS.map(([id, label, icon]) => (
+          <button key={id} type="button" role="tab" aria-selected={folder === id} className={`folder-tab${folder === id ? ' is-active' : ''}`}
+            onClick={() => { setFolder(id); setParams((p) => { const n = new URLSearchParams(p); n.delete('folder'); return n; }, { replace: true }); }}>
+            {icon && <Icon id={icon} />}{label}
+            <span className="folder-count">{counts[id]}</span>
+            {id === 'followup' && dueCount > 0 && <span className="folder-due" title={`${dueCount} due`}>{dueCount} due</span>}
           </button>
         ))}
       </div>
+      {inTrash && <p className="muted folder-note">Messages in Trash are deleted for good after {TRASH_DAYS} days.</p>}
+      {inSpam && <p className="muted folder-note">Blocked senders are managed in Settings → Blocked senders.</p>}
 
       <div className="msg-toolbar glass" role="search">
         <label className="search">
@@ -270,12 +371,12 @@ export function Messages() {
             onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') (e.target as HTMLInputElement).blur(); }} />
         </label>
         <Select label="Category" value={cat} onChange={setCat}
-          options={[{ value: 'all', label: 'All categories', hint: String(list?.length ?? '') },
+          options={[{ value: 'all', label: 'All categories', hint: String((list ?? []).filter(isLive).length) },
             ...CATEGORIES.map((c) => ({ value: c as string, label: c, hint: String(catCounts[c] ?? 0) }))]} />
         <Select<Status> label="Status" value={status} onChange={setStatus}
           options={[{ value: 'any', label: 'Any status' }, { value: 'unread', label: 'Unread' }, { value: 'read', label: 'Read' },
             { value: 'pending', label: 'Needs reply' }, { value: 'replied', label: 'Replied' }]} />
-        <Select<'new' | 'old'> label="Sort" value={sort} onChange={setSort}
+        <Select<'new' | 'old'> label="Sort" value={sort} onChange={setSort} disabled={folder === 'followup'}
           options={[{ value: 'new', label: 'Newest first' }, { value: 'old', label: 'Oldest first' }]} />
       </div>
 
@@ -288,62 +389,114 @@ export function Messages() {
         </label>
         {sel.length > 0 && (
           <div className="bulk-actions">
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => patchMany(sel, { read: true }, `${sel.length} marked read`)}><Icon id="check" /><span>Read</span></button>
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => patchMany(sel, { read: false }, `${sel.length} marked unread`)}><Icon id="mail" /><span>Unread</span></button>
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => patchMany(sel, { starred: !sel.every((m) => m.starred) }, '')}><Icon id="star" /><span>{sel.every((m) => m.starred) ? 'Unstar' : 'Star'}</span></button>
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => { const arch = !sel.every((m) => m.archived); patchMany(sel, { archived: arch }, arch ? `${sel.length} archived` : `${sel.length} moved to inbox`); setSelected(new Set()); }}>
-              <Icon id="archive" /><span>{sel.every((m) => m.archived) ? 'Unarchive' : 'Archive'}</span>
-            </button>
-            <button type="button" className="btn btn-ghost btn-sm" onClick={exportSel}><Icon id="download" /><span>CSV</span></button>
-            <button type="button" className="btn btn-ghost btn-sm btn-danger-ghost" onClick={(e) => removeMany(sel, e.currentTarget)}><Icon id="trash" /><span>Delete</span></button>
+            {inTrash ? (
+              <>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => restoreMany(sel)}><Icon id="refresh" /><span>Restore</span></button>
+                <button type="button" className="btn btn-ghost btn-sm btn-danger-ghost" onClick={(e) => destroyMany(sel, e.currentTarget)}><Icon id="trash" /><span>Delete forever</span></button>
+              </>
+            ) : (
+              <>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => patchMany(sel, { read: true }, `${sel.length} marked read`)}><Icon id="check" /><span>Read</span></button>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => patchMany(sel, { read: false }, `${sel.length} marked unread`)}><Icon id="mail" /><span>Unread</span></button>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => patchMany(sel, { starred: !sel.every((m) => m.starred) }, '')}><Icon id="star" /><span>{sel.every((m) => m.starred) ? 'Unstar' : 'Star'}</span></button>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => { const arch = !sel.every((m) => m.archived); patchMany(sel, { archived: arch }, arch ? `${sel.length} archived` : `${sel.length} moved to inbox`); setSelected(new Set()); }}>
+                  <Icon id="archive" /><span>{sel.every((m) => m.archived) ? 'Unarchive' : 'Archive'}</span>
+                </button>
+                {inSpam
+                  ? <button type="button" className="btn btn-ghost btn-sm" onClick={() => { patchMany(sel, { spam: false }, 'Moved back to inbox'); setSelected(new Set()); }}><Icon id="check" /><span>Not spam</span></button>
+                  : <button type="button" className="btn btn-ghost btn-sm" onClick={(e) => spamMany(sel, e.currentTarget)}><Icon id="ban" /><span>Spam</span></button>}
+                <button type="button" className="btn btn-ghost btn-sm" onClick={exportSel}><Icon id="download" /><span>CSV</span></button>
+                <button type="button" className="btn btn-ghost btn-sm btn-danger-ghost" onClick={() => trashMany(sel)}><Icon id="trash" /><span>Trash</span></button>
+              </>
+            )}
           </div>
         )}
       </div>
 
       {error && <p className="panel-error">{error}</p>}
-      <p className="muted" aria-live="polite">{list ? `${filtered.length} of ${list.length} messages` : 'Loading…'}</p>
+      <p className="muted" aria-live="polite">{list ? `${filtered.length} of ${counts[folder]} in ${FOLDERS.find(([f]) => f === folder)?.[1]}` : 'Loading…'}</p>
       <ul className="msg-list" ref={listRef}>
-        {visible.map((m, i) => (
-          <li key={m.id} tabIndex={-1} onFocus={() => setActive(i)}
-            className={`msg glass${m.read ? '' : ' is-unread'}${i === active ? ' is-active' : ''}${selected.has(m.id) ? ' is-selected' : ''}`}>
-            <div className="msg-head">
-              <div className="msg-who">
-                <input type="checkbox" className="msg-check" checked={selected.has(m.id)} onChange={() => toggleSel(m.id)} aria-label={`Select message from ${m.name}`} />
-                <button type="button" className={`star-btn${m.starred ? ' is-on' : ''}`} aria-pressed={!!m.starred} aria-label={m.starred ? 'Unstar' : 'Star'}
-                  onClick={() => patchMany([m], { starred: !m.starred }, '')}><Icon id="star" /></button>
-                <div>
-                  <h2 className="msg-name"><Highlight text={m.name} needle={needle} />
-                    {!m.read && <span className="badge-unread">Unread</span>}
-                    {m.replied && <span className="badge-replied">Replied</span>}
-                    {m.archived && <span className="badge-archived">Archived</span>}
-                  </h2>
-                  <span className="msg-email-row">
-                    <a className="msg-email mono" href={`mailto:${m.email}`}><Highlight text={m.email} needle={needle} /></a>
-                    <button type="button" className="copy-btn" aria-label={`Copy ${m.email}`} onClick={() => navigator.clipboard?.writeText(m.email).then(() => toast('success', 'Email copied')).catch(() => {})}><Icon id="copy" /></button>
-                  </span>
+        {visible.map((m, i) => {
+          const fu = followUpState(m);
+          return (
+            <li key={m.id} tabIndex={-1} onFocus={() => setActive(i)}
+              className={`msg glass${m.read ? '' : ' is-unread'}${i === active ? ' is-active' : ''}${selected.has(m.id) ? ' is-selected' : ''}${m.trashedAt ? ' is-trashed' : ''}`}>
+              <div className="msg-head">
+                <div className="msg-who">
+                  <input type="checkbox" className="msg-check" checked={selected.has(m.id)} onChange={() => toggleSel(m.id)} aria-label={`Select message from ${m.name}`} />
+                  {!inTrash && (
+                    <button type="button" className={`star-btn${m.starred ? ' is-on' : ''}`} aria-pressed={!!m.starred} aria-label={m.starred ? 'Unstar' : 'Star'}
+                      onClick={() => patchMany([m], { starred: !m.starred }, '')}><Icon id="star" /></button>
+                  )}
+                  <div>
+                    <h2 className="msg-name"><Highlight text={m.name} needle={needle} />
+                      {!m.read && <span className="badge-unread">Unread</span>}
+                      {m.replied && (
+                        <span className="badge-replied" title={m.replyCount ? `${m.replyCount} repl${m.replyCount === 1 ? 'y' : 'ies'} sent` : 'Replied'}>
+                          <Icon id="check" />Replied{m.replyCount ? ` (${m.replyCount})` : ''}
+                        </span>
+                      )}
+                      {m.archived && !m.trashedAt && <span className="badge-archived">Archived</span>}
+                      {m.spam && <span className="badge-spam">Spam</span>}
+                      {fu && !m.trashedAt && <span className={`badge-follow${fu === 'due' ? ' is-due' : ''}`}><Icon id="bell" />Follow up {prettyDay(m.followUpAt!)}</span>}
+                    </h2>
+                    <span className="msg-email-row">
+                      <a className="msg-email mono" href={`mailto:${m.email}`}><Highlight text={m.email} needle={needle} /></a>
+                      <button type="button" className="copy-btn" aria-label={`Copy ${m.email}`} onClick={() => navigator.clipboard?.writeText(m.email).then(() => toast('success', 'Email copied')).catch(() => {})}><Icon id="copy" /></button>
+                    </span>
+                  </div>
+                </div>
+                <div className="msg-meta">
+                  {inTrash ? <span className="chip">{m.category ?? 'General'}</span> : (
+                    <Select hideLabel label={`Category of the message from ${m.name}`} className="dd-chip" value={m.category ?? 'General'}
+                      onChange={(c) => patchMany([m], { category: c }, `Moved to ${c}`)}
+                      options={CATEGORIES.map((c) => ({ value: c as string, label: c }))} />
+                  )}
+                  <time className="mono">{msgDate(m)?.toLocaleString() ?? ''}</time>
+                  {m.trashedAt && <span className="muted trash-when">Deleted {new Date(m.trashedAt).toLocaleDateString()}</span>}
                 </div>
               </div>
-              <div className="msg-meta"><span className="chip">{m.category ?? 'General'}</span><time className="mono">{msgDate(m)?.toLocaleString() ?? ''}</time></div>
-            </div>
-            {m.subject && <p className="msg-subject"><Highlight text={m.subject} needle={needle} /></p>}
-            <p className="msg-text"><Highlight text={m.message} needle={needle} /></p>
-            {noteFor === m.id ? <NoteEditor m={m} onDone={() => setNoteFor('')} />
-              : m.note ? <button type="button" className="msg-note" onClick={() => setNoteFor(m.id)}><Icon id="note" /><span><Highlight text={m.note} needle={needle} /></span></button> : null}
-            <div className="msg-actions">
-              <button type="button" className="btn btn-primary btn-sm" onClick={(e) => reply(m, e.currentTarget)} aria-haspopup="dialog"><Icon id="spark" /><span>{m.replied ? 'AI Reply again' : 'AI Reply'}</span></button>
-              <button type="button" className="btn btn-ghost btn-sm" onClick={() => patchMany([m], { read: !m.read }, '')}><Icon id="check" /><span>Mark {m.read ? 'unread' : 'read'}</span></button>
-              <button type="button" className="btn btn-ghost btn-sm" onClick={() => patchMany([m], { archived: !m.archived }, m.archived ? 'Moved to inbox' : 'Archived')}><Icon id="archive" /><span>{m.archived ? 'Unarchive' : 'Archive'}</span></button>
-              {noteFor !== m.id && <button type="button" className="btn btn-ghost btn-sm" onClick={() => setNoteFor(m.id)}><Icon id="note" /><span>{m.note ? 'Edit note' : 'Note'}</span></button>}
-              <button type="button" className="btn btn-ghost btn-sm btn-danger-ghost" onClick={(e) => removeMany([m], e.currentTarget)} aria-label={`Delete message from ${m.name}`}><Icon id="trash" /><span>Delete</span></button>
-            </div>
-          </li>
-        ))}
+              {m.subject && <p className="msg-subject"><Highlight text={m.subject} needle={needle} /></p>}
+              <p className="msg-text"><Highlight text={m.message} needle={needle} /></p>
+              {noteFor === m.id ? <NoteEditor m={m} onDone={() => setNoteFor('')} />
+                : m.note ? <button type="button" className="msg-note" onClick={() => setNoteFor(m.id)}><Icon id="note" /><span><Highlight text={m.note} needle={needle} /></span></button> : null}
+              <div className="msg-actions">
+                {inTrash ? (
+                  <>
+                    <button type="button" className="btn btn-primary btn-sm" onClick={() => restoreMany([m])}><Icon id="refresh" /><span>Restore</span></button>
+                    <button type="button" className="btn btn-ghost btn-sm btn-danger-ghost" onClick={(e) => destroyMany([m], e.currentTarget)}><Icon id="trash" /><span>Delete forever</span></button>
+                  </>
+                ) : (
+                  <>
+                    <button type="button" className="btn btn-primary btn-sm" onClick={(e) => reply(m, e.currentTarget)} aria-haspopup="dialog"><Icon id="spark" /><span>{m.replied ? 'AI Reply again' : 'AI Reply'}</span></button>
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => patchMany([m], { read: !m.read }, '')}><Icon id="check" /><span>Mark {m.read ? 'unread' : 'read'}</span></button>
+                    <Select hideLabel label={`Follow-up reminder for ${m.name}`} className="dd-btn-sm" value={null} placeholder={m.followUpAt ? 'Reminder…' : 'Remind me'}
+                      onChange={(v) => patchMany([m], { followUpAt: v === 'clear' ? null : inDays(Number(v)) }, v === 'clear' ? 'Reminder cleared' : `Reminder set for ${prettyDay(inDays(Number(v)))}`)}
+                      options={[{ value: '1', label: 'Tomorrow' }, { value: '3', label: 'In 3 days' }, { value: '7', label: 'Next week' }, { value: '14', label: 'In 2 weeks' },
+                        ...(m.followUpAt ? [{ value: 'clear', label: 'Clear reminder' }] : [])]} />
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => patchMany([m], { archived: !m.archived }, m.archived ? 'Moved to inbox' : 'Archived')}><Icon id="archive" /><span>{m.archived ? 'Unarchive' : 'Archive'}</span></button>
+                    {noteFor !== m.id && <button type="button" className="btn btn-ghost btn-sm" onClick={() => setNoteFor(m.id)}><Icon id="note" /><span>{m.note ? 'Edit note' : 'Note'}</span></button>}
+                    {m.spam
+                      ? <button type="button" className="btn btn-ghost btn-sm" onClick={() => patchMany([m], { spam: false }, 'Moved back to inbox')}><Icon id="check" /><span>Not spam</span></button>
+                      : <button type="button" className="btn btn-ghost btn-sm" onClick={(e) => spamMany([m], e.currentTarget)}><Icon id="ban" /><span>Spam</span></button>}
+                    <button type="button" className="btn btn-ghost btn-sm btn-danger-ghost" onClick={() => trashMany([m])} aria-label={`Move the message from ${m.name} to Trash`}><Icon id="trash" /><span>Delete</span></button>
+                  </>
+                )}
+              </div>
+            </li>
+          );
+        })}
       </ul>
       {filtered.length > shown && (
         <div className="load-more"><button type="button" className="btn btn-ghost" onClick={() => setShown((n) => n + PAGE)}>Show {Math.min(PAGE, filtered.length - shown)} more</button></div>
       )}
       {list && filtered.length === 0 && (
-        <p className="empty-note">{folder === 'inbox' && !needle && status === 'any' && cat === 'all' ? 'Inbox zero. Nothing waiting for you.' : 'No messages match these filters.'}</p>
+        <p className="empty-note">{
+          folder === 'trash' ? 'Trash is empty.'
+            : folder === 'spam' ? 'No spam. Nice.'
+              : folder === 'followup' ? 'No reminders. Use “Remind me” on a message (or press f).'
+                : folder === 'inbox' && !needle && status === 'any' && cat === 'all' ? 'Inbox zero. Nothing waiting for you.' : 'No messages match these filters.'
+        }</p>
       )}
     </section>
   );

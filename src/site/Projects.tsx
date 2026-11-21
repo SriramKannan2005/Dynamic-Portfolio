@@ -86,10 +86,9 @@ function ProjectDetail({ p }: { p: Project }) {
   return (
     <>
       <div className="m-media">
-        {p.video
-          // Mounted only when the modal opens, so the video is lazy by construction.
-          ? <video controls playsInline preload="metadata" poster={p.image || undefined} src={p.video} aria-label={`${p.title} demo video`} />
-          : p.image ? <img src={p.image} alt={`Screenshot of ${p.title}`} decoding="async" /> : <Poster p={p} />}
+        {/* Demo videos are kept in the repo but not shipped: they slowed the site down. */}
+        {/* Every project uses its generated 3D poster (screenshots stay in assets/images/projects). */}
+        <Poster p={p} />
       </div>
       <div className="m-content">
         <p className="m-cat">{CAT_LABEL[p.category] ?? p.category}{p.badge ? ` · ${p.badge}` : ''}{p.caseStudy ? ' · Case study' : ''}</p>
@@ -108,14 +107,14 @@ function ProjectDetail({ p }: { p: Project }) {
   );
 }
 
-function ProjectCard({ p, i, hidden, onOpen }: { p: Project; i: number; hidden: boolean; onOpen: (p: Project, origin: HTMLElement) => void }) {
+function ProjectCard({ p, i, hidden, lead, onOpen }: { p: Project; i: number; hidden: boolean; lead: boolean; onOpen: (p: Project, origin: HTMLElement) => void }) {
   const links = linksOf(p);
   const badge = p.badge ?? (p.caseStudy ? 'Case study' : '');
-  const openLabel = p.caseStudy ? 'Read case study' : p.video ? 'Watch demo' : 'View details';
+  const openLabel = p.caseStudy ? 'Read case study' : 'View details';
   const chips = (p.techStack ?? []).slice(0, p.featured ? 7 : 4);
   return (
     <article
-      className="pcard" data-category={p.category} data-id={p.id} hidden={hidden} style={{ '--i': i } as React.CSSProperties}
+      className={`pcard${lead ? ' is-lead' : ''}`} data-category={p.category} data-id={p.id} hidden={hidden} style={{ '--i': i } as React.CSSProperties}
       onClick={(e) => {
         if ((e.target as HTMLElement).closest('a, .like-btn')) return;
         onOpen(p, e.currentTarget.querySelector('.pcard-inner') as HTMLElement);
@@ -124,8 +123,7 @@ function ProjectCard({ p, i, hidden, onOpen }: { p: Project; i: number; hidden: 
       <div className="pcard-inner">
         <div className="pcard-media">
           {badge && <span className="pcard-badge">{badge}</span>}
-          {p.image ? <img src={p.image} alt={`Screenshot of ${p.title}`} loading="lazy" decoding="async" width={1280} height={720} /> : <Poster p={p} />}
-          {p.video && <span className="pcard-play" aria-hidden="true"><Icon id="play" /></span>}
+          <Poster p={p} />
         </div>
         <div className="pcard-body">
           <span className="pcard-cat">{CAT_LABEL[p.category] ?? p.category}</span>
@@ -164,6 +162,8 @@ export function Projects({ list: projects, onLayoutChange, revealNow = false }: 
   const featured = projects.filter((p) => p.featured);
   const more = projects.filter((p) => !p.featured);
   const show = (p: Project) => filter === 'all' || p.category === filter;
+  // The first *visible* featured card gets the wide slot (nth-child would count hidden ones)
+  const leadId = featured.find(show)?.id;
   const shownMore = more.filter(show).length;
   const shownAll = projects.filter(show).length;
 
@@ -205,11 +205,11 @@ export function Projects({ list: projects, onLayoutChange, revealNow = false }: 
           ))}
         </div>
         <div className="featured-grid" data-reveal-group>
-          {featured.map((p, i) => <ProjectCard key={p.id} p={p} i={i} hidden={!show(p)} onOpen={open} />)}
+          {featured.map((p, i) => <ProjectCard key={p.id} p={p} i={i} hidden={!show(p)} lead={p.id === leadId} onOpen={open} />)}
         </div>
         <h3 className="subhead" data-reveal hidden={shownMore === 0}>More builds</h3>
         <div className="more-grid" data-reveal-group>
-          {more.map((p, i) => <ProjectCard key={p.id} p={p} i={i} hidden={!show(p)} onOpen={open} />)}
+          {more.map((p, i) => <ProjectCard key={p.id} p={p} i={i} hidden={!show(p)} lead={false} onOpen={open} />)}
         </div>
         {shownAll === 0 && <p className="empty-note">No projects in this category yet.</p>}
       </div>

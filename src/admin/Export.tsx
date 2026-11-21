@@ -14,9 +14,9 @@ export function download(name: string, data: BlobPart, type: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 export const stamp = () => new Date().toISOString().slice(0, 10);
-const csvCell = (v: string) => (/[",\n\r]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
+export const csvCell = (v: string) => (/[",\n\r]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
 // Neutralise spreadsheet formula injection (=, +, -, @ at the start of a cell)
-const safeCell = (v: string) => (/^[=+\-@\t\r]/.test(v) ? `'${v}` : v);
+export const safeCell = (v: string) => (/^[=+\-@\t\r]/.test(v) ? `'${v}` : v);
 
 /** CSV with a BOM (so Excel reads UTF-8) and formula-escaped cells. */
 export function messagesCsv(list: Message[]): string {
@@ -77,7 +77,7 @@ export function ExportTab() {
   const exportAs = async (kind: 'xlsx' | 'csv' | 'json') => {
     setBusy(kind);
     try {
-      const all = live ?? await fetchMessages();
+      const all = (live ?? await fetchMessages()).filter((m) => !m.trashedAt && !m.spam);
       const list = withArchived ? all : all.filter((m) => !m.archived);
       if (!list.length) { toast('info', 'No messages to export'); return; }
       const rows = toRows(list).map((r) => Object.fromEntries(Object.entries(r).map(([k, v]) => [k, kind === 'json' ? v : safeCell(v)])));

@@ -172,17 +172,22 @@
     },
     {
       "role": "AI/ML Development Intern",
-      "org": "TARAS Systems & Solutions",
+      "org": "TARAS Systems and Solutions",
       "period": "Dec 2024 – May 2025",
       "type": "internship",
-      "summary": "Worked on computer-vision models.",
+      "summary": "Built and deployed computer-vision systems: real-time gesture recognition, custom object detection and automated image inspection.",
       "points": [
-        "Developed and evaluated computer-vision models"
+        "Deployed a real-time hand-gesture calculator with OpenCV and MediaPipe, holding 95%+ accuracy under varied lighting",
+        "Built a YOLOv8 + TensorFlow object-detection system reaching ~91% mAP on 5,000+ custom-annotated images",
+        "Built a CNN-based image-analysis module that automated visual feature extraction, cutting inspection review time by ~40%"
       ],
       "tags": [
-        "Computer Vision",
         "Python",
-        "Deep Learning"
+        "OpenCV",
+        "MediaPipe",
+        "YOLOv8",
+        "TensorFlow",
+        "CNN"
       ]
     }
   ],
@@ -285,12 +290,28 @@
   ],
   "resumes": [
     {
-      "id": "general",
-      "label": "Full resume",
-      "description": "AI/ML, GenAI and data analytics in one document.",
-      "file": "/assets/docs/resume.pdf",
-      "filename": "Sriram-Kannan-Resume.pdf",
-      "updated": "2026"
+      "id": "ai-ml",
+      "label": "AI / ML Engineer",
+      "description": "Computer vision, deep learning and GenAI: YOLOv8, TensorFlow, MediaPipe, RAG with LangChain + FAISS.",
+      "file": "/assets/docs/sriram-kannan-resume-ai-ml.pdf",
+      "filename": "Sriram-Kannan-Resume-AI-ML.pdf",
+      "updated": "Nov 2026"
+    },
+    {
+      "id": "data-science",
+      "label": "Data Science & Analytics",
+      "description": "Data pipelines, predictive models and dashboards: Pandas, scikit-learn, SQL, Tableau, Power BI.",
+      "file": "/assets/docs/sriram-kannan-resume-data-science.pdf",
+      "filename": "Sriram-Kannan-Resume-Data-Science.pdf",
+      "updated": "Nov 2026"
+    },
+    {
+      "id": "java-backend",
+      "label": "Java Backend Developer",
+      "description": "Spring Boot REST APIs with JWT, JPA/MySQL, Flyway and Testcontainers integration tests.",
+      "file": "/assets/docs/sriram-kannan-resume-java-backend.pdf",
+      "filename": "Sriram-Kannan-Resume-Java-Backend.pdf",
+      "updated": "Oct 2026"
     }
   ]
 }

@@ -4,17 +4,20 @@ import { useModal } from '../shared/Modal';
 import { Icon } from '../shared/Icon';
 
 type ToastKind = 'success' | 'error' | 'info';
-interface Toast { id: number; kind: ToastKind; title: string; text?: string }
-const ToastCtx = createContext<(kind: ToastKind, title: string, text?: string) => void>(() => {});
+export interface ToastAction { label: string; run: () => void }
+interface Toast { id: number; kind: ToastKind; title: string; text?: string; action?: ToastAction }
+type PushToast = (kind: ToastKind, title: string, text?: string, action?: ToastAction) => void;
+const ToastCtx = createContext<PushToast>(() => {});
 export const useToast = () => useContext(ToastCtx);
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const next = useRef(1);
-  const push = useCallback((kind: ToastKind, title: string, text?: string) => {
+  const push = useCallback<PushToast>((kind, title, text, action) => {
     const id = next.current++;
-    setToasts((t) => [...t.slice(-3), { id, kind, title, text }]);
-    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), kind === 'error' ? 7000 : 4000);
+    setToasts((t) => [...t.slice(-3), { id, kind, title, text, action }]);
+    // Toasts with an action (e.g. Undo) stay longer so there is time to use it
+    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), action ? 8000 : kind === 'error' ? 7000 : 4000);
   }, []);
   return (
     <ToastCtx.Provider value={push}>
@@ -24,6 +27,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           <div key={t.id} className={`toast toast-${t.kind}`}>
             <Icon id={t.kind === 'error' ? 'close' : t.kind === 'success' ? 'check' : 'spark'} />
             <div><b>{t.title}</b>{t.text && <span>{t.text}</span>}</div>
+            {t.action && (
+              <button type="button" className="toast-action" onClick={() => { t.action!.run(); setToasts((all) => all.filter((x) => x.id !== t.id)); }}>{t.action.label}</button>
+            )}
             <button type="button" className="toast-x" aria-label="Dismiss" onClick={() => setToasts((all) => all.filter((x) => x.id !== t.id))}><Icon id="close" /></button>
           </div>
         ))}

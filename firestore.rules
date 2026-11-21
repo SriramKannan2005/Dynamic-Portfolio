@@ -28,6 +28,11 @@ service cloud.firestore {
     function optStr(field, max) {
       return !(field in data()) || isStr(data()[field], 0, max);
     }
+    // Sender not on the admin's block list (doc id = lowercased address).
+    // exists() is evaluated by the rules engine, so visitors never read the list.
+    function notBlocked() {
+      return !exists(/databases/$(database)/documents/blockedSenders/$(data().email.lower()));
+    }
     // Create-only "one per visitor per item" documents
     function validCounter(docId, itemField) {
       return data().keys().hasOnly([itemField, 'visitorId', 'createdAt'])
@@ -45,6 +50,7 @@ service cloud.firestore {
         && isStr(data().name, 2, 100)
         && isStr(data().email, 5, 254)
         && data().email.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]{2,}$')
+        && notBlocked()
         && optStr('subject', 150)
         && isStr(data().message, 10, 5000)
         && data().category in ['Job Inquiry', 'Collaboration', 'Technical Question', 'Feedback', 'General']
@@ -60,6 +66,7 @@ service cloud.firestore {
         && isStr(data().name, 1, 100)
         && isStr(data().email, 5, 254)
         && data().email.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]{2,}$')
+        && notBlocked()
         && isStr(data().message, 1, 5000)
         && (!('category' in data()) || data().category in ['Job Inquiry', 'Collaboration', 'Technical Question', 'Feedback', 'General'])
         && isStr(data().timestamp, 20, 40)
@@ -74,6 +81,17 @@ service cloud.firestore {
     }
     match /admin/{document=**} {
       allow read, write: if isAdmin();
+    }
+    // Senders whose new messages are refused (see notBlocked). Admin-managed.
+    match /blockedSenders/{email} {
+      allow read, delete: if isAdmin();
+      allow create, update: if isAdmin()
+        && data().keys().hasOnly(['email', 'reason', 'at'])
+        && data().email == email
+        && email == email.lower()
+        && isStr(email, 5, 254)
+        && optStr('reason', 200)
+        && isStr(data().at, 10, 40);
     }
     // Append-only audit trail of admin actions: no edits, no deletes, ever.
     match /auditLog/{entryId} {

@@ -47,8 +47,10 @@ export function createTagSphere(el, tags, { reduced = false, onHover = (_t) => {
   };
 
   let radius = 200;
-  let vx = reduced ? 0 : 0.0016, vy = reduced ? 0 : 0.0032; // radians per ms-ish frame unit
-  const idle = { x: reduced ? 0 : 0.0016, y: reduced ? 0 : 0.0032 };
+  // Idle spin (radians per frame unit). Kept slow so the labels stay readable.
+  const IDLE_X = 0.0007, IDLE_Y = 0.0014;
+  let vx = reduced ? 0 : IDLE_X, vy = reduced ? 0 : IDLE_Y;
+  const idle = { x: reduced ? 0 : IDLE_X, y: reduced ? 0 : IDLE_Y };
   let dragging = false, lastX = 0, lastY = 0, lastT = 0, pid = null;
   let hovered = null;
   let visible = false, raf = 0, last = 0;
@@ -104,6 +106,8 @@ export function createTagSphere(el, tags, { reduced = false, onHover = (_t) => {
     vx = vy = 0;
     el.setPointerCapture(e.pointerId);
     el.classList.add('is-dragging');
+    document.documentElement.classList.add('sk-dragging');
+    window.getSelection?.()?.removeAllRanges();
     start();
   });
   el.addEventListener('pointermove', (e) => {
@@ -126,8 +130,9 @@ export function createTagSphere(el, tags, { reduced = false, onHover = (_t) => {
     if (!dragging || e.pointerId !== pid) return;
     dragging = false; pid = null;
     el.classList.remove('is-dragging');
+    document.documentElement.classList.remove('sk-dragging');
     // Cap the fling speed
-    const max = 0.02;
+    const max = 0.012;
     vx = Math.max(-max, Math.min(max, vx));
     vy = Math.max(-max, Math.min(max, vy));
     if (performance.now() - lastT > 80) { vx = idle.x; vy = idle.y; }
@@ -171,6 +176,7 @@ export function createTagSphere(el, tags, { reduced = false, onHover = (_t) => {
   return {
     destroy() {
       stop();
+      document.documentElement.classList.remove('sk-dragging');
       if (io) io.disconnect();
       window.removeEventListener('resize', onResize);
       items.forEach((it) => it.el.remove());

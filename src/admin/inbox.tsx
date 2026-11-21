@@ -38,7 +38,7 @@ export function InboxProvider({ children }: { children: ReactNode }) {
     },
   ), [toast]);
 
-  const unread = useMemo(() => (list ?? []).filter((m) => !m.read && !m.archived).length, [list]);
+  const unread = useMemo(() => (list ?? []).filter((m) => !m.read && !m.archived && !m.spam && !m.trashedAt).length, [list]);
   useEffect(() => {
     document.title = unread ? `(${unread}) ${BASE_TITLE}` : BASE_TITLE;
   }, [unread]);

@@ -73,7 +73,7 @@ npm run build && npm run check:secrets   # scans dist/ for keys, Apps Script URL
 
    Mark the secret ones "Contains secret values" so they're hidden in the UI and logs.
 6. **Deploy the rules:** `npx firebase login`, then `npx firebase deploy --only firestore:rules --project sriram-kannan`.
-7. **Videos** are stored with Git LFS; make sure your Netlify site fetches LFS objects (or host the MP4s elsewhere).
+7. **Videos** stay in `public/assets/videos` (Git LFS) but are no longer shown on the site, and the build removes them from `dist`, so deploys stay small. To bring one back, show it in `ProjectDetail` and drop the `dropVideosFromBuild` plugin in `vite.config.ts`.
 
 ## Editing content
 
@@ -89,14 +89,15 @@ npm run build && npm run check:secrets   # scans dist/ for keys, Apps Script URL
 | --- | --- |
 | Overview | Unread / waiting-for-reply counts, today's views, 7-day visitors with sparkline, reply queue, recent activity, quick actions |
 | Analytics | 7 / 30 / 90-day range with change vs the previous period, traffic, devices, busiest hours, messages by category, top pages / referrers / languages, per-project and resume stats, CSV export |
-| Messages | Live inbox (no refresh needed), Inbox / Starred / Archived folders, search with highlighting, filters (incl. "needs reply"), bulk read / star / archive / export / delete, private notes, AI Reply with saved templates |
+| Messages | Live inbox (no refresh needed); Inbox / Follow-up / Starred / Archived / Spam / Trash folders; search with highlighting; filters (incl. "needs reply"); re-categorise a message; follow-up reminders; bulk read / star / archive / spam / export / trash; Delete moves to Trash with Undo (purged after 30 days); spam with optional sender blocking; private notes; AI Reply with saved templates |
+| People | Everyone who has written in, grouped by email: message count, first / last contact, waiting-on-you count, categories, block / unblock, jump to their messages, CSV export |
 | Content | Live site edits (above) |
 | Export | XLSX / CSV / JSON (optionally excluding archived), Google Sheets sync |
-| Settings | Idle auto sign-out (15 / 30 / 60 min / never), desktop notification + chime for new messages, reply-template editor, append-only activity log |
+| Settings | System status (admin claim, rules version, Functions reachable, which server settings are configured, App Check), idle auto sign-out, desktop notification + chime, reply-template editor, blocked senders, full JSON backup, append-only activity log |
 
-Anywhere in the admin, **Ctrl/Cmd + K** opens a command palette (pages, actions, find a person and reply). In Messages: `j`/`k` move, `x` select, `r` reply, `s` star, `e` archive, `u` read/unread, `n` note, `#` delete, `/` search, `?` help.
+Anywhere in the admin, **Ctrl/Cmd + K** opens a command palette (pages, actions, find a person and reply). In Messages: `j`/`k` move, `x` select, `r` reply, `s` star, `e` archive, `u` read/unread, `n` note, `f` follow up tomorrow, `!` spam, `#` move to Trash, `/` search, `?` help.
 
-These features need the current `firestore.rules` deployed (`auditLog`, `siteContent`, and the message triage fields). With the old rules deployed, the affected panels say so instead of failing silently.
+These features need the current `firestore.rules` deployed (`auditLog`, `siteContent`, `blockedSenders` and the message triage fields). Sender blocking is enforced by the rules themselves: a message whose lowercased email has a `blockedSenders/<email>` document is refused. Analytics → **Report** prints a clean page (or saves a PDF). With the old rules deployed, the affected panels say so instead of failing silently.
 
 ## Privacy and security notes
 

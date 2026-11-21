@@ -9,6 +9,12 @@
 [functions]
   node_bundler = "esbuild"
 
+# The old single resume moved: keep previously shared links working.
+[[redirects]]
+  from = "/assets/docs/resume.pdf"
+  to = "/assets/docs/sriram-kannan-resume-ai-ml.pdf"
+  status = 301
+
 # SPA fallback: unknown paths (e.g. /admin/messages) are served by index.html.
 # Static files and /.netlify/functions/* still take precedence.
 [[redirects]]

@@ -155,14 +155,16 @@ export function Skills() {
         </div>
         <div className="skills-grid">
           <div className="sphere-wrap" data-reveal>
+            <div className="sphere-fx" aria-hidden="true"><span className="orbit o1" /><span className="orbit o2" /><span className="orbit o3" /><span className="core" /></div>
             <div className="tag-sphere" ref={sphereEl} role="img" aria-label="Rotating 3D sphere of skill tags. The same skills are listed by category alongside." />
             <p className="sphere-readout mono" aria-hidden="true">{readout}</p>
           </div>
           <div className="skill-groups" data-reveal-group>
             {groups.map((g) => (
-              <section key={g.id} className={`skill-group glass${filter !== 'all' && filter !== g.id ? ' is-dim' : ''}${filter === g.id ? ' is-match' : ''}`} data-cat={g.id} aria-label={g.name}>
-                <h3>{g.name}</h3>
-                <ul>{g.items.map((s) => <li key={s}>{s}</li>)}</ul>
+              <section key={g.id} className={`skill-group glass spot${filter !== 'all' && filter !== g.id ? ' is-dim' : ''}${filter === g.id ? ' is-match' : ''}`} data-cat={g.id} aria-label={g.name}
+                onClick={() => setFilter(filter === g.id ? 'all' : g.id)}>
+                <h3>{g.name}<span className="skill-count mono" aria-label={`${g.items.length} skills`}>{g.items.length}</span></h3>
+                <ul>{g.items.map((s, k) => <li key={s} style={{ '--k': k } as React.CSSProperties}>{s}</li>)}</ul>
               </section>
             ))}
           </div>
@@ -187,7 +189,7 @@ export function ExperienceSection() {
             {content.experience.map((e) => (
               <li className="tl-item" key={e.role + e.org}>
                 <span className="tl-dot" aria-hidden="true" />
-                <article className="tl-card glass">
+                <article className="tl-card glass spot">
                   <p className="tl-period">{e.period}</p>
                   <h3 className="tl-role">{e.role}</h3>
                   <p className="tl-org">{e.org}</p>
@@ -205,6 +207,12 @@ export function ExperienceSection() {
 }
 
 /* ---------------- Achievements + certifications ---------------- */
+const KIND_LABEL: Record<string, string> = { hackathon: 'Hackathon', grant: 'Grant', assessment: 'Assessment', coding: 'Coding practice' };
+const LEVEL_LABEL: Record<string, string> = { national: 'National', state: 'State', college: 'College', international: 'International' };
+/** "2nd Prize · HackSphere 2025" -> ["2nd Prize", "HackSphere 2025"] */
+const splitTitle = (t: string): [string, string] => { const i = t.indexOf(' · '); return i < 0 ? [t, ''] : [t.slice(0, i), t.slice(i + 3)]; };
+const endYear = (period: string) => Number((period.match(/(\d{4})\s*$/) ?? [])[1] ?? 0);
+
 export function Achievements() {
   const modal = useModal();
   return (
@@ -214,34 +222,41 @@ export function Achievements() {
           <p className="kicker mono">05 · Achievements</p>
           <h2 id="achievementsTitle">Wins &amp; milestones</h2>
         </header>
-        <ul className="badges" data-reveal-group>
-          {content.achievements.map((a, i) => (
-            <li key={a.id}>
-              <div className="badge" style={{ '--i': i } as React.CSSProperties}>
-                <div className="badge-card">
-                  <span className="badge-icon" aria-hidden="true"><Icon id={a.icon ?? 'trophy'} /></span>
-                  <h3>{a.title}</h3>
-                  <p>{a.detail}</p>
-                  {a.metric && (
-                    <div className="badge-metric">
-                      <b data-count-to={a.metric.value} data-count-decimals={a.metric.decimals ?? 0} data-count-suffix={a.metric.suffix ?? ''}>
-                        {fmt(a.metric.value, a.metric.decimals ?? 0) + (a.metric.suffix ?? '')}
-                      </b>
-                      <small>{a.metric.label}</small>
-                    </div>
-                  )}
-                  {a.link && <a className="badge-link" href={a.link} target="_blank" rel="noopener" aria-label={`${a.title}: open profile`} />}
+        {/* Bento: the first win is the hero tile, the rest fill a 2 x 2 */}
+        <ul className="ach-grid" data-reveal-group>
+          {content.achievements.map((a, i) => {
+            const [head, event] = splitTitle(a.title);
+            const tag = [KIND_LABEL[a.kind] ?? a.kind, a.level ? LEVEL_LABEL[a.level] ?? a.level : ''].filter(Boolean).join(' · ');
+            return (
+              <li key={a.id} className={`ach spot ach-${a.kind}${i === 0 ? ' is-hero' : ''}`}>
+                <span className="ach-watermark" aria-hidden="true"><Icon id={a.icon ?? 'trophy'} /></span>
+                <div className="ach-top">
+                  <span className="ach-tag mono">{tag}</span>
+                  <span className="ach-icon" aria-hidden="true"><Icon id={a.icon ?? 'trophy'} /></span>
                 </div>
-              </div>
-            </li>
-          ))}
+                <h3 className="ach-head">{head}</h3>
+                {event && <p className="ach-event mono">{event}</p>}
+                {a.detail && <p className="ach-detail">{a.detail}</p>}
+                {a.metric && (
+                  <div className="ach-metric">
+                    <b data-count-to={a.metric.value} data-count-decimals={a.metric.decimals ?? 0} data-count-suffix={a.metric.suffix ?? ''}>
+                      {fmt(a.metric.value, a.metric.decimals ?? 0) + (a.metric.suffix ?? '')}
+                    </b>
+                    <small>{a.metric.label}</small>
+                  </div>
+                )}
+                {a.link && <a className="ach-link" href={a.link} target="_blank" rel="noopener" aria-label={`${a.title}: open profile`}><Icon id="ext" /></a>}
+              </li>
+            );
+          })}
         </ul>
+
         <h3 className="subhead" data-reveal>Certifications</h3>
         <ul className="certs" data-reveal-group>
-          {content.certifications.map((c) => (
+          {content.certifications.map((c, i) => (
             <li key={c.title}>
               <button
-                type="button" className="cert glass" aria-haspopup="dialog"
+                type="button" className="cert spot" aria-haspopup="dialog" style={{ '--tilt': `${i % 2 ? 2.2 : -2.2}deg` } as React.CSSProperties}
                 onClick={(e) => modal.open(
                   <>
                     <div className="cert-view"><img src={c.image} alt={`${c.title} certificate issued by ${c.issuer}`} decoding="async" /></div>
@@ -250,8 +265,17 @@ export function Achievements() {
                   { origin: e.currentTarget },
                 )}
               >
-                <span className="cert-thumb"><img src={c.image} alt="" loading="lazy" decoding="async" width={160} height={120} /></span>
-                <span><b>{c.title}</b><small>{c.issuer} · view certificate</small></span>
+                <span className="cert-paper">
+                  <span className="cert-pin" aria-hidden="true" />
+                  <img src={c.image} alt="" loading="lazy" decoding="async" width={320} height={240} />
+                  <span className="cert-shine" aria-hidden="true" />
+                </span>
+                <span className="cert-seal mono" aria-hidden="true"><Icon id="check" />Verified</span>
+                <span className="cert-meta">
+                  <small className="mono">{c.issuer}</small>
+                  <b>{c.title}</b>
+                  <span className="cert-cta">View certificate <Icon id="arrow" /></span>
+                </span>
               </button>
             </li>
           ))}
@@ -261,8 +285,10 @@ export function Achievements() {
   );
 }
 
-/* ---------------- Education ---------------- */
 export function Education() {
+  // Oldest -> newest along the line; a period ending after this year is "in progress"
+  const items = [...content.education].reverse();
+  const thisYear = new Date().getFullYear();
   return (
     <section className="section" id="education" aria-labelledby="educationTitle">
       <div className="container">
@@ -270,21 +296,29 @@ export function Education() {
           <p className="kicker mono">06 · Education</p>
           <h2 id="educationTitle">Education</h2>
         </header>
-        <ul className="edu" data-reveal-group>
-          {content.education.map((e) => (
-            <li className="edu-item glass" key={e.degree}>
-              <span className="edu-icon" aria-hidden="true"><Icon id="cap" /></span>
-              <div><h3>{e.degree}</h3><p>{e.school}{e.note ? ` · ${e.note}` : ''}</p></div>
-              <div className="edu-side"><span className="edu-period">{e.period}</span>{e.score && <span className="edu-score">{e.score}</span>}</div>
-            </li>
-          ))}
-        </ul>
+        <ol className="edu-line" data-reveal-group style={{ '--n': items.length } as React.CSSProperties}>
+          {items.map((e) => {
+            const live = endYear(e.period) > thisYear;
+            return (
+              <li className={`edu-step${live ? ' is-live' : ''}`} key={e.degree}>
+                <div className="edu-node" aria-hidden="true"><span /></div>
+                <p className="edu-when mono">{e.period}{live && <span className="edu-live">In progress</span>}</p>
+                <article className="edu-card spot">
+                  <span className="edu-icon" aria-hidden="true"><Icon id="cap" /></span>
+                  <h3>{e.degree}</h3>
+                  <p className="edu-school">{e.school}</p>
+                  {e.note && <p className="edu-note mono">{e.note}</p>}
+                  {e.score && <span className="edu-score">{e.score}</span>}
+                </article>
+              </li>
+            );
+          })}
+        </ol>
       </div>
     </section>
   );
 }
 
-/* ---------------- Footer ---------------- */
 export function Footer() {
   const l = content.profile.links;
   return (

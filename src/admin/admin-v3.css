@@ -1,0 +1,107 @@
+/* Admin v3: trash / spam / follow-ups, people, blocked senders, backup, system
+   status, toast actions and the printable analytics report. */
+
+/* Toast action (Undo) */
+.toast-action { align-self: center; padding: 6px 10px; border-radius: 8px; font: 600 13px/1 var(--font-body); color: var(--brand-ink); border: 1px solid var(--line-strong); background: var(--surface-2); }
+.toast-action:hover { color: var(--text); border-color: var(--brand); }
+
+/* Folders */
+.folder-due { font: 700 10.5px/1 var(--font-mono); padding: 3px 6px; border-radius: 999px; color: #1c1206; background: #fbbf24; }
+.folder-note { margin: -4px 0 10px; font-size: 13px; }
+
+/* Message badges + compact dropdowns inside cards */
+.badge-spam { font: 600 11px/1 var(--font-mono); padding: 4px 8px; border-radius: 999px; background: rgba(248, 113, 113, .15); color: #fca5a5; }
+:root[data-theme="light"] .badge-spam { color: #b91c1c; }
+.badge-follow { display: inline-flex; align-items: center; gap: 5px; font: 600 11px/1 var(--font-mono); padding: 4px 8px; border-radius: 999px; background: var(--surface-2); color: var(--text-2); border: 1px solid var(--line); }
+.badge-follow .ic { width: 12px; height: 12px; }
+.badge-follow.is-due { color: #1c1206; background: #fbbf24; border-color: transparent; }
+.msg.is-trashed { opacity: .78; }
+.msg.is-trashed .msg-text { max-height: 4.8em; overflow: hidden; }
+.trash-when { font-size: 12px; }
+
+.dd.dd-chip { min-width: 0; }
+.dd.dd-chip .dd-btn { padding: 5px 8px 5px 10px; gap: 8px; border-radius: 8px; font: 500 12px/1.2 var(--font-mono); color: var(--text-2); }
+.dd.dd-chip .dd-chev { width: 9px; height: 6px; }
+.dd.dd-chip .dd-menu { left: auto; right: 0; }
+.dd.dd-btn-sm { min-width: 0; }
+.dd.dd-btn-sm .dd-btn { padding: 9px 12px; border-radius: 11px; font-size: 13px; font-weight: 600; background: transparent; border-color: var(--line-strong); }
+.dd.dd-btn-sm .dd-btn:hover { background: var(--surface-2); }
+.msg-actions .dd { align-self: center; }
+
+/* Overview: follow-ups due */
+.panel-due { border-color: rgba(251, 191, 36, .45); }
+.panel-due h2 { display: flex; align-items: center; gap: 8px; }
+.panel-due h2 .ic { color: #fbbf24; }
+.panel-due .queue li { gap: 8px; }
+
+/* People */
+.people { display: grid; gap: 10px; margin-top: 10px; }
+.person { display: grid; grid-template-columns: auto 1fr auto auto; gap: 16px; align-items: center; padding: 14px 18px; }
+.person.is-blocked { opacity: .7; }
+.avatar {
+  width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; font: 700 15px/1 var(--font-head); color: #fff;
+  background: linear-gradient(135deg, hsl(var(--h) 70% 55%), hsl(calc(var(--h) + 40) 70% 45%));
+}
+.person-main { min-width: 0; }
+.person-main h2 { font-size: 16px; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 2px; }
+.person-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.person-tags .chip { font-size: 11px; padding: 4px 7px; }
+.person-stats { display: flex; gap: 18px; margin: 0; }
+.person-stats div { display: grid; gap: 3px; text-align: right; }
+.person-stats dt { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: .08em; }
+.person-stats dd { margin: 0; font-variant-numeric: tabular-nums; font-weight: 600; }
+.person-actions { display: flex; gap: 6px; }
+
+/* Blocked senders */
+.block-add { display: flex; gap: 8px; margin: 10px 0; }
+.block-add input { flex: 1; min-width: 0; padding: 9px 11px; border-radius: 10px; border: 1px solid var(--line-strong); background: var(--surface-2); color: var(--text); font: inherit; font-size: 14px; }
+.block-add input:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(99, 102, 241, .2); }
+.block-list { display: grid; gap: 2px; max-height: 260px; overflow: auto; }
+.block-list li { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+.block-list .mono { overflow: hidden; text-overflow: ellipsis; }
+
+/* System status */
+.panel h2 .ic { width: 18px; height: 18px; vertical-align: -3px; color: var(--brand-ink); margin-right: 4px; }
+.status-list { display: grid; gap: 2px; }
+.status-list li { display: grid; grid-template-columns: auto 190px 1fr; gap: 12px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.status-list li:last-child { border-bottom: 0; }
+.status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text-3); }
+.status-list .is-ok .status-dot { background: #34d399; box-shadow: 0 0 0 4px rgba(52, 211, 153, .15); }
+.status-list .is-warn .status-dot { background: #fbbf24; box-shadow: 0 0 0 4px rgba(251, 191, 36, .15); }
+.status-list .is-bad .status-dot { background: #f87171; box-shadow: 0 0 0 4px rgba(248, 113, 113, .15); }
+.status-list .is-wait .status-dot { animation: livePulse 1.2s infinite; }
+
+@media (max-width: 900px) {
+  .person { grid-template-columns: auto 1fr; }
+  .person-stats, .person-actions { grid-column: 2; }
+  .person-stats div { text-align: left; }
+  .status-list li { grid-template-columns: auto 1fr; }
+  .status-list li .muted { grid-column: 2; }
+}
+
+/* Printable analytics report */
+.print-only { display: none; }
+@media print {
+  html.route-admin body { background: #fff !important; color: #111 !important; }
+  .admin-bar, .admin-head-actions, .toasts, .emulator-banner, .cmdk-btn, .load-more, #scene, .cursor, .cursor-follower { display: none !important; }
+  .print-only { display: block; }
+  .print-head { font: 500 12px/1.4 var(--font-mono); color: #555; margin: 0 0 6px; }
+  .admin-main { width: 100%; padding: 0; }
+  .glass, .panel, .kpi { background: #fff !important; border: 1px solid #ddd !important; box-shadow: none !important; backdrop-filter: none !important; color: #111 !important; break-inside: avoid; }
+  .kpi-label, .muted, .kpi-sub, .data-table th { color: #555 !important; }
+  .chart-grid, .chart-grid-3, .chart-grid-even { grid-template-columns: 1fr 1fr !important; }
+  .table-scroll { max-height: none !important; overflow: visible !important; }
+  .toplist-bar { background: #e0e7ff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* Heading icons sit inline with the title */
+.panel h2:has(> .ic) { display: flex; align-items: center; gap: 8px; }
+.panel h2 > .ic { margin: 0; flex: none; }
+/* Seven tabs: keep the Ctrl K hint on one line and drop the email first */
+.cmdk-btn kbd { white-space: nowrap; }
+@media (max-width: 1500px) { .admin-user { display: none; } }
+
+/* Replied badge: solid green pill with a tick and the reply count, like the old admin */
+.badge-replied { display: inline-flex; align-items: center; gap: 4px; padding: 5px 9px; background: #059669; color: #ecfdf5; font-family: var(--font-body); font-size: 12px; letter-spacing: 0; }
+.badge-replied .ic { width: 12px; height: 12px; stroke-width: 3; }
+:root[data-theme="light"] .badge-replied { background: #047857; color: #fff; }
