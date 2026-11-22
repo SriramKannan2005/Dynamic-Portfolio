@@ -1,5 +1,5 @@
 // Service Worker for PWA Functionality
-const CACHE_NAME = 'sriram-portfolio-v8';
+const CACHE_NAME = 'sriram-portfolio-v9';
 // Vite emits hashed JS/CSS, so only stable files are precached; the rest is
 // cached at runtime by the network-first handler below.
 const urlsToCache = [

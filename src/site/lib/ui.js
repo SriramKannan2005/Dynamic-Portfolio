@@ -303,27 +303,76 @@ export function initTheme(onChange) {
    ========================================================= */
 export function initNav() {
   const nav = document.getElementById('nav');
-  const links = [...document.querySelectorAll('#navLinks a')];
-  const menu = document.getElementById('navLinks');
   const btn = document.getElementById('menuBtn');
-  const setOpen = (open) => {
-    menu.classList.toggle('is-open', open);
+  const sheet = document.getElementById('navSheet');
+  const backdrop = document.getElementById('sheetBackdrop');
+  const grab = document.getElementById('sheetGrab');
+  const main = document.getElementById('main');
+  const html = document.documentElement;
+  const isOpen = () => sheet.classList.contains('is-open');
+
+  // ---- mobile bottom sheet ----
+  const focusables = () => [...sheet.querySelectorAll('a[href], button:not([disabled])')];
+  const setOpen = (open, { restoreFocus = true } = {}) => {
+    if (open === isOpen()) return;
+    sheet.classList.toggle('is-open', open);
+    backdrop.classList.toggle('is-open', open);
+    sheet.setAttribute('aria-hidden', String(!open));
+    html.classList.toggle('sheet-open', open); // locks page scroll
+    if (main) main.inert = open;
     btn.setAttribute('aria-expanded', String(open));
     btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    sheet.style.transform = '';
+    if (open) requestAnimationFrame(() => (sheet.querySelector('.sheet-item.is-active') || focusables()[0])?.focus({ preventScroll: true }));
+    else if (restoreFocus) btn.focus({ preventScroll: true });
   };
-  btn.addEventListener('click', () => setOpen(!menu.classList.contains('is-open')));
-  links.forEach((a) => a.addEventListener('click', () => setOpen(false)));
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu.classList.contains('is-open')) { setOpen(false); btn.focus(); } });
-  document.addEventListener('click', (e) => { if (menu.classList.contains('is-open') && !nav.contains(e.target)) setOpen(false); });
+  btn.addEventListener('click', () => setOpen(!isOpen()));
+  backdrop.addEventListener('click', () => setOpen(false));
+  sheet.addEventListener('click', (e) => {
+    const t = e.target.closest('a, [data-sheet-close]');
+    if (!t) return;
+    // links navigate (or open the resume viewer); only the close button hands focus back to the menu button
+    setOpen(false, { restoreFocus: t.hasAttribute('data-sheet-close') });
+  });
+  document.addEventListener('keydown', (e) => {
+    if (!isOpen()) return;
+    if (e.key === 'Escape') { e.preventDefault(); setOpen(false); return; }
+    if (e.key === 'Tab') { // keep focus inside the sheet
+      const f = focusables(); const first = f[0]; const last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+  // swipe the sheet down to close it
+  let startY = null, dy = 0;
+  const onDown = (e) => { if (!isOpen()) return; startY = e.clientY; dy = 0; sheet.classList.add('is-dragging'); };
+  const onMove = (e) => { if (startY === null) return; dy = Math.max(0, e.clientY - startY); sheet.style.transform = `translateY(${dy}px)`; };
+  const onUp = () => {
+    if (startY === null) return;
+    sheet.classList.remove('is-dragging');
+    startY = null;
+    if (dy > 90) setOpen(false); else sheet.style.transform = '';
+  };
+  grab.addEventListener('pointerdown', onDown);
+  window.addEventListener('pointermove', onMove, { passive: true });
+  window.addEventListener('pointerup', onUp);
+  window.addEventListener('pointercancel', onUp);
+  // back to desktop width: never leave the page locked
+  matchMedia('(min-width: 901px)').addEventListener?.('change', (m) => { if (m.matches) setOpen(false, { restoreFocus: false }); });
 
+  // ---- scroll spy: desktop links and sheet tiles ----
   if ('IntersectionObserver' in window) {
-    const map = new Map(links.map((a) => [a.getAttribute('href').slice(1), a]));
+    const all = [...document.querySelectorAll('#navLinks a, #navSheet a[data-sec]')];
+    const byId = new Map();
+    all.forEach((a) => {
+      const id = a.dataset.sec || a.getAttribute('href').slice(1);
+      byId.set(id, [...(byId.get(id) || []), a]);
+    });
     const io = new IntersectionObserver((entries) => {
       entries.forEach((e) => {
         if (!e.isIntersecting) return;
-        links.forEach((a) => { a.classList.remove('is-active'); a.removeAttribute('aria-current'); });
-        const a = map.get(e.target.id);
-        if (a) { a.classList.add('is-active'); a.setAttribute('aria-current', 'true'); }
+        all.forEach((a) => { a.classList.remove('is-active'); a.removeAttribute('aria-current'); });
+        (byId.get(e.target.id) || []).forEach((a) => { a.classList.add('is-active'); a.setAttribute('aria-current', 'true'); });
       });
     }, { rootMargin: '-45% 0px -50% 0px' });
     document.querySelectorAll('main > section').forEach((s) => io.observe(s));

@@ -65,6 +65,9 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react(), netlifyFunctionsDev(env), dropVideosFromBuild()],
     build: {
+      // Hashed bundles go to /build/ (cached forever); /assets/ holds the hand-managed
+      // files from public/ (resumes, images, fonts), which keep their names when updated.
+      assetsDir: 'build',
       target: 'es2020',
       sourcemap: false,
       chunkSizeWarningLimit: 900,

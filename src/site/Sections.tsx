@@ -11,10 +11,13 @@ import { ResumeButton } from './Resume';
 const NAV = ['about', 'skills', 'projects', 'experience', 'achievements', 'education', 'contact'];
 export function Nav() {
   return (
+    <>
     <header className="nav" id="nav">
       <div className="nav-inner container">
-        <a className="nav-logo" href="#hero" aria-label="Sriram Kannan, back to top">
-          <span className="logo-mark">SK</span><span className="logo-text">Sriram Kannan</span>
+        {/* accessible name = the visible name (no aria-label that would differ from it) */}
+        <a className="nav-logo" href="#hero" title="Back to top">
+          <span className="logo-mark" aria-hidden="true">SK</span><span className="logo-text">Sriram Kannan</span>
+          <span className="visually-hidden">, back to top</span>
         </a>
         <nav className="nav-links" id="navLinks" aria-label="Primary">
           {NAV.map((id) => <a key={id} href={`#${id}`}>{id[0].toUpperCase() + id.slice(1)}</a>)}
@@ -26,12 +29,52 @@ export function Nav() {
           <button className="icon-btn" id="themeToggle" type="button" aria-label="Switch to light theme">
             <Icon id="sun" className="ic ic-sun" /><Icon id="moon" className="ic ic-moon" />
           </button>
-          <button className="icon-btn nav-menu-btn" id="menuBtn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">
+          <button className="icon-btn nav-menu-btn" id="menuBtn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="navSheet" aria-haspopup="dialog">
             <Icon id="menu" />
           </button>
         </div>
       </div>
     </header>
+    {/* Outside the header: .nav gets backdrop-filter when scrolled, which would trap a fixed child */}
+    <MenuSheet />
+    </>
+  );
+}
+
+/* Mobile menu: a bottom sheet with an icon grid (opened/closed by initNav in lib/ui.js) */
+const SHEET: [string, string, string][] = [
+  ['hero', 'Home', 'home'], ['about', 'About', 'user'], ['skills', 'Skills', 'spark'],
+  ['projects', 'Projects', 'grid'], ['experience', 'Experience', 'briefcase'], ['achievements', 'Achievements', 'trophy'],
+  ['education', 'Education', 'cap'],
+];
+const SHEET_SOCIAL: [string, string, string][] = [['github', 'GitHub', 'github'], ['linkedin', 'LinkedIn', 'linkedin'], ['leetcode', 'LeetCode', 'code'], ['hackerrank', 'HackerRank', 'hex']];
+function MenuSheet() {
+  const content = useContent();
+  return (
+    <>
+      <div className="sheet-backdrop" id="sheetBackdrop" aria-hidden="true" />
+      <div className="nav-sheet" id="navSheet" role="dialog" aria-modal="true" aria-label="Site menu" aria-hidden="true" tabIndex={-1}>
+        <div className="sheet-grab" id="sheetGrab" aria-hidden="true"><span /></div>
+        <nav aria-label="Sections">
+          <ul className="sheet-grid">
+            {SHEET.map(([id, label, icon]) => (
+              <li key={id}><a className="sheet-item" href={`#${id}`} data-sec={id}><Icon id={icon} /><span>{label}</span></a></li>
+            ))}
+            <li><ResumeButton className="sheet-item"><Icon id="cert" /><span>Resume</span></ResumeButton></li>
+            <li><a className="sheet-item is-accent" href="#contact" data-sec="contact"><Icon id="send" /><span>Contact</span></a></li>
+          </ul>
+        </nav>
+        <div className="sheet-foot">
+          <ul className="sheet-social" aria-label="Profiles">
+            {SHEET_SOCIAL.filter(([k]) => content.profile.links[k]).map(([k, label, icon]) => (
+              <li key={k}><a href={content.profile.links[k]} target="_blank" rel="noopener" aria-label={label}><Icon id={icon} /></a></li>
+            ))}
+            <li><a href={`mailto:${content.profile.email}`} aria-label="Email"><Icon id="mail" /></a></li>
+          </ul>
+          <button type="button" className="sheet-close" data-sheet-close aria-label="Close menu"><Icon id="close" /></button>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -96,7 +139,10 @@ export function About() {
         <div className="about-grid">
           <figure className="about-photo" data-reveal>
             <div className="photo-ring">
-              <img src="/assets/images/profile/profile.png" alt="Portrait of Sriram Kannan" width={420} height={420} loading="lazy" decoding="async" />
+              <picture>
+                <source type="image/webp" srcSet="/assets/images/profile/profile-420.webp 420w, /assets/images/profile/profile-840.webp 840w" sizes="(max-width: 900px) 280px, 420px" />
+                <img src="/assets/images/profile/profile.png" alt="Portrait of Sriram Kannan" width={420} height={420} loading="lazy" decoding="async" />
+              </picture>
             </div>
             <figcaption className="mono"><Icon id="pin" /> {content.profile.location}</figcaption>
           </figure>

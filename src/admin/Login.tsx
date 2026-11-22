@@ -1,3 +1,4 @@
+import { ProfileMark } from './ProfileMark';
 import { useRef, useState, type FormEvent } from 'react';
 import { getAuthInstance } from '../shared/firebase';
 
@@ -62,7 +63,7 @@ export function Login() {
   return (
     <main className="admin-center" id="main">
       <form className="login-card glass" onSubmit={submit} noValidate aria-labelledby="loginTitle">
-        <span className="logo-mark" aria-hidden="true">SK</span>
+        <ProfileMark />
         <h1 id="loginTitle">Admin sign-in</h1>
         <p className="login-sub">Restricted area. Sessions end when you close the tab.</p>
         {idleOut && <p className="login-note" role="status">You were signed out after {idleOut} minutes of inactivity.</p>}

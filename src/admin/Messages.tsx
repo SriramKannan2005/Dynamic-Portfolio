@@ -18,6 +18,7 @@ import { useInbox } from './inbox';
 import { ReplyModal } from './ReplyModal';
 import { download, messagesCsv, stamp } from './Export';
 import { catVar, hue, initials } from './look';
+import { ProfileMark } from './ProfileMark';
 
 type Folder = 'inbox' | 'followup' | 'starred' | 'archived' | 'spam' | 'trash' | 'all';
 type Status = 'any' | 'unread' | 'read' | 'pending' | 'replied';
@@ -351,7 +352,60 @@ export function Messages() {
   }, [cur?.id, cur?.replyCount, cur?.replied]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (active < 0) setReading(false); }, [active]);
 
-  const pickFolder = (id: Folder) => { setFolder(id); setParams((p) => { const n = new URLSearchParams(p); n.delete('folder'); return n; }, { replace: true }); };
+  // Phone layout: folders live in a slide-in drawer; the bottom bar hides while reading
+  const [drawer, setDrawer] = useState(false);
+  useEffect(() => {
+    const html = document.documentElement;
+    html.classList.toggle('mx-reading', reading && !!cur);
+    return () => html.classList.remove('mx-reading');
+  }, [reading, cur]);
+  useEffect(() => {
+    if (!drawer) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); setDrawer(false); } };
+    document.addEventListener('keydown', onKey, true);
+    return () => document.removeEventListener('keydown', onKey, true);
+  }, [drawer]);
+
+  // Gmail-style swipe on touch: drag a row sideways past ~35% of its width to archive it
+  // (in Trash: restore). Vertical drags scroll the list as usual.
+  const swipe = useRef<{ x: number; y: number; dx: number; lock: boolean | null; row: HTMLElement } | null>(null);
+  const swallowClick = useRef(false);
+  const swipeAction = (m: Message) => {
+    if (m.trashedAt) restoreMany([m]);
+    else patchMany([m], { archived: !m.archived }, m.archived ? 'Moved to inbox' : 'Archived');
+  };
+  const onSwipeDown = (e: React.PointerEvent<HTMLLIElement>) => {
+    if (e.pointerType === 'mouse') return;
+    const row = e.currentTarget.querySelector<HTMLElement>('.mx-row');
+    if (row) swipe.current = { x: e.clientX, y: e.clientY, dx: 0, lock: null, row };
+  };
+  const onSwipeMove = (e: React.PointerEvent<HTMLLIElement>) => {
+    const s = swipe.current;
+    if (!s) return;
+    const dx = e.clientX - s.x; const dy = e.clientY - s.y;
+    if (s.lock === null && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) s.lock = Math.abs(dx) > Math.abs(dy);
+    if (!s.lock) return;
+    s.dx = dx;
+    s.row.style.transition = 'none';
+    s.row.style.transform = `translateX(${dx}px)`;
+    e.currentTarget.dataset.swipe = dx > 0 ? 'right' : 'left';
+    e.currentTarget.classList.toggle('is-past', Math.abs(dx) > e.currentTarget.offsetWidth * 0.35);
+  };
+  const onSwipeEnd = (e: React.PointerEvent<HTMLLIElement>, m: Message) => {
+    const s = swipe.current;
+    swipe.current = null;
+    if (!s || !s.lock) return;
+    const li = e.currentTarget;
+    const past = Math.abs(s.dx) > li.offsetWidth * 0.35;
+    swallowClick.current = true;
+    s.row.style.transition = '';
+    s.row.style.transform = past ? `translateX(${s.dx > 0 ? 110 : -110}%)` : '';
+    li.classList.remove('is-past');
+    if (past) setTimeout(() => { swipeAction(m); s.row.style.transform = ''; delete li.dataset.swipe; }, 220);
+    else delete li.dataset.swipe;
+  };
+
+  const pickFolder = (id: Folder) => { setFolder(id); setDrawer(false); setParams((p) => { const n = new URLSearchParams(p); n.delete('folder'); return n; }, { replace: true }); };
   const ago = (t: Date | null) => {
     if (!t) return '';
     const s = (Date.now() - t.getTime()) / 1000;
@@ -382,9 +436,20 @@ export function Messages() {
         </div>
       </div>
 
+      {/* Phone header, Gmail-style: drawer button + search pill */}
+      <div className="mx-mhead" role="search">
+        <button type="button" className="mx-burger" onClick={() => setDrawer(true)} aria-label="Folders and filters" aria-expanded={drawer}><Icon id="menu" /></button>
+        <input type="search" placeholder={`Search in ${(FOLDERS.find(([f]) => f === folder)?.[1] ?? 'mail').toLowerCase()}`} value={q}
+          onChange={(e) => setQ(e.target.value)} aria-label="Search messages" />
+        <ProfileMark className="mx-me" />
+      </div>
+      <p className="mx-mlabel mono">{FOLDERS.find(([f]) => f === folder)?.[1]}{list ? ` · ${filtered.length}` : ''}{cat !== 'all' ? ` · ${cat}` : ''}{status !== 'any' ? ` · ${status}` : ''}</p>
+
       <div className={`mx-studio${reading ? ' is-reading' : ''}`}>
-        {/* ---------- rail: folders + filters ---------- */}
-        <aside className="mx-rail" aria-label="Folders and filters">
+        <div className={`mx-drawer-backdrop${drawer ? ' is-open' : ''}`} onClick={() => setDrawer(false)} aria-hidden="true" />
+        {/* ---------- rail: folders + filters (a slide-in drawer on phones) ---------- */}
+        <aside className={`mx-rail${drawer ? ' is-open' : ''}`} aria-label="Folders and filters">
+          <p className="mx-drawer-title">Messages <span className="live-dot mono"><span aria-hidden="true" />Live</span></p>
           <nav className="mx-folders" role="tablist" aria-label="Folders" aria-orientation="vertical">
             {FOLDERS.map(([id, label, icon]) => (
               <button key={id} type="button" role="tab" aria-selected={folder === id} className={`mx-folder${folder === id ? ' is-active' : ''}`} onClick={() => pickFolder(id)}>
@@ -417,6 +482,21 @@ export function Messages() {
           </div>
           {inTrash && <p className="muted folder-note">Trash empties itself after {TRASH_DAYS} days.</p>}
           {inSpam && <p className="muted folder-note">Blocked senders live in Settings.</p>}
+          {/* phone drawer only: actions that sit in the page header on wider screens */}
+          <div className="mx-drawer-actions">
+            <button type="button" className="mx-folder" onClick={() => { setSort(sort === 'new' ? 'old' : 'new'); setDrawer(false); }} disabled={folder === 'followup'}>
+              <Icon id="refresh" /><span className="mx-folder-k">{sort === 'new' ? 'Show oldest first' : 'Show newest first'}</span>
+            </button>
+            {inTrash ? (
+              <button type="button" className="mx-folder" disabled={!counts.trash} onClick={(e) => { setDrawer(false); destroyMany((list ?? []).filter((m) => m.trashedAt), e.currentTarget, true); }}>
+                <Icon id="trash" /><span className="mx-folder-k">Empty trash</span>
+              </button>
+            ) : (
+              <button type="button" className="mx-folder" disabled={!unreadInbox.length} onClick={() => { setDrawer(false); patchMany(unreadInbox, { read: true }, 'All messages marked as read'); }}>
+                <Icon id="check" /><span className="mx-folder-k">Mark all read</span><span className="mx-folder-n mono">{unreadInbox.length}</span>
+              </button>
+            )}
+          </div>
         </aside>
 
         {/* ---------- list ---------- */}
@@ -471,28 +551,39 @@ export function Messages() {
               const fu = followUpState(m);
               const t = msgDate(m);
               return (
-                <li key={m.id} tabIndex={-1} onFocus={() => setActive(i)} onClick={() => open(i)}
+                <li key={m.id} tabIndex={-1} onFocus={() => setActive(i)}
+                  onClick={() => { if (swallowClick.current) { swallowClick.current = false; return; } open(i); }}
                   onKeyDown={(e) => { if (e.key === 'Enter') open(i); }}
+                  onPointerDown={onSwipeDown} onPointerMove={onSwipeMove} onPointerUp={(e) => onSwipeEnd(e, m)} onPointerCancel={(e) => onSwipeEnd(e, m)}
                   style={{ '--c': catVar(m.category), '--h': hue(m.email) } as React.CSSProperties}
                   className={`mx-item${m.read ? '' : ' is-unread'}${i === active ? ' is-active' : ''}${selected.has(m.id) ? ' is-selected' : ''}${m.trashedAt ? ' is-trashed' : ''}`}>
-                  <label className="mx-check" onClick={(e) => e.stopPropagation()}>
-                    <input type="checkbox" checked={selected.has(m.id)} onChange={() => toggleSel(m.id)} aria-label={`Select message from ${m.name}`} />
-                  </label>
-                  <span className="avatar avatar-sm" aria-hidden="true">{initials(m.name)}</span>
-                  <div className="mx-item-body">
-                    <p className="mx-item-top">
-                      <b className="mx-item-name"><Highlight text={m.name} needle={needle} /></b>
-                      <time className="mono" dateTime={t?.toISOString()} title={t?.toLocaleString()}>{ago(t)}</time>
-                    </p>
-                    <p className="mx-item-sub"><Highlight text={m.subject || m.message} needle={needle} /></p>
-                    <p className="mx-item-icons">
-                      <span className="cat-dot" aria-label={m.category ?? 'General'} title={m.category ?? 'General'} />
-                      {m.starred && <span className="mx-ic is-star" title="Starred"><Icon id="star" /></span>}
-                      {m.replied && <span className="mx-ic is-replied" title={`Replied${m.replyCount ? ` ${m.replyCount}×` : ''}`}><Icon id="check" />{m.replyCount && m.replyCount > 1 ? m.replyCount : ''}</span>}
-                      {m.note && <span className="mx-ic" title="Has a note"><Icon id="note" /></span>}
-                      {fu && <span className={`mx-ic${fu === 'due' ? ' is-due' : ''}`} title={`Follow up ${prettyDay(m.followUpAt!)}`}><Icon id="bell" /></span>}
-                      {m.spam && <span className="mx-ic is-spam" title="Spam"><Icon id="ban" /></span>}
-                    </p>
+                  {/* revealed behind the row while swiping (touch) */}
+                  <span className="mx-swipe-bg" aria-hidden="true"><Icon id={m.trashedAt ? 'refresh' : 'archive'} /><span>{m.trashedAt ? 'Restore' : m.archived ? 'Unarchive' : 'Archive'}</span></span>
+                  <div className="mx-row">
+                    <label className="mx-check" onClick={(e) => e.stopPropagation()}>
+                      <input type="checkbox" checked={selected.has(m.id)} onChange={() => toggleSel(m.id)} aria-label={`Select message from ${m.name}`} />
+                    </label>
+                    <span className="avatar avatar-sm" aria-hidden="true">{initials(m.name)}</span>
+                    <div className="mx-item-body">
+                      <p className="mx-item-top">
+                        <b className="mx-item-name"><Highlight text={m.name} needle={needle} /></b>
+                        <time className="mono" dateTime={t?.toISOString()} title={t?.toLocaleString()}>{ago(t)}</time>
+                      </p>
+                      <p className="mx-item-sub"><Highlight text={m.subject || m.message} needle={needle} /></p>
+                      {m.subject && <p className="mx-item-snip"><Highlight text={m.message} needle={needle} /></p>}
+                      <p className="mx-item-icons">
+                        <span className="cat-dot" aria-label={m.category ?? 'General'} title={m.category ?? 'General'} />
+                        {m.starred && <span className="mx-ic is-star" title="Starred"><Icon id="star" /></span>}
+                        {m.replied && <span className="mx-ic is-replied" title={`Replied${m.replyCount ? ` ${m.replyCount}×` : ''}`}><Icon id="check" />{m.replyCount && m.replyCount > 1 ? m.replyCount : ''}</span>}
+                        {m.note && <span className="mx-ic" title="Has a note"><Icon id="note" /></span>}
+                        {fu && <span className={`mx-ic${fu === 'due' ? ' is-due' : ''}`} title={`Follow up ${prettyDay(m.followUpAt!)}`}><Icon id="bell" /></span>}
+                        {m.spam && <span className="mx-ic is-spam" title="Spam"><Icon id="ban" /></span>}
+                      </p>
+                    </div>
+                    {!m.trashedAt && (
+                      <button type="button" className={`mx-star${m.starred ? ' is-on' : ''}`} aria-pressed={!!m.starred} aria-label={m.starred ? `Unstar message from ${m.name}` : `Star message from ${m.name}`}
+                        onClick={(e) => { e.stopPropagation(); patchMany([m], { starred: !m.starred }, ''); }}><Icon id="star" /></button>
+                    )}
                   </div>
                 </li>
               );
@@ -523,6 +614,24 @@ export function Messages() {
             </div>
           ) : (
             <>
+              {/* phone app bar, Gmail-style: back on the left, quick actions on the right */}
+              <div className="mx-appbar" role="toolbar" aria-label="Message actions">
+                <button type="button" className="mx-appbar-btn" onClick={() => setReading(false)} aria-label="Back to the list"><span aria-hidden="true">←</span></button>
+                <span className="mx-appbar-gap" />
+                {inTrash ? (
+                  <button type="button" className="mx-appbar-btn" onClick={() => { restoreMany([cur]); setReading(false); }} aria-label="Restore"><Icon id="refresh" /></button>
+                ) : (
+                  <>
+                    <button type="button" className="mx-appbar-btn" onClick={() => { patchMany([cur], { archived: !cur.archived }, cur.archived ? 'Moved to inbox' : 'Archived'); setReading(false); }} aria-label={cur.archived ? 'Unarchive' : 'Archive'}><Icon id="archive" /></button>
+                    <button type="button" className="mx-appbar-btn" onClick={() => { trashMany([cur]); setReading(false); }} aria-label="Move to Trash"><Icon id="trash" /></button>
+                    <button type="button" className="mx-appbar-btn" onClick={() => { patchMany([cur], { read: false }, 'Marked unread'); setReading(false); }} aria-label="Mark unread"><Icon id="mail" /></button>
+                    <button type="button" className={`mx-appbar-btn${cur.starred ? ' is-star' : ''}`} onClick={() => patchMany([cur], { starred: !cur.starred }, '')} aria-label={cur.starred ? 'Unstar' : 'Star'} aria-pressed={!!cur.starred}><Icon id="star" /></button>
+                  </>
+                )}
+              </div>
+              <h2 className="mx-subject-big">{cur.subject || (cur.message.length > 60 ? `${cur.message.slice(0, 60)}…` : cur.message)}
+                <span className="cat-tag" style={{ '--c': catVar(cur.category) } as React.CSSProperties}>{cur.category ?? 'General'}</span>
+              </h2>
               <header className="mx-reader-head">
                 <button type="button" className="icon-btn mx-back" onClick={() => setReading(false)} aria-label="Back to the list"><span aria-hidden="true">←</span></button>
                 <span className="avatar mx-reader-avatar" aria-hidden="true">{initials(cur.name)}</span>

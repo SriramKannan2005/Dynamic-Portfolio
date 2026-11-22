@@ -26,6 +26,20 @@ const webglAvailable = () => {
   if (/[?&]nowebgl\b/.test(location.search)) return false;
   try { const c = document.createElement('canvas'); return !!(window.WebGLRenderingContext && (c.getContext('webgl2') || c.getContext('webgl'))); } catch { return false; }
 };
+/** Resolves on the first scroll / tap / key press, or after `ms` (whichever comes first). */
+const whenEngaged = (ms: number) => new Promise<void>((resolve) => {
+  const events = ['pointerdown', 'keydown', 'scroll', 'touchstart', 'wheel'] as const;
+  let done = false;
+  const go = () => {
+    if (done) return;
+    done = true;
+    events.forEach((e) => window.removeEventListener(e, go));
+    clearTimeout(timer);
+    resolve();
+  };
+  const timer = setTimeout(go, ms);
+  events.forEach((e) => window.addEventListener(e, go, { passive: true }));
+});
 const idle = (fn: () => void) => ('requestIdleCallback' in window ? requestIdleCallback(fn, { timeout: 700 }) : setTimeout(fn, 120));
 
 function AnnouncementBar({ text, link }: { text: string; link: string }) {
@@ -54,6 +68,7 @@ export default function Site() {
   const rolesRef = useRef(live.content.profile.roles);
   rolesRef.current = live.content.profile.roles;
   const timelineRef = useRef<{ update(): void }>({ update() {} });
+  const loadOverridesRef = useRef<() => void>(() => {});
 
   // Fresh overrides: fetched straight away (the cached copy covers first paint) and
   // again when the visitor comes back to the tab, so a publish from /admin shows up
@@ -67,7 +82,7 @@ export default function Site() {
         .then((o) => setOverrides((prev) => ((prev?.updatedAt ?? '') === (o?.updatedAt ?? '') ? prev : o)))
         .catch(() => { /* keep the repo content */ });
     };
-    load();
+    loadOverridesRef.current = load; // first run: after the hero reveal (see loader.onExit)
     const onVis = () => { if (document.visibilityState === 'visible') load(); };
     document.addEventListener('visibilitychange', onVis);
     return () => document.removeEventListener('visibilitychange', onVis);
@@ -117,15 +132,18 @@ export default function Site() {
     document.addEventListener('pointermove', onSpot, { passive: true });
     timelineRef.current = initTimeline();
 
-    // Scene module downloads now; it is created after the loader reveals the hero.
-    const sceneMod = webglAvailable() ? import('./lib/scene.js') : null;
+    // Desktop: the scene module downloads now and is built after the loader reveals the hero.
+    // Phones / low-power devices: download and build it on the first scroll or tap (or after 4s),
+    // so the hero text paints and becomes interactive first.
+    const low = lowPower();
+    const sceneMod = webglAvailable() ? (low ? whenEngaged(4000).then(() => import('./lib/scene.js')) : import('./lib/scene.js')) : null;
     if (!sceneMod) html.classList.add('no-webgl');
     loader.onExit(() => {
       document.body.classList.add('hero-in');
       initRoleRotator(document.getElementById('roleText'), () => rolesRef.current, { reduced });
       sceneMod
         ?.then(({ createScene }) => new Promise<void>((r) => idle(r)).then(() => createScene(document.getElementById('scene') as HTMLCanvasElement, {
-          mobile: lowPower(), reduced, theme: html.getAttribute('data-theme') || 'dark',
+          mobile: low, reduced, theme: html.getAttribute('data-theme') || 'dark',
         })))
         .then((s) => {
           scene.current = s as SceneApi;
@@ -134,8 +152,12 @@ export default function Site() {
           scene.current.intro();
         })
         .catch(() => html.classList.add('no-webgl'));
-      // Analytics after everything visual has settled
-      idle(() => { import('./tracking').then((t) => t.trackVisit()).catch(() => {}); });
+      // Firebase work (live content edits, analytics) after everything visual has settled:
+      // it loads the Firestore SDK and App Check (reCAPTCHA), both heavy on phones.
+      setTimeout(() => idle(() => {
+        loadOverridesRef.current();
+        import('./tracking').then((t) => t.trackVisit()).catch(() => {});
+      }), low ? 1500 : 300);
     });
 
     const heroEl = document.getElementById('hero') as HTMLElement;

@@ -9,6 +9,10 @@ import { NavLink, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import type { User } from 'firebase/auth';
 import { ModalProvider, useModal } from '../shared/Modal';
 import { Icon } from '../shared/Icon';
+import { content } from '../site/content';
+import { AdminDock } from './AdminMobile';
+import { ProfileMark } from './ProfileMark';
+import { AdminErrorBoundary } from './ErrorBoundary';
 import { getAuthInstance, adminUids, firebaseConfigured, useEmulators } from '../shared/firebase';
 import { ToastProvider, useToast } from './feedback';
 import { Login } from './Login';
@@ -29,7 +33,8 @@ import './styles/base.css';      // layout, cards, forms
 import './styles/components.css'; // inbox, palette, toasts, content table
 import './styles/features.css';  // people, status, analytics panels
 import './styles/theme.css';     // sidebar, page heads, overview, messages studio
-import './styles/glass.css';     // glassmorphism layer (last)
+import './styles/glass.css';     // glassmorphism layer
+import './styles/mobile.css';    // phones: bottom bar, Gmail-style messages (last)
 
 type Status = 'loading' | 'signedOut' | 'admin' | 'needsClaim' | 'setup' | 'misconfigured';
 export const IDLE_FLAG = 'sk-admin-idle-out';
@@ -121,6 +126,12 @@ function Dashboard({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const navigate = useNavigate();
   const listRef = useRef(list);
   listRef.current = list;
+  const [theme, setThemeState] = useState<'light' | 'dark'>(currentTheme);
+  useEffect(() => {
+    const on = (e: Event) => setThemeState((e as CustomEvent<'light' | 'dark'>).detail);
+    window.addEventListener('sk-theme', on);
+    return () => window.removeEventListener('sk-theme', on);
+  }, []);
 
   // One sign-in entry per browser session in the audit log
   useEffect(() => {
@@ -176,7 +187,7 @@ function Dashboard({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   return (
     <div className="admin">
       <header className="admin-bar">
-        <a className="nav-logo" href="/" aria-label="Back to the portfolio"><span className="logo-mark">SK</span><span className="logo-text">Admin</span></a>
+        <a className="nav-logo" href="/" aria-label="Back to the portfolio"><ProfileMark /><span className="logo-text">Admin</span></a>
         <nav className="admin-tabs" aria-label="Admin sections">
           {TABS.map(([id, label, icon]) => (
             <NavLink key={id} to={`/admin/${id}`} className={({ isActive }) => `admin-tab${isActive ? ' is-active' : ''}`}>
@@ -196,7 +207,7 @@ function Dashboard({ user, onSignOut }: { user: User; onSignOut: () => void }) {
       </header>
       <main className="admin-main" id="main" tabIndex={-1}>
         <Routes>
-          <Route path="overview" element={<Overview name={user.displayName || user.email || ''} />} />
+          <Route path="overview" element={<Overview name={user.displayName || content.profile.name} />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="messages" element={<Messages />} />
           <Route path="people" element={<People />} />
@@ -206,6 +217,8 @@ function Dashboard({ user, onSignOut }: { user: User; onSignOut: () => void }) {
           <Route path="*" element={<Navigate to="overview" replace />} />
         </Routes>
       </main>
+      <AdminDock unread={unread} theme={theme} onSearch={() => openPalette(null)} onSignOut={onSignOut}
+        onToggleTheme={() => setTheme(theme === 'light' ? 'dark' : 'light')} />
     </div>
   );
 }
@@ -280,7 +293,7 @@ export default function AdminApp() {
   } else if (status === 'loading') {
     body = <div className="admin-boot" role="status">Checking session…</div>;
   } else if (status === 'admin' && user) {
-    body = <InboxProvider><Dashboard user={user} onSignOut={signOutNow} /></InboxProvider>;
+    body = <AdminErrorBoundary><InboxProvider><Dashboard user={user} onSignOut={signOutNow} /></InboxProvider></AdminErrorBoundary>;
   } else if (status === 'needsClaim' && user) {
     body = (
       <div className="admin-center"><div className="login-card glass">
