@@ -42,18 +42,18 @@ export function linksOf(p: Project) {
 }
 
 /** Stats are computed from the data, never typed in. */
-export function computeStat(stat: Stat): { value: number; suffix: string; decimals: number } | null {
+export function computeStat(stat: Stat, c: Content = content, projectCount = projects.length): { value: number; suffix: string; decimals: number } | null {
   const matches = (o: object, f?: Record<string, string>) => Object.entries(f ?? {}).every(([k, v]) => (o as Record<string, unknown>)[k] === v);
   switch (stat.source) {
     case 'projects': {
-      const n = projects.length;
+      const n = projectCount;
       if (stat.format === 'roundedPlus' && n >= 10) { const f = Math.floor(n / 5) * 5; return { value: f, suffix: n > f ? '+' : '', decimals: 0 }; }
       return { value: n, suffix: '', decimals: 0 };
     }
-    case 'experience': return { value: content.experience.filter((e) => matches(e, stat.filter)).length, suffix: '', decimals: 0 };
-    case 'achievements': return { value: content.achievements.filter((a) => matches(a, stat.filter)).length, suffix: '', decimals: 0 };
+    case 'experience': return { value: c.experience.filter((e) => matches(e, stat.filter)).length, suffix: '', decimals: 0 };
+    case 'achievements': return { value: c.achievements.filter((a) => matches(a, stat.filter)).length, suffix: '', decimals: 0 };
     case 'achievementMetric': {
-      const a = content.achievements.find((x) => x.id === stat.achievement);
+      const a = c.achievements.find((x) => x.id === stat.achievement);
       return a?.metric ? { value: a.metric.value, suffix: a.metric.suffix ?? '', decimals: a.metric.decimals ?? 0 } : null;
     }
     default: return null;

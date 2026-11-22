@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '../shared/Icon';
 import { useModal } from '../shared/Modal';
-import { content, computeStat, fmt } from './content';
+import { computeStat, fmt } from './content';
+import { useContent, useLive } from './liveContent';
 import { createTagSphere } from './lib/tagsphere.js';
 import { finePointer, prefersReduced } from './lib/ui.js';
 import { ResumeButton } from './Resume';
@@ -39,6 +40,7 @@ const SOCIAL: [string, string, string][] = [
   ['github', 'GitHub', 'github'], ['linkedin', 'LinkedIn', 'linkedin'], ['leetcode', 'LeetCode', 'code'], ['hackerrank', 'HackerRank', 'hex'],
 ];
 export function Hero({ availability }: { availability: { open: boolean; text: string } }) {
+  const content = useContent();
   const words = content.profile.name.split(/\s+/);
   const total = words.join('').length;
   let idx = 0;
@@ -83,6 +85,7 @@ export function Hero({ availability }: { availability: { open: boolean; text: st
 
 /* ---------------- About ---------------- */
 export function About() {
+  const { content, projectCount } = useLive();
   return (
     <section className="section" id="about" aria-labelledby="aboutTitle">
       <div className="container">
@@ -98,13 +101,13 @@ export function About() {
             <figcaption className="mono"><Icon id="pin" /> {content.profile.location}</figcaption>
           </figure>
           <div className="about-copy" data-reveal>
-            <div>{content.about.map((t) => <p key={t}>{t}</p>)}</div>
+            <div>{content.about.map((t, i) => <p key={i}>{t}</p>)}</div>
             <ul className="stats" data-reveal-group>
               {content.stats.map((s) => {
-                const v = computeStat(s);
+                const v = computeStat(s, content, projectCount);
                 if (!v || !(v.value > 0)) return null;
                 return (
-                  <li className="stat glass" key={s.id}>
+                  <li className="stat glass" key={s.id + v.value}>
                     <span className="stat-num" data-stat={s.id} data-count-to={v.value} data-count-decimals={v.decimals} data-count-suffix={v.suffix}>
                       {fmt(v.value, v.decimals) + v.suffix}
                     </span>
@@ -122,6 +125,7 @@ export function About() {
 
 /* ---------------- Skills ---------------- */
 export function Skills() {
+  const content = useContent();
   const groups = content.skills;
   const [filter, setFilter] = useState('all');
   const [readout, setReadout] = useState(finePointer() ? 'drag to spin' : 'drag to spin · tap a tag');
@@ -176,6 +180,7 @@ export function Skills() {
 
 /* ---------------- Experience ---------------- */
 export function ExperienceSection() {
+  const content = useContent();
   return (
     <section className="section" id="experience" aria-labelledby="experienceTitle">
       <div className="container">
@@ -186,16 +191,16 @@ export function ExperienceSection() {
         <div className="timeline-wrap" id="timelineWrap">
           <div className="timeline-track" aria-hidden="true"><span className="timeline-progress" id="timelineProgress" /></div>
           <ol className="timeline">
-            {content.experience.map((e) => (
-              <li className="tl-item" key={e.role + e.org}>
+            {content.experience.map((e, i) => (
+              <li className="tl-item" key={i + e.role + e.org}>
                 <span className="tl-dot" aria-hidden="true" />
                 <article className="tl-card glass spot">
                   <p className="tl-period">{e.period}</p>
                   <h3 className="tl-role">{e.role}</h3>
                   <p className="tl-org">{e.org}</p>
                   {e.summary && <p className="tl-summary">{e.summary}</p>}
-                  {!!e.points?.length && <ul className="tl-points">{e.points.map((p) => <li key={p}>{p}</li>)}</ul>}
-                  {!!e.tags?.length && <ul className="chips" aria-label="Skills used">{e.tags.map((t) => <li key={t}>{t}</li>)}</ul>}
+                  {!!e.points?.length && <ul className="tl-points">{e.points.map((p, j) => <li key={j}>{p}</li>)}</ul>}
+                  {!!e.tags?.length && <ul className="chips" aria-label="Skills used">{e.tags.map((t, j) => <li key={j}>{t}</li>)}</ul>}
                 </article>
               </li>
             ))}
@@ -215,6 +220,7 @@ const endYear = (period: string) => Number((period.match(/(\d{4})\s*$/) ?? [])[1
 
 export function Achievements() {
   const modal = useModal();
+  const content = useContent();
   return (
     <section className="section" id="achievements" aria-labelledby="achievementsTitle">
       <div className="container">
@@ -228,7 +234,7 @@ export function Achievements() {
             const [head, event] = splitTitle(a.title);
             const tag = [KIND_LABEL[a.kind] ?? a.kind, a.level ? LEVEL_LABEL[a.level] ?? a.level : ''].filter(Boolean).join(' · ');
             return (
-              <li key={a.id} className={`ach spot ach-${a.kind}${i === 0 ? ' is-hero' : ''}`}>
+              <li key={i + a.id} className={`ach spot ach-${a.kind}${i === 0 ? ' is-hero' : ''}`}>
                 <span className="ach-watermark" aria-hidden="true"><Icon id={a.icon ?? 'trophy'} /></span>
                 <div className="ach-top">
                   <span className="ach-tag mono">{tag}</span>
@@ -239,7 +245,7 @@ export function Achievements() {
                 {a.detail && <p className="ach-detail">{a.detail}</p>}
                 {a.metric && (
                   <div className="ach-metric">
-                    <b data-count-to={a.metric.value} data-count-decimals={a.metric.decimals ?? 0} data-count-suffix={a.metric.suffix ?? ''}>
+                    <b key={a.metric.value} data-count-to={a.metric.value} data-count-decimals={a.metric.decimals ?? 0} data-count-suffix={a.metric.suffix ?? ''}>
                       {fmt(a.metric.value, a.metric.decimals ?? 0) + (a.metric.suffix ?? '')}
                     </b>
                     <small>{a.metric.label}</small>
@@ -254,7 +260,7 @@ export function Achievements() {
         <h3 className="subhead" data-reveal>Certifications</h3>
         <ul className="certs" data-reveal-group>
           {content.certifications.map((c, i) => (
-            <li key={c.title}>
+            <li key={i + c.title}>
               <button
                 type="button" className="cert spot" aria-haspopup="dialog" style={{ '--tilt': `${i % 2 ? 2.2 : -2.2}deg` } as React.CSSProperties}
                 onClick={(e) => modal.open(
@@ -286,6 +292,7 @@ export function Achievements() {
 }
 
 export function Education() {
+  const content = useContent();
   // Oldest -> newest along the line; a period ending after this year is "in progress"
   const items = [...content.education].reverse();
   const thisYear = new Date().getFullYear();
@@ -297,10 +304,10 @@ export function Education() {
           <h2 id="educationTitle">Education</h2>
         </header>
         <ol className="edu-line" data-reveal-group style={{ '--n': items.length } as React.CSSProperties}>
-          {items.map((e) => {
+          {items.map((e, i) => {
             const live = endYear(e.period) > thisYear;
             return (
-              <li className={`edu-step${live ? ' is-live' : ''}`} key={e.degree}>
+              <li className={`edu-step${live ? ' is-live' : ''}`} key={i + e.degree}>
                 <div className="edu-node" aria-hidden="true"><span /></div>
                 <p className="edu-when mono">{e.period}{live && <span className="edu-live">In progress</span>}</p>
                 <article className="edu-card spot">
@@ -320,6 +327,7 @@ export function Education() {
 }
 
 export function Footer() {
+  const content = useContent();
   const l = content.profile.links;
   return (
     <footer className="footer" id="footer">

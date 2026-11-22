@@ -10,13 +10,14 @@ import { Icon } from '../shared/Icon';
 import { Select } from '../shared/Select';
 import { useModal } from '../shared/Modal';
 import {
-  CATEGORIES, TRASH_DAYS, blockSender, dayKey, deleteMessages, logAction, msgDate, setNote, updateMessages,
-  type Message, type MessagePatch,
+  CATEGORIES, TRASH_DAYS, blockSender, dayKey, deleteMessages, fetchReplies, logAction, msgDate, setNote, updateMessages,
+  type Message, type MessagePatch, type Reply,
 } from './api';
 import { useConfirm, useToast } from './feedback';
 import { useInbox } from './inbox';
 import { ReplyModal } from './ReplyModal';
 import { download, messagesCsv, stamp } from './Export';
+import { catVar, hue, initials } from './look';
 
 type Folder = 'inbox' | 'followup' | 'starred' | 'archived' | 'spam' | 'trash' | 'all';
 type Status = 'any' | 'unread' | 'read' | 'pending' | 'replied';
@@ -325,12 +326,43 @@ export function Messages() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modal, reply]);
 
+
   const unreadInbox = (list ?? []).filter((m) => isLive(m) && !m.read && !m.archived);
   const inTrash = folder === 'trash';
   const inSpam = folder === 'spam';
+  const cur = active >= 0 ? visible[active] : undefined;
+
+  // Reading pane: open a message (marks it read), and its sent-reply thread
+  const [reading, setReading] = useState(false);
+  const [thread, setThread] = useState<Reply[] | null>(null);
+  const open = (i: number) => {
+    setActive(i);
+    setReading(true);
+    const m = visible[i];
+    if (m && !m.read && !m.trashedAt) updateMessages([m.id], { read: true }).catch(() => {});
+  };
+  useEffect(() => {
+    if (!cur) { setThread(null); return; }
+    if (!cur.replyCount && !cur.replied) { setThread([]); return; }
+    let live = true;
+    setThread(null);
+    fetchReplies(cur.id).then((r) => { if (live) setThread(r); }).catch(() => { if (live) setThread([]); });
+    return () => { live = false; };
+  }, [cur?.id, cur?.replyCount, cur?.replied]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (active < 0) setReading(false); }, [active]);
+
+  const pickFolder = (id: Folder) => { setFolder(id); setParams((p) => { const n = new URLSearchParams(p); n.delete('folder'); return n; }, { replace: true }); };
+  const ago = (t: Date | null) => {
+    if (!t) return '';
+    const s = (Date.now() - t.getTime()) / 1000;
+    if (s < 3600) return `${Math.max(1, Math.round(s / 60))}m`;
+    if (s < 86400) return `${Math.round(s / 3600)}h`;
+    if (s < 86400 * 7) return `${Math.round(s / 86400)}d`;
+    return t.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+  };
 
   return (
-    <section aria-labelledby="msgTitle">
+    <section aria-labelledby="msgTitle" className="mx">
       <div className="admin-head">
         <h1 id="msgTitle">Messages {list && <span className="count-pill">{unreadInbox.length} unread</span>}</h1>
         <div className="admin-head-actions">
@@ -350,154 +382,232 @@ export function Messages() {
         </div>
       </div>
 
-      <div className="folder-tabs" role="tablist" aria-label="Folders">
-        {FOLDERS.map(([id, label, icon]) => (
-          <button key={id} type="button" role="tab" aria-selected={folder === id} className={`folder-tab${folder === id ? ' is-active' : ''}`}
-            onClick={() => { setFolder(id); setParams((p) => { const n = new URLSearchParams(p); n.delete('folder'); return n; }, { replace: true }); }}>
-            {icon && <Icon id={icon} />}{label}
-            <span className="folder-count">{counts[id]}</span>
-            {id === 'followup' && dueCount > 0 && <span className="folder-due" title={`${dueCount} due`}>{dueCount} due</span>}
-          </button>
-        ))}
-      </div>
-      {inTrash && <p className="muted folder-note">Messages in Trash are deleted for good after {TRASH_DAYS} days.</p>}
-      {inSpam && <p className="muted folder-note">Blocked senders are managed in Settings → Blocked senders.</p>}
-
-      <div className="msg-toolbar glass" role="search">
-        <label className="search">
-          <Icon id="search" />
-          <span className="visually-hidden">Search messages</span>
-          <input ref={searchRef} type="search" placeholder="Search name, email, text or notes   ( / )" value={q}
-            onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') (e.target as HTMLInputElement).blur(); }} />
-        </label>
-        <Select label="Category" value={cat} onChange={setCat}
-          options={[{ value: 'all', label: 'All categories', hint: String((list ?? []).filter(isLive).length) },
-            ...CATEGORIES.map((c) => ({ value: c as string, label: c, hint: String(catCounts[c] ?? 0) }))]} />
-        <Select<Status> label="Status" value={status} onChange={setStatus}
-          options={[{ value: 'any', label: 'Any status' }, { value: 'unread', label: 'Unread' }, { value: 'read', label: 'Read' },
-            { value: 'pending', label: 'Needs reply' }, { value: 'replied', label: 'Replied' }]} />
-        <Select<'new' | 'old'> label="Sort" value={sort} onChange={setSort} disabled={folder === 'followup'}
-          options={[{ value: 'new', label: 'Newest first' }, { value: 'old', label: 'Oldest first' }]} />
-      </div>
-
-      <div className={`bulk-bar${sel.length ? ' is-on' : ''}`} role="toolbar" aria-label="Bulk actions">
-        <label className="check-row">
-          <input type="checkbox" checked={allChecked} disabled={!visible.length}
-            ref={(el) => { if (el) el.indeterminate = !allChecked && visible.some((m) => selected.has(m.id)); }}
-            onChange={() => setSelected(allChecked ? new Set() : new Set(visible.map((m) => m.id)))} />
-          <span>{sel.length ? `${sel.length} selected` : 'Select all'}</span>
-        </label>
-        {sel.length > 0 && (
-          <div className="bulk-actions">
-            {inTrash ? (
-              <>
-                <button type="button" className="btn btn-ghost btn-sm" onClick={() => restoreMany(sel)}><Icon id="refresh" /><span>Restore</span></button>
-                <button type="button" className="btn btn-ghost btn-sm btn-danger-ghost" onClick={(e) => destroyMany(sel, e.currentTarget)}><Icon id="trash" /><span>Delete forever</span></button>
-              </>
-            ) : (
-              <>
-                <button type="button" className="btn btn-ghost btn-sm" onClick={() => patchMany(sel, { read: true }, `${sel.length} marked read`)}><Icon id="check" /><span>Read</span></button>
-                <button type="button" className="btn btn-ghost btn-sm" onClick={() => patchMany(sel, { read: false }, `${sel.length} marked unread`)}><Icon id="mail" /><span>Unread</span></button>
-                <button type="button" className="btn btn-ghost btn-sm" onClick={() => patchMany(sel, { starred: !sel.every((m) => m.starred) }, '')}><Icon id="star" /><span>{sel.every((m) => m.starred) ? 'Unstar' : 'Star'}</span></button>
-                <button type="button" className="btn btn-ghost btn-sm" onClick={() => { const arch = !sel.every((m) => m.archived); patchMany(sel, { archived: arch }, arch ? `${sel.length} archived` : `${sel.length} moved to inbox`); setSelected(new Set()); }}>
-                  <Icon id="archive" /><span>{sel.every((m) => m.archived) ? 'Unarchive' : 'Archive'}</span>
+      <div className={`mx-studio${reading ? ' is-reading' : ''}`}>
+        {/* ---------- rail: folders + filters ---------- */}
+        <aside className="mx-rail" aria-label="Folders and filters">
+          <nav className="mx-folders" role="tablist" aria-label="Folders" aria-orientation="vertical">
+            {FOLDERS.map(([id, label, icon]) => (
+              <button key={id} type="button" role="tab" aria-selected={folder === id} className={`mx-folder${folder === id ? ' is-active' : ''}`} onClick={() => pickFolder(id)}>
+                <Icon id={icon ?? (id === 'inbox' ? 'mail' : 'grid')} />
+                <span className="mx-folder-k">{label}</span>
+                {id === 'followup' && dueCount > 0 && <span className="folder-due" title={`${dueCount} due`}>{dueCount}</span>}
+                <span className="mx-folder-n mono">{counts[id]}</span>
+              </button>
+            ))}
+          </nav>
+          <div className="mx-filter">
+            <p className="mx-filter-h mono">Category</p>
+            <div className="mx-chips">
+              <button type="button" className={`mx-chip${cat === 'all' ? ' is-on' : ''}`} onClick={() => setCat('all')}>All<span>{(list ?? []).filter(isLive).length}</span></button>
+              {CATEGORIES.map((c) => (
+                <button key={c} type="button" className={`mx-chip${cat === c ? ' is-on' : ''}`} style={{ '--c': catVar(c) } as React.CSSProperties}
+                  aria-pressed={cat === c} onClick={() => setCat(cat === c ? 'all' : c)}>
+                  <i aria-hidden="true" />{c}<span>{catCounts[c] ?? 0}</span>
                 </button>
-                {inSpam
-                  ? <button type="button" className="btn btn-ghost btn-sm" onClick={() => { patchMany(sel, { spam: false }, 'Moved back to inbox'); setSelected(new Set()); }}><Icon id="check" /><span>Not spam</span></button>
-                  : <button type="button" className="btn btn-ghost btn-sm" onClick={(e) => spamMany(sel, e.currentTarget)}><Icon id="ban" /><span>Spam</span></button>}
-                <button type="button" className="btn btn-ghost btn-sm" onClick={exportSel}><Icon id="download" /><span>CSV</span></button>
-                <button type="button" className="btn btn-ghost btn-sm btn-danger-ghost" onClick={() => trashMany(sel)}><Icon id="trash" /><span>Trash</span></button>
-              </>
-            )}
+              ))}
+            </div>
           </div>
-        )}
-      </div>
+          <div className="mx-filter">
+            <p className="mx-filter-h mono">Status</p>
+            <div className="mx-chips">
+              {([['any', 'Any'], ['unread', 'Unread'], ['pending', 'Needs reply'], ['replied', 'Replied'], ['read', 'Read']] as [Status, string][]).map(([v, l]) => (
+                <button key={v} type="button" className={`mx-chip${status === v ? ' is-on' : ''}`} aria-pressed={status === v} onClick={() => setStatus(v)}>{l}</button>
+              ))}
+            </div>
+          </div>
+          {inTrash && <p className="muted folder-note">Trash empties itself after {TRASH_DAYS} days.</p>}
+          {inSpam && <p className="muted folder-note">Blocked senders live in Settings.</p>}
+        </aside>
 
-      {error && <p className="panel-error">{error}</p>}
-      <p className="muted" aria-live="polite">{list ? `${filtered.length} of ${counts[folder]} in ${FOLDERS.find(([f]) => f === folder)?.[1]}` : 'Loading…'}</p>
-      <ul className="msg-list" ref={listRef}>
-        {visible.map((m, i) => {
-          const fu = followUpState(m);
-          return (
-            <li key={m.id} tabIndex={-1} onFocus={() => setActive(i)}
-              className={`msg glass${m.read ? '' : ' is-unread'}${i === active ? ' is-active' : ''}${selected.has(m.id) ? ' is-selected' : ''}${m.trashedAt ? ' is-trashed' : ''}`}>
-              <div className="msg-head">
-                <div className="msg-who">
-                  <input type="checkbox" className="msg-check" checked={selected.has(m.id)} onChange={() => toggleSel(m.id)} aria-label={`Select message from ${m.name}`} />
-                  {!inTrash && (
-                    <button type="button" className={`star-btn${m.starred ? ' is-on' : ''}`} aria-pressed={!!m.starred} aria-label={m.starred ? 'Unstar' : 'Star'}
-                      onClick={() => patchMany([m], { starred: !m.starred }, '')}><Icon id="star" /></button>
-                  )}
-                  <div>
-                    <h2 className="msg-name"><Highlight text={m.name} needle={needle} />
-                      {!m.read && <span className="badge-unread">Unread</span>}
-                      {m.replied && (
-                        <span className="badge-replied" title={m.replyCount ? `${m.replyCount} repl${m.replyCount === 1 ? 'y' : 'ies'} sent` : 'Replied'}>
-                          <Icon id="check" />Replied{m.replyCount ? ` (${m.replyCount})` : ''}
-                        </span>
-                      )}
-                      {m.archived && !m.trashedAt && <span className="badge-archived">Archived</span>}
-                      {m.spam && <span className="badge-spam">Spam</span>}
-                      {fu && !m.trashedAt && <span className={`badge-follow${fu === 'due' ? ' is-due' : ''}`}><Icon id="bell" />Follow up {prettyDay(m.followUpAt!)}</span>}
-                    </h2>
-                    <span className="msg-email-row">
-                      <a className="msg-email mono" href={`mailto:${m.email}`}><Highlight text={m.email} needle={needle} /></a>
-                      <button type="button" className="copy-btn" aria-label={`Copy ${m.email}`} onClick={() => navigator.clipboard?.writeText(m.email).then(() => toast('success', 'Email copied')).catch(() => {})}><Icon id="copy" /></button>
-                    </span>
-                  </div>
-                </div>
-                <div className="msg-meta">
-                  {inTrash ? <span className="chip">{m.category ?? 'General'}</span> : (
-                    <Select hideLabel label={`Category of the message from ${m.name}`} className="dd-chip" value={m.category ?? 'General'}
-                      onChange={(c) => patchMany([m], { category: c }, `Moved to ${c}`)}
-                      options={CATEGORIES.map((c) => ({ value: c as string, label: c }))} />
-                  )}
-                  <time className="mono">{msgDate(m)?.toLocaleString() ?? ''}</time>
-                  {m.trashedAt && <span className="muted trash-when">Deleted {new Date(m.trashedAt).toLocaleDateString()}</span>}
-                </div>
-              </div>
-              {m.subject && <p className="msg-subject"><Highlight text={m.subject} needle={needle} /></p>}
-              <p className="msg-text"><Highlight text={m.message} needle={needle} /></p>
-              {noteFor === m.id ? <NoteEditor m={m} onDone={() => setNoteFor('')} />
-                : m.note ? <button type="button" className="msg-note" onClick={() => setNoteFor(m.id)}><Icon id="note" /><span><Highlight text={m.note} needle={needle} /></span></button> : null}
-              <div className="msg-actions">
+        {/* ---------- list ---------- */}
+        <div className="mx-listcol">
+          <div className="mx-search" role="search">
+            <label className="search">
+              <Icon id="search" />
+              <span className="visually-hidden">Search messages</span>
+              <input ref={searchRef} type="search" placeholder="Search…  ( / )" value={q}
+                onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') (e.target as HTMLInputElement).blur(); }} />
+            </label>
+            <button type="button" className="icon-btn mx-sort" disabled={folder === 'followup'} onClick={() => setSort(sort === 'new' ? 'old' : 'new')}
+              title={sort === 'new' ? 'Newest first (click for oldest)' : 'Oldest first (click for newest)'} aria-label={sort === 'new' ? 'Sorted newest first' : 'Sorted oldest first'}>
+              <span aria-hidden="true">{sort === 'new' ? '↓' : '↑'}</span>
+            </button>
+          </div>
+
+          <div className={`bulk-bar mx-bulk${sel.length ? ' is-on' : ''}`} role="toolbar" aria-label="Bulk actions">
+            <label className="check-row">
+              <input type="checkbox" checked={allChecked} disabled={!visible.length}
+                ref={(el) => { if (el) el.indeterminate = !allChecked && visible.some((m) => selected.has(m.id)); }}
+                onChange={() => setSelected(allChecked ? new Set() : new Set(visible.map((m) => m.id)))} />
+              <span>{sel.length ? `${sel.length} selected` : list ? `${filtered.length} of ${counts[folder]}` : 'Loading…'}</span>
+            </label>
+            {sel.length > 0 && (
+              <div className="bulk-actions">
                 {inTrash ? (
                   <>
-                    <button type="button" className="btn btn-primary btn-sm" onClick={() => restoreMany([m])}><Icon id="refresh" /><span>Restore</span></button>
-                    <button type="button" className="btn btn-ghost btn-sm btn-danger-ghost" onClick={(e) => destroyMany([m], e.currentTarget)}><Icon id="trash" /><span>Delete forever</span></button>
+                    <button type="button" className="icon-btn" title="Restore" aria-label="Restore selected" onClick={() => restoreMany(sel)}><Icon id="refresh" /></button>
+                    <button type="button" className="icon-btn is-danger" title="Delete forever" aria-label="Delete selected forever" onClick={(e) => destroyMany(sel, e.currentTarget)}><Icon id="trash" /></button>
                   </>
                 ) : (
                   <>
-                    <button type="button" className="btn btn-primary btn-sm" onClick={(e) => reply(m, e.currentTarget)} aria-haspopup="dialog"><Icon id="spark" /><span>{m.replied ? 'AI Reply again' : 'AI Reply'}</span></button>
-                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => patchMany([m], { read: !m.read }, '')}><Icon id="check" /><span>Mark {m.read ? 'unread' : 'read'}</span></button>
-                    <Select hideLabel label={`Follow-up reminder for ${m.name}`} className="dd-btn-sm" value={null} placeholder={m.followUpAt ? 'Reminder…' : 'Remind me'}
-                      onChange={(v) => patchMany([m], { followUpAt: v === 'clear' ? null : inDays(Number(v)) }, v === 'clear' ? 'Reminder cleared' : `Reminder set for ${prettyDay(inDays(Number(v)))}`)}
-                      options={[{ value: '1', label: 'Tomorrow' }, { value: '3', label: 'In 3 days' }, { value: '7', label: 'Next week' }, { value: '14', label: 'In 2 weeks' },
-                        ...(m.followUpAt ? [{ value: 'clear', label: 'Clear reminder' }] : [])]} />
-                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => patchMany([m], { archived: !m.archived }, m.archived ? 'Moved to inbox' : 'Archived')}><Icon id="archive" /><span>{m.archived ? 'Unarchive' : 'Archive'}</span></button>
-                    {noteFor !== m.id && <button type="button" className="btn btn-ghost btn-sm" onClick={() => setNoteFor(m.id)}><Icon id="note" /><span>{m.note ? 'Edit note' : 'Note'}</span></button>}
-                    {m.spam
-                      ? <button type="button" className="btn btn-ghost btn-sm" onClick={() => patchMany([m], { spam: false }, 'Moved back to inbox')}><Icon id="check" /><span>Not spam</span></button>
-                      : <button type="button" className="btn btn-ghost btn-sm" onClick={(e) => spamMany([m], e.currentTarget)}><Icon id="ban" /><span>Spam</span></button>}
-                    <button type="button" className="btn btn-ghost btn-sm btn-danger-ghost" onClick={() => trashMany([m])} aria-label={`Move the message from ${m.name} to Trash`}><Icon id="trash" /><span>Delete</span></button>
+                    <button type="button" className="icon-btn" title="Mark read" aria-label="Mark selected read" onClick={() => patchMany(sel, { read: true }, `${sel.length} marked read`)}><Icon id="check" /></button>
+                    <button type="button" className="icon-btn" title="Mark unread" aria-label="Mark selected unread" onClick={() => patchMany(sel, { read: false }, `${sel.length} marked unread`)}><Icon id="mail" /></button>
+                    <button type="button" className="icon-btn" title="Star" aria-label="Star selected" onClick={() => patchMany(sel, { starred: !sel.every((m) => m.starred) }, '')}><Icon id="star" /></button>
+                    <button type="button" className="icon-btn" title="Archive" aria-label="Archive selected" onClick={() => { const arch = !sel.every((m) => m.archived); patchMany(sel, { archived: arch }, arch ? `${sel.length} archived` : `${sel.length} moved to inbox`); setSelected(new Set()); }}><Icon id="archive" /></button>
+                    {inSpam
+                      ? <button type="button" className="icon-btn" title="Not spam" aria-label="Not spam" onClick={() => { patchMany(sel, { spam: false }, 'Moved back to inbox'); setSelected(new Set()); }}><Icon id="check" /></button>
+                      : <button type="button" className="icon-btn" title="Spam" aria-label="Mark selected as spam" onClick={(e) => spamMany(sel, e.currentTarget)}><Icon id="ban" /></button>}
+                    <button type="button" className="icon-btn" title="Export CSV" aria-label="Export selected as CSV" onClick={exportSel}><Icon id="download" /></button>
+                    <button type="button" className="icon-btn is-danger" title="Move to Trash" aria-label="Move selected to Trash" onClick={() => trashMany(sel)}><Icon id="trash" /></button>
                   </>
                 )}
               </div>
-            </li>
-          );
-        })}
-      </ul>
-      {filtered.length > shown && (
-        <div className="load-more"><button type="button" className="btn btn-ghost" onClick={() => setShown((n) => n + PAGE)}>Show {Math.min(PAGE, filtered.length - shown)} more</button></div>
-      )}
-      {list && filtered.length === 0 && (
-        <p className="empty-note">{
-          folder === 'trash' ? 'Trash is empty.'
-            : folder === 'spam' ? 'No spam. Nice.'
-              : folder === 'followup' ? 'No reminders. Use “Remind me” on a message (or press f).'
-                : folder === 'inbox' && !needle && status === 'any' && cat === 'all' ? 'Inbox zero. Nothing waiting for you.' : 'No messages match these filters.'
-        }</p>
-      )}
+            )}
+          </div>
+
+          {error && <p className="panel-error">{error}</p>}
+          <ul className="mx-list" ref={listRef} aria-label="Messages">
+            {visible.map((m, i) => {
+              const fu = followUpState(m);
+              const t = msgDate(m);
+              return (
+                <li key={m.id} tabIndex={-1} onFocus={() => setActive(i)} onClick={() => open(i)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') open(i); }}
+                  style={{ '--c': catVar(m.category), '--h': hue(m.email) } as React.CSSProperties}
+                  className={`mx-item${m.read ? '' : ' is-unread'}${i === active ? ' is-active' : ''}${selected.has(m.id) ? ' is-selected' : ''}${m.trashedAt ? ' is-trashed' : ''}`}>
+                  <label className="mx-check" onClick={(e) => e.stopPropagation()}>
+                    <input type="checkbox" checked={selected.has(m.id)} onChange={() => toggleSel(m.id)} aria-label={`Select message from ${m.name}`} />
+                  </label>
+                  <span className="avatar avatar-sm" aria-hidden="true">{initials(m.name)}</span>
+                  <div className="mx-item-body">
+                    <p className="mx-item-top">
+                      <b className="mx-item-name"><Highlight text={m.name} needle={needle} /></b>
+                      <time className="mono" dateTime={t?.toISOString()} title={t?.toLocaleString()}>{ago(t)}</time>
+                    </p>
+                    <p className="mx-item-sub"><Highlight text={m.subject || m.message} needle={needle} /></p>
+                    <p className="mx-item-icons">
+                      <span className="cat-dot" aria-label={m.category ?? 'General'} title={m.category ?? 'General'} />
+                      {m.starred && <span className="mx-ic is-star" title="Starred"><Icon id="star" /></span>}
+                      {m.replied && <span className="mx-ic is-replied" title={`Replied${m.replyCount ? ` ${m.replyCount}×` : ''}`}><Icon id="check" />{m.replyCount && m.replyCount > 1 ? m.replyCount : ''}</span>}
+                      {m.note && <span className="mx-ic" title="Has a note"><Icon id="note" /></span>}
+                      {fu && <span className={`mx-ic${fu === 'due' ? ' is-due' : ''}`} title={`Follow up ${prettyDay(m.followUpAt!)}`}><Icon id="bell" /></span>}
+                      {m.spam && <span className="mx-ic is-spam" title="Spam"><Icon id="ban" /></span>}
+                    </p>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          {filtered.length > shown && (
+            <div className="load-more"><button type="button" className="btn btn-ghost btn-sm" onClick={() => setShown((n) => n + PAGE)}>Show {Math.min(PAGE, filtered.length - shown)} more</button></div>
+          )}
+          {list && filtered.length === 0 && (
+            <div className="mx-empty-list">
+              <span aria-hidden="true"><Icon id={folder === 'trash' ? 'trash' : folder === 'spam' ? 'ban' : 'check'} /></span>
+              <p>{folder === 'trash' ? 'Trash is empty.'
+                : folder === 'spam' ? 'No spam. Nice.'
+                  : folder === 'followup' ? 'No reminders. Use “Remind me” (or press f).'
+                    : folder === 'inbox' && !needle && status === 'any' && cat === 'all' ? 'Inbox zero.' : 'Nothing matches these filters.'}</p>
+            </div>
+          )}
+        </div>
+
+        {/* ---------- reading pane ---------- */}
+        <article className="mx-reader" aria-label={cur ? `Message from ${cur.name}` : 'Reading pane'} style={cur ? { '--c': catVar(cur.category), '--h': hue(cur.email) } as React.CSSProperties : undefined}>
+          {!cur ? (
+            <div className="mx-reader-empty">
+              <div className="mx-orb" aria-hidden="true"><Icon id="mail" /></div>
+              <h2>Pick a message</h2>
+              <p className="muted">{list ? `${unreadInbox.length} unread · ${counts.inbox} in the inbox` : 'Loading…'}</p>
+              <p className="muted small-note">Tip: <kbd>j</kbd> / <kbd>k</kbd> to move, <kbd>r</kbd> to reply, <kbd>?</kbd> for all shortcuts.</p>
+            </div>
+          ) : (
+            <>
+              <header className="mx-reader-head">
+                <button type="button" className="icon-btn mx-back" onClick={() => setReading(false)} aria-label="Back to the list"><span aria-hidden="true">←</span></button>
+                <span className="avatar mx-reader-avatar" aria-hidden="true">{initials(cur.name)}</span>
+                <div className="mx-reader-who">
+                  <h2><Highlight text={cur.name} needle={needle} /></h2>
+                  <span className="msg-email-row">
+                    <a className="msg-email mono" href={`mailto:${cur.email}`}><Highlight text={cur.email} needle={needle} /></a>
+                    <button type="button" className="copy-btn" aria-label={`Copy ${cur.email}`} onClick={() => navigator.clipboard?.writeText(cur.email).then(() => toast('success', 'Email copied')).catch(() => {})}><Icon id="copy" /></button>
+                  </span>
+                </div>
+                {!inTrash && (
+                  <button type="button" className={`star-btn${cur.starred ? ' is-on' : ''}`} aria-pressed={!!cur.starred} aria-label={cur.starred ? 'Unstar' : 'Star'}
+                    onClick={() => patchMany([cur], { starred: !cur.starred }, '')}><Icon id="star" /></button>
+                )}
+              </header>
+
+              <div className="mx-meta">
+                {inTrash ? <span className="cat-tag" style={{ '--c': catVar(cur.category) } as React.CSSProperties}>{cur.category ?? 'General'}</span> : (
+                  <Select hideLabel label={`Category of the message from ${cur.name}`} className="dd-chip" value={cur.category ?? 'General'}
+                    onChange={(c) => patchMany([cur], { category: c }, `Moved to ${c}`)}
+                    options={CATEGORIES.map((c) => ({ value: c as string, label: c }))} />
+                )}
+                {cur.replied && (
+                  <span className="badge-replied" title={cur.replyCount ? `${cur.replyCount} repl${cur.replyCount === 1 ? 'y' : 'ies'} sent` : 'Replied'}>
+                    <Icon id="check" />Replied{cur.replyCount ? ` (${cur.replyCount})` : ''}
+                  </span>
+                )}
+                {!cur.read && <span className="badge-unread">Unread</span>}
+                {cur.archived && !cur.trashedAt && <span className="badge-archived">Archived</span>}
+                {cur.spam && <span className="badge-spam">Spam</span>}
+                {followUpState(cur) && !cur.trashedAt && <span className={`badge-follow${followUpState(cur) === 'due' ? ' is-due' : ''}`}><Icon id="bell" />Follow up {prettyDay(cur.followUpAt!)}</span>}
+                {cur.trashedAt && <span className="muted trash-when">Deleted {new Date(cur.trashedAt).toLocaleDateString()}</span>}
+              </div>
+
+              <div className="mx-thread">
+                <p className="mx-stamp mono">{msgDate(cur)?.toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) ?? ''}</p>
+                <div className="mx-bubble">
+                  {cur.subject && <p className="mx-bubble-subject"><Highlight text={cur.subject} needle={needle} /></p>}
+                  <p className="mx-bubble-text"><Highlight text={cur.message} needle={needle} /></p>
+                </div>
+                {thread === null && <p className="muted mx-thread-wait">Loading replies…</p>}
+                {thread?.map((r) => (
+                  <div key={r.id} className="mx-bubble-wrap is-me">
+                    <p className="mx-stamp mono">You · {new Date(r.sentAt).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}{r.via === 'gmail' ? ' · via Gmail' : ''}</p>
+                    <div className="mx-bubble is-me">
+                      {r.subject && <p className="mx-bubble-subject">{r.subject}</p>}
+                      <p className="mx-bubble-text">{r.replyContent}</p>
+                    </div>
+                  </div>
+                ))}
+                {cur.replied && thread && thread.length === 0 && <p className="muted mx-thread-wait">Replied, but the reply text wasn't recorded.</p>}
+              </div>
+
+              {noteFor === cur.id ? <NoteEditor m={cur} onDone={() => setNoteFor('')} />
+                : cur.note ? <button type="button" className="msg-note mx-note" onClick={() => setNoteFor(cur.id)}><Icon id="note" /><span><Highlight text={cur.note} needle={needle} /></span></button> : null}
+
+              <div className="mx-dock" role="toolbar" aria-label="Message actions">
+                {inTrash ? (
+                  <>
+                    <button type="button" className="btn btn-primary btn-sm" onClick={() => restoreMany([cur])}><Icon id="refresh" /><span>Restore</span></button>
+                    <button type="button" className="btn btn-ghost btn-sm btn-danger-ghost" onClick={(e) => destroyMany([cur], e.currentTarget)}><Icon id="trash" /><span>Delete forever</span></button>
+                  </>
+                ) : (
+                  <>
+                    <button type="button" className="btn btn-primary mx-reply" onClick={(e) => reply(cur, e.currentTarget)} aria-haspopup="dialog"><Icon id="spark" /><span>{cur.replied ? 'AI Reply again' : 'AI Reply'}</span></button>
+                    <div className="mx-dock-tools">
+                      <button type="button" className="icon-btn" title={`Mark ${cur.read ? 'unread' : 'read'} (u)`} aria-label={`Mark ${cur.read ? 'unread' : 'read'}`} onClick={() => patchMany([cur], { read: !cur.read }, '')}><Icon id={cur.read ? 'mail' : 'check'} /></button>
+                      <button type="button" className="icon-btn" title={`${cur.archived ? 'Unarchive' : 'Archive'} (e)`} aria-label={cur.archived ? 'Unarchive' : 'Archive'} onClick={() => patchMany([cur], { archived: !cur.archived }, cur.archived ? 'Moved to inbox' : 'Archived')}><Icon id="archive" /></button>
+                      {noteFor !== cur.id && <button type="button" className="icon-btn" title={`${cur.note ? 'Edit note' : 'Add a note'} (n)`} aria-label={cur.note ? 'Edit note' : 'Add a note'} onClick={() => setNoteFor(cur.id)}><Icon id="note" /></button>}
+                      {cur.spam
+                        ? <button type="button" className="icon-btn" title="Not spam" aria-label="Not spam" onClick={() => patchMany([cur], { spam: false }, 'Moved back to inbox')}><Icon id="check" /></button>
+                        : <button type="button" className="icon-btn" title="Spam (!)" aria-label="Mark as spam" onClick={(e) => spamMany([cur], e.currentTarget)}><Icon id="ban" /></button>}
+                      <button type="button" className="icon-btn is-danger" title="Move to Trash (#)" aria-label={`Move the message from ${cur.name} to Trash`} onClick={() => trashMany([cur])}><Icon id="trash" /></button>
+                    </div>
+                    <Select hideLabel label={`Follow-up reminder for ${cur.name}`} className="dd-btn-sm" value={null} placeholder={cur.followUpAt ? 'Reminder…' : 'Remind me'}
+                      onChange={(v) => patchMany([cur], { followUpAt: v === 'clear' ? null : inDays(Number(v)) }, v === 'clear' ? 'Reminder cleared' : `Reminder set for ${prettyDay(inDays(Number(v)))}`)}
+                      options={[{ value: '1', label: 'Tomorrow' }, { value: '3', label: 'In 3 days' }, { value: '7', label: 'Next week' }, { value: '14', label: 'In 2 weeks' },
+                        ...(cur.followUpAt ? [{ value: 'clear', label: 'Clear reminder' }] : [])]} />
+                  </>
+                )}
+              </div>
+            </>
+          )}
+        </article>
+      </div>
     </section>
   );
 }

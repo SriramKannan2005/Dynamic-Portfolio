@@ -115,6 +115,8 @@ await test('non-admin cannot write site content', () => assertFails(setDoc(doc(s
 await test('site content rejects unknown keys', () => assertFails(setDoc(doc(admin, 'siteContent', 'live'), live({ script: '<x>' }))));
 await test('site content only in the fixed doc', () => assertFails(setDoc(doc(admin, 'siteContent', 'other'), live())));
 await test('site content projects must be a map', () => assertFails(setDoc(doc(admin, 'siteContent', 'live'), live({ projects: 'all' }))));
+await test('admin can publish section edits', () => assertSucceeds(setDoc(doc(admin, 'siteContent', 'live'), live({ sections: { roles: ['AI Engineer'], about: ['Hi'] } }))));
+await test('site content sections must be a map', () => assertFails(setDoc(doc(admin, 'siteContent', 'live'), live({ sections: ['about'] }))));
 
 // ---- blocked senders ----
 const block = (email, o = {}) => ({ email, reason: 'spam', at: new Date().toISOString(), ...o });

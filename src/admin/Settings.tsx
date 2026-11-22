@@ -39,7 +39,7 @@ function TemplatesPanel() {
   return (
     <div className="panel glass">
       <div className="panel-head">
-        <h2>Reply templates</h2>
+        <h2><Icon id="copy" /> Reply templates</h2>
         <div className="admin-head-actions">
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => setItems((l) => [...(l ?? []), { id: `t${Date.now().toString(36)}`, name: 'New template', body: 'Hi {firstName},\n\n\n\nBest regards,\nSriram Kannan' }])}><Icon id="plus" /><span>Add</span></button>
           <button type="button" className="btn btn-primary btn-sm" onClick={save} disabled={!dirty || busy}>{busy ? 'Saving…' : 'Save templates'}</button>
@@ -76,7 +76,7 @@ function ActivityPanel() {
   useEffect(() => { load(n); }, [load, n]);
   return (
     <div className="panel glass" id="activity">
-      <div className="panel-head"><h2>Activity log</h2><button type="button" className="btn btn-ghost btn-sm" onClick={() => load(n)}><Icon id="refresh" /><span>Refresh</span></button></div>
+      <div className="panel-head"><h2><Icon id="activity" /> Activity log</h2><button type="button" className="btn btn-ghost btn-sm" onClick={() => load(n)}><Icon id="refresh" /><span>Refresh</span></button></div>
       <p className="muted">Append-only: entries can't be edited or deleted, even by an admin (enforced by the Firestore rules).</p>
       {error && <p className="panel-error">{error}</p>}
       <div className="table-scroll table-tall">
@@ -124,14 +124,14 @@ export function Settings() {
       <div className="admin-head"><h1 id="stTitle">Settings</h1></div>
       <div className="chart-grid chart-grid-even">
         <div className="panel glass">
-          <h2>Session</h2>
+          <h2><Icon id="shield" /> Session</h2>
           <Select<Prefs['idleMinutes']> label="Sign out automatically after inactivity" value={prefs.idleMinutes} className="dd-wide"
             onChange={(v) => update({ idleMinutes: v })}
             options={[{ value: 15, label: '15 minutes' }, { value: 30, label: '30 minutes', hint: 'default' }, { value: 60, label: '1 hour' }, { value: 0, label: 'Never' }]} />
           <p className="muted">You get a warning a minute before. Closing the tab always ends the session (session-only login).</p>
         </div>
         <div className="panel glass">
-          <h2>New-message alerts</h2>
+          <h2><Icon id="bell" /> New-message alerts</h2>
           <dl className="sync-meta">
             <div><dt>Desktop notification when the tab is in the background{perm === 'denied' ? ' (blocked by the browser)' : ''}</dt><dd>
               <button type="button" role="switch" aria-checked={prefs.desktopNotify} className={`switch${prefs.desktopNotify ? ' is-on' : ''}`} onClick={toggleDesktop}><span className="switch-knob" /><span className="visually-hidden">Desktop notifications</span></button>
@@ -152,7 +152,7 @@ export function Settings() {
       </div>
       <ActivityPanel />
       <div className="panel glass">
-        <h2>Keyboard shortcuts</h2>
+        <h2><Icon id="keyboard" /> Keyboard shortcuts</h2>
         <dl className="kbd-list kbd-cols">
           {SHORTCUTS.map(([k, v]) => <div key={k}><dt>{k.split(' / ').map((x, i) => <span key={x}>{i > 0 && ' / '}<kbd>{x}</kbd></span>)}</dt><dd>{v}</dd></div>)}
         </dl>

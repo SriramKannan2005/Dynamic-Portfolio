@@ -106,17 +106,19 @@ service cloud.firestore {
         && optStr('email', 254);
       allow update, delete: if false;
     }
-    // Live site content overrides (availability, announcement, per-project edits).
+    // Live site content overrides (availability, announcement, per-project edits and
+    // whole-section replacements: roles, about, skills, experience, education, ...).
     // Public read so the site can render them; only admins write, one fixed doc.
     match /siteContent/{docId} {
       allow read: if true;
       allow create, update: if isAdmin() && docId == 'live'
-        && data().keys().hasOnly(['availability', 'announcement', 'projects', 'updatedAt', 'updatedBy'])
+        && data().keys().hasOnly(['availability', 'announcement', 'projects', 'sections', 'updatedAt', 'updatedBy'])
         && isStr(data().updatedAt, 10, 40)
         && data().updatedBy == request.auth.uid
         && (!('availability' in data()) || data().availability is map)
         && (!('announcement' in data()) || data().announcement is map)
-        && (!('projects' in data()) || data().projects is map);
+        && (!('projects' in data()) || data().projects is map)
+        && (!('sections' in data()) || data().sections is map);
       allow delete: if isAdmin();
     }
     // Legacy page-view log written by the previous site: read-only history

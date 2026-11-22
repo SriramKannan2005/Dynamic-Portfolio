@@ -121,17 +121,21 @@ export function ExportTab() {
       <div className="admin-head"><h1 id="exTitle">Export</h1></div>
       <div className="chart-grid">
         <div className="panel glass">
-          <h2>Download messages</h2>
+          <h2><Icon id="download" /> Download messages</h2>
           <p className="muted">Messages newest first, including read, replied, starred, archived and note columns. Cells that start with = + - @ are escaped so spreadsheets don't run them as formulas.</p>
           <label className="check-row"><input type="checkbox" checked={withArchived} onChange={(e) => setWithArchived(e.target.checked)} /> Include archived messages</label>
-          <div className="export-btns">
-            <button type="button" className="btn btn-primary" onClick={() => exportAs('xlsx')} disabled={!!busy}><Icon id="download" /><span>{busy === 'xlsx' ? 'Preparing…' : 'Excel (.xlsx)'}</span></button>
-            <button type="button" className="btn btn-ghost" onClick={() => exportAs('csv')} disabled={!!busy}><Icon id="download" /><span>CSV</span></button>
-            <button type="button" className="btn btn-ghost" onClick={() => exportAs('json')} disabled={!!busy}><Icon id="download" /><span>JSON</span></button>
+          <div className="fmt-tiles">
+            {([['xlsx', 'Excel', 'Formatted workbook', 'var(--cat-5)'], ['csv', 'CSV', 'Any spreadsheet app', 'var(--cat-2)'], ['json', 'JSON', 'Raw data, for code', 'var(--cat-4)']] as const).map(([f, name, sub, c]) => (
+              <button key={f} type="button" className="fmt-tile" onClick={() => exportAs(f)} disabled={!!busy} style={{ '--c': c } as React.CSSProperties}>
+                <span className="fmt-doc mono" aria-hidden="true">.{f}</span>
+                <b>{busy === f ? 'Preparing…' : name}</b>
+                <small>{sub}</small>
+              </button>
+            ))}
           </div>
         </div>
         <div className="panel glass">
-          <h2>Google Sheets sync</h2>
+          <h2><Icon id="database" /> Google Sheets sync</h2>
           {configError ? <p className="muted">Sync service unavailable: {configError}</p>
             : config && !config.configured ? <p className="muted">Sheets sync isn't configured on the server yet (see the README's environment variables).</p> : null}
           <dl className="sync-meta">

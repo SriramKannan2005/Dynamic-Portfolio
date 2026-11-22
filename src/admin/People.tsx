@@ -11,6 +11,8 @@ import { blockKey, blockSender, fetchBlocked, logAction, msgDate, unblockSender 
 import { useConfirm, useToast } from './feedback';
 import { useInbox } from './inbox';
 import { csvCell, download, safeCell, stamp } from './Export';
+import { catVar, hue, initials } from './look';
+import { KpiTiles } from './AnalyticsHero';
 
 interface Person {
   email: string;
@@ -24,8 +26,6 @@ interface Person {
 }
 type Sort = 'recent' | 'count' | 'name' | 'waiting';
 
-const initials = (n: string) => n.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join('') || '?';
-const hue = (s: string) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
 
 export function People() {
   const toast = useToast();
@@ -108,12 +108,12 @@ export function People() {
           <button type="button" className="btn btn-ghost" onClick={exportCsv} disabled={!shown.length}><Icon id="download" /><span>Export CSV</span></button>
         </div>
       </div>
-      <ul className="kpis">
-        <li className="kpi glass"><span className="kpi-label">Contacts</span><b className="kpi-value">{list ? people.length : '–'}</b><span className="kpi-sub">unique email addresses</span></li>
-        <li className="kpi glass"><span className="kpi-label">Wrote more than once</span><b className="kpi-value">{list ? repeat : '–'}</b><span className="kpi-sub">returning contacts</span></li>
-        <li className="kpi glass"><span className="kpi-label">Waiting on you</span><b className="kpi-value">{list ? waiting : '–'}</b><span className="kpi-sub">have an unanswered message</span></li>
-        <li className="kpi glass"><span className="kpi-label">Blocked</span><b className="kpi-value">{blocked.size}</b><span className="kpi-sub">refused by the database</span></li>
-      </ul>
+      <KpiTiles compare={null} since="" items={[
+        { key: 'visitors', label: 'Contacts', icon: 'users', value: list ? people.length : undefined, prev: 0, series: [], hint: 'unique email addresses' },
+        { key: 'new', label: 'Wrote more than once', icon: 'refresh', value: list ? repeat : undefined, prev: 0, series: [], hint: 'returning contacts' },
+        { key: 'downloads', label: 'Waiting on you', icon: 'reply', value: list ? waiting : undefined, prev: 0, series: [], hint: 'have an unanswered message' },
+        { key: 'messages', label: 'Blocked', icon: 'ban', value: blocked.size, prev: 0, series: [], hint: 'refused by the database' },
+      ]} />
       <div className="msg-toolbar glass" role="search">
         <label className="search">
           <Icon id="search" />
@@ -128,15 +128,16 @@ export function People() {
         {shown.map((p) => {
           const isBlocked = blocked.has(p.email);
           return (
-            <li key={p.email} className={`person glass${isBlocked ? ' is-blocked' : ''}`}>
-              <span className="avatar" aria-hidden="true" style={{ '--h': hue(p.email) } as React.CSSProperties}>{initials(p.name)}</span>
+            <li key={p.email} className={`person glass${isBlocked ? ' is-blocked' : ''}`} style={{ '--h': hue(p.email) } as React.CSSProperties}>
+              <span className="person-banner" aria-hidden="true" />
+              <span className="avatar" aria-hidden="true">{initials(p.name)}</span>
               <div className="person-main">
                 <h2>{p.name}
                   {p.unreplied > 0 && <span className="badge-unread">{p.unreplied} waiting</span>}
                   {isBlocked && <span className="badge-spam">Blocked</span>}
                 </h2>
                 <a className="msg-email mono" href={`mailto:${p.email}`}>{p.email}</a>
-                <div className="person-tags">{p.categories.map((c) => <span key={c} className="chip">{c}</span>)}</div>
+                <div className="person-tags">{p.categories.map((c) => <span key={c} className="cat-tag" style={{ '--c': catVar(c) } as React.CSSProperties}>{c}</span>)}</div>
               </div>
               <dl className="person-stats">
                 <div><dt>Messages</dt><dd>{p.count}</dd></div>

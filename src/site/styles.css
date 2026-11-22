@@ -335,6 +335,8 @@ html:not(.js) .hero-inner > *, html.app-failed .hero-inner > * { opacity: 1 !imp
   color: var(--text); background: var(--surface-solid); border: 1px solid var(--line-strong);
   transition: background-color .25s, border-color .25s, color .25s, filter .25s;
 }
+[data-cat] { --tc: #c4b5fd; } /* groups added from /admin */
+:root[data-theme="light"] [data-cat] { --tc: #5b21b6; }
 [data-cat="lang"] { --tc: #67e8f9; }
 [data-cat="ml"] { --tc: #a78bfa; }
 [data-cat="genai"] { --tc: #f0abfc; }

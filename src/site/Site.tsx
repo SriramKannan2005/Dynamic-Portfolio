@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ModalProvider } from '../shared/Modal';
 import { Icon } from '../shared/Icon';
 import { content, projects } from './content';
-import { applyProjectOverrides, availabilityOf, announcementOf, cachedOverrides, fetchOverrides, type SiteOverrides } from '../shared/siteContent';
+import { ContentContext, type LiveContent } from './liveContent';
+import { applyContentOverrides, applyProjectOverrides, availabilityOf, announcementOf, cachedOverrides, fetchOverrides, type SiteOverrides } from '../shared/siteContent';
 import { Nav, Hero, About, Skills, ExperienceSection, Achievements, Education, Footer } from './Sections';
 import { Projects } from './Projects';
 import { Contact } from './Contact';
@@ -49,6 +50,43 @@ export default function Site() {
   const sig = overrides?.updatedAt ?? 'base';
   const projectList = useMemo(() => applyProjectOverrides(projects, overrides), [overrides]);
   const announcement = announcementOf(overrides);
+  const live = useMemo<LiveContent>(() => ({ content: applyContentOverrides(content, overrides), projectCount: projectList.length }), [overrides, projectList]);
+  const rolesRef = useRef(live.content.profile.roles);
+  rolesRef.current = live.content.profile.roles;
+  const timelineRef = useRef<{ update(): void }>({ update() {} });
+
+  // Fresh overrides: fetched straight away (the cached copy covers first paint) and
+  // again when the visitor comes back to the tab, so a publish from /admin shows up
+  // on the next reload or tab switch without waiting for the intro animation.
+  useEffect(() => {
+    let last = 0;
+    const load = () => {
+      if (Date.now() - last < 15000) return;
+      last = Date.now();
+      fetchOverrides()
+        .then((o) => setOverrides((prev) => ((prev?.updatedAt ?? '') === (o?.updatedAt ?? '') ? prev : o)))
+        .catch(() => { /* keep the repo content */ });
+    };
+    load();
+    const onVis = () => { if (document.visibilityState === 'visible') load(); };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, []);
+
+  // Content changed after the page was set up: sections update in place, so show
+  // anything new straight away (it was never seen by the scroll-reveal observers).
+  useEffect(() => {
+    if (sig === firstSig.current) return;
+    requestAnimationFrame(() => {
+      document.querySelectorAll('#main [data-reveal], #main [data-reveal-group]').forEach((el) => el.classList.add('is-visible'));
+      document.querySelectorAll('#main [data-reveal-group] > *').forEach((el, i) => (el as HTMLElement).style.setProperty('--i', String(i % 8)));
+      document.querySelectorAll('#main .tl-item').forEach((el) => el.classList.add('is-in'));
+      timelineRef.current = initTimeline();
+      const role = document.getElementById('roleText');
+      if (role && prefersReduced()) role.textContent = rolesRef.current[0] ?? '';
+      refreshScene();
+    });
+  }, [sig, refreshScene]);
 
   useEffect(() => {
     const html = document.documentElement;
@@ -77,14 +115,14 @@ export default function Site() {
       el.style.setProperty('--my', `${e.clientY - r.top}px`);
     };
     document.addEventListener('pointermove', onSpot, { passive: true });
-    const timeline = initTimeline();
+    timelineRef.current = initTimeline();
 
     // Scene module downloads now; it is created after the loader reveals the hero.
     const sceneMod = webglAvailable() ? import('./lib/scene.js') : null;
     if (!sceneMod) html.classList.add('no-webgl');
     loader.onExit(() => {
       document.body.classList.add('hero-in');
-      initRoleRotator(document.getElementById('roleText'), content.profile.roles, { reduced });
+      initRoleRotator(document.getElementById('roleText'), () => rolesRef.current, { reduced });
       sceneMod
         ?.then(({ createScene }) => new Promise<void>((r) => idle(r)).then(() => createScene(document.getElementById('scene') as HTMLCanvasElement, {
           mobile: lowPower(), reduced, theme: html.getAttribute('data-theme') || 'dark',
@@ -98,11 +136,6 @@ export default function Site() {
         .catch(() => html.classList.add('no-webgl'));
       // Analytics after everything visual has settled
       idle(() => { import('./tracking').then((t) => t.trackVisit()).catch(() => {}); });
-      idle(() => {
-        fetchOverrides()
-          .then((o) => setOverrides((prev) => ((prev?.updatedAt ?? '') === (o?.updatedAt ?? '') ? prev : o)))
-          .catch(() => { /* keep the repo content */ });
-      });
     });
 
     const heroEl = document.getElementById('hero') as HTMLElement;
@@ -120,7 +153,7 @@ export default function Site() {
         }
         nav.update(y);
         toTop.update(y);
-        timeline.update();
+        timelineRef.current.update();
       });
     };
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -157,6 +190,7 @@ export default function Site() {
   }, []);
 
   return (
+    <ContentContext.Provider value={live}>
     <ModalProvider reduced={prefersReduced()}>
       <a className="skip-link" href="#main">Skip to content</a>
       {announcement && <AnnouncementBar text={announcement.text} link={announcement.link} />}
@@ -182,5 +216,6 @@ export default function Site() {
         <button className="icon-btn" type="button" id="motionDismiss" aria-label="Dismiss"><Icon id="close" /></button>
       </div>
     </ModalProvider>
+    </ContentContext.Provider>
   );
 }

@@ -28,6 +28,7 @@ import '../site/styles.css';
 import './admin.css';
 import './admin-v2.css';
 import './admin-v3.css';
+import './admin-v4.css';
 
 type Status = 'loading' | 'signedOut' | 'admin' | 'needsClaim' | 'setup' | 'misconfigured';
 export const IDLE_FLAG = 'sk-admin-idle-out';

@@ -436,16 +436,20 @@ export function initTimeline() {
 /* =========================================================
    Hero: rotating role line
    ========================================================= */
+/** roles: an array, or a function returning the current list (live admin edits). */
 export function initRoleRotator(el, roles, { reduced }) {
-  if (!el || !roles || roles.length < 2 || reduced) { if (el && roles && roles[0]) el.textContent = roles[0]; return; }
+  const get = () => (typeof roles === 'function' ? roles() : roles) || [];
+  if (!el || !get().length) return;
   let i = 0;
-  el.textContent = roles[0];
+  el.textContent = get()[0];
+  if (reduced) return;
   setInterval(() => {
-    if (document.hidden) return;
+    const list = get();
+    if (document.hidden || list.length < 2) { if (list.length === 1) el.textContent = list[0]; return; }
     el.classList.add('is-out');
     setTimeout(() => {
-      i = (i + 1) % roles.length;
-      el.textContent = roles[i];
+      i = (i + 1) % list.length;
+      el.textContent = list[i];
       el.classList.remove('is-out');
       el.classList.add('is-in-start');
       void el.offsetWidth;
