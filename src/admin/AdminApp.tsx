@@ -25,10 +25,11 @@ import { InboxProvider, useInbox } from './inbox';
 import { usePrefs } from './prefs';
 import { logAction } from './api';
 import '../site/styles.css';
-import './admin.css';
-import './admin-v2.css';
-import './admin-v3.css';
-import './admin-v4.css';
+import './styles/base.css';      // layout, cards, forms
+import './styles/components.css'; // inbox, palette, toasts, content table
+import './styles/features.css';  // people, status, analytics panels
+import './styles/theme.css';     // sidebar, page heads, overview, messages studio
+import './styles/glass.css';     // glassmorphism layer (last)
 
 type Status = 'loading' | 'signedOut' | 'admin' | 'needsClaim' | 'setup' | 'misconfigured';
 export const IDLE_FLAG = 'sk-admin-idle-out';

@@ -47,7 +47,7 @@ npm run build && npm run check:secrets   # scans dist/ for keys, Apps Script URL
 
 ### One-time manual steps
 
-1. **Rotate the old secrets.** The previous admin committed the Apps Script email URL and the spreadsheet link to git, and loaded the Gemini key in the browser. Create a new Gemini API key (and delete the old one), and redeploy the Apps Script as a **new deployment** so the old URL stops working. A local copy of the old `admin/env.js` was kept at `.local-secrets/old-admin-env.js` (gitignored); delete it once you've migrated.
+1. **Rotate the old secrets.** The previous admin committed the Apps Script email URL and the spreadsheet link to git, and loaded the Gemini key in the browser. Create a new Gemini API key (and delete the old one), and redeploy the Apps Script as a **new deployment** so the old URL stops working. A local copy of the old `admin/env.js` was kept at `.private/keys/old-admin-env.js` (gitignored); delete it once you've migrated.
 2. **Create the admin user.** Firebase console > Authentication > Users > Add user (email + strong password). Copy its **UID**.
 3. **Set the admin custom claim.** Firebase console > Project settings > Service accounts > *Generate new private key*. Save it **outside the repo**, then:
    ```powershell

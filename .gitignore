@@ -1,27 +1,26 @@
-# Environment variables
+# Environment variables (server keys live here locally; Netlify env vars in production)
 .env
 .env.local
 .env.*.local
 
-# Admin runtime config (contains API keys)
-admin/env.js
-
-# Local-only secrets backup
+# Private local files: service-account key, old secrets, original resumes
+.private/
 .local-secrets/
 
-# Build output
+# Firebase service-account keys: never commit, wherever they end up
+*-firebase-adminsdk-*.json
+serviceAccount*.json
+
+# Build output and tool caches
 node_modules/
 dist/
 .netlify/
 .firebase/
 *.log
-
-# Firebase service-account keys: never commit
-*-firebase-adminsdk-*.json
-serviceAccount*.json
+vite.config.ts.timestamp-*
 
 # Browser-test artifacts
 .playwright-mcp/
 
-# Source resumes dropped in the project root (published copies live in public/assets/docs)
+# Files dropped in the project root by hand
 /*.pdf

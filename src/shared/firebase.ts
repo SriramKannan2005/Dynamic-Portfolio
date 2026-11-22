@@ -32,8 +32,11 @@ export function getFirebaseApp(): Promise<FirebaseApp> {
     if (siteKey && !useEmulators) {
       // In local dev, register the printed debug token in Firebase console > App Check.
       if (env.DEV) (self as unknown as Record<string, unknown>).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
-      const { initializeAppCheck, ReCaptchaV3Provider } = await import('firebase/app-check');
-      initializeAppCheck(app, { provider: new ReCaptchaV3Provider(siteKey), isTokenAutoRefreshEnabled: true });
+      // Classic reCAPTCHA v3 by default; set VITE_RECAPTCHA_ENTERPRISE=true when the key is
+      // registered under "Fraud Defense (reCAPTCHA Enterprise)" in Firebase App Check.
+      const { initializeAppCheck, ReCaptchaV3Provider, ReCaptchaEnterpriseProvider } = await import('firebase/app-check');
+      const provider = env.VITE_RECAPTCHA_ENTERPRISE === 'true' ? new ReCaptchaEnterpriseProvider(siteKey) : new ReCaptchaV3Provider(siteKey);
+      initializeAppCheck(app, { provider, isTokenAutoRefreshEnabled: true });
     }
     return app;
   })();

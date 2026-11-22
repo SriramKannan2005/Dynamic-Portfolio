@@ -110,7 +110,7 @@ export function StatusPanel() {
       push({ label: 'Functions', state: 'bad', detail: (e as Error).message });
     }
     const appCheck = !!import.meta.env.VITE_RECAPTCHA_SITE_KEY;
-    push({ label: 'App Check', state: !useEmulators && appCheck ? 'ok' : 'warn', detail: useEmulators ? 'Off in emulator mode' : appCheck ? 'reCAPTCHA v3 site key configured' : 'VITE_RECAPTCHA_SITE_KEY not set' });
+    push({ label: 'App Check', state: !useEmulators && appCheck ? 'ok' : 'warn', detail: useEmulators ? 'Off in emulator mode' : appCheck ? (import.meta.env.VITE_RECAPTCHA_ENTERPRISE === 'true' ? 'Fraud Defense (reCAPTCHA Enterprise) key configured' : 'reCAPTCHA v3 (classic) key configured') : 'VITE_RECAPTCHA_SITE_KEY not set' });
     setBusy(false);
   }, []);
   useEffect(() => { run(); }, [run]);
