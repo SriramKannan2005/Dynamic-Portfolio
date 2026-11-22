@@ -1,0 +1,243 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ModalProvider } from '../shared/Modal';
+import { Icon } from '../shared/Icon';
+import { content, projects } from './content';
+import { ContentContext, type LiveContent } from './liveContent';
+import { applyContentOverrides, applyProjectOverrides, availabilityOf, announcementOf, cachedOverrides, fetchOverrides, type SiteOverrides } from '../shared/siteContent';
+import { Nav, Hero, About, Skills, ExperienceSection, Achievements, Education, Footer } from './Sections';
+import { Projects } from './Projects';
+import { Contact } from './Contact';
+import {
+  Loader, initReveals, initCounters, initCursor, initMagnetic, initTheme, initNav, initToTop,
+  initFooterField, initTimeline, initRoleRotator, initMotionToggle, prefersReduced,
+} from './lib/ui.js';
+import './styles.css';
+import './sections.css';
+
+type SceneApi = { intro(): void; setTheme(t: string): void; refresh(): void };
+
+const lowPower = () => {
+  try {
+    const n = navigator as Navigator & { deviceMemory?: number };
+    return window.innerWidth < 768 || (n.hardwareConcurrency > 0 && n.hardwareConcurrency <= 4) || (!!n.deviceMemory && n.deviceMemory <= 4) || matchMedia('(pointer: coarse)').matches;
+  } catch { return true; }
+};
+const webglAvailable = () => {
+  if (/[?&]nowebgl\b/.test(location.search)) return false;
+  try { const c = document.createElement('canvas'); return !!(window.WebGLRenderingContext && (c.getContext('webgl2') || c.getContext('webgl'))); } catch { return false; }
+};
+/** Resolves on the first scroll / tap / key press, or after `ms` (whichever comes first). */
+const whenEngaged = (ms: number) => new Promise<void>((resolve) => {
+  const events = ['pointerdown', 'keydown', 'scroll', 'touchstart', 'wheel'] as const;
+  let done = false;
+  const go = () => {
+    if (done) return;
+    done = true;
+    events.forEach((e) => window.removeEventListener(e, go));
+    clearTimeout(timer);
+    resolve();
+  };
+  const timer = setTimeout(go, ms);
+  events.forEach((e) => window.addEventListener(e, go, { passive: true }));
+});
+const idle = (fn: () => void) => ('requestIdleCallback' in window ? requestIdleCallback(fn, { timeout: 700 }) : setTimeout(fn, 120));
+
+function AnnouncementBar({ text, link }: { text: string; link: string }) {
+  const key = `sk-ann-${text.length}-${text.slice(0, 24)}`;
+  const [hidden, setHidden] = useState(() => { try { return sessionStorage.getItem(key) === '1'; } catch { return false; } });
+  if (hidden) return null;
+  return (
+    <div className="announce" role="region" aria-label="Announcement">
+      <p>{link ? <a href={link} target={link.startsWith('/') ? undefined : '_blank'} rel="noopener">{text} <Icon id="arrow" /></a> : text}</p>
+      <button type="button" className="announce-x" aria-label="Dismiss announcement" onClick={() => { try { sessionStorage.setItem(key, '1'); } catch { /* blocked */ } setHidden(true); }}><Icon id="close" /></button>
+    </div>
+  );
+}
+
+export default function Site() {
+  const scene = useRef<SceneApi | null>(null);
+  const refreshScene = useCallback(() => scene.current?.refresh(), []);
+  // Admin overrides: last-seen copy renders immediately; the fresh copy is fetched
+  // after first paint and, if it changed, the Projects section remounts with it.
+  const [overrides, setOverrides] = useState<SiteOverrides | null>(() => cachedOverrides());
+  const firstSig = useRef(overrides?.updatedAt ?? 'base');
+  const sig = overrides?.updatedAt ?? 'base';
+  const projectList = useMemo(() => applyProjectOverrides(projects, overrides), [overrides]);
+  const announcement = announcementOf(overrides);
+  const live = useMemo<LiveContent>(() => ({ content: applyContentOverrides(content, overrides), projectCount: projectList.length }), [overrides, projectList]);
+  const rolesRef = useRef(live.content.profile.roles);
+  rolesRef.current = live.content.profile.roles;
+  const timelineRef = useRef<{ update(): void }>({ update() {} });
+  const loadOverridesRef = useRef<() => void>(() => {});
+
+  // Fresh overrides: fetched straight away (the cached copy covers first paint) and
+  // again when the visitor comes back to the tab, so a publish from /admin shows up
+  // on the next reload or tab switch without waiting for the intro animation.
+  useEffect(() => {
+    let last = 0;
+    const load = () => {
+      if (Date.now() - last < 15000) return;
+      last = Date.now();
+      fetchOverrides()
+        .then((o) => setOverrides((prev) => ((prev?.updatedAt ?? '') === (o?.updatedAt ?? '') ? prev : o)))
+        .catch(() => { /* keep the repo content */ });
+    };
+    loadOverridesRef.current = load; // first run: after the hero reveal (see loader.onExit)
+    const onVis = () => { if (document.visibilityState === 'visible') load(); };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, []);
+
+  // Content changed after the page was set up: sections update in place, so show
+  // anything new straight away (it was never seen by the scroll-reveal observers).
+  useEffect(() => {
+    if (sig === firstSig.current) return;
+    requestAnimationFrame(() => {
+      document.querySelectorAll('#main [data-reveal], #main [data-reveal-group]').forEach((el) => el.classList.add('is-visible'));
+      document.querySelectorAll('#main [data-reveal-group] > *').forEach((el, i) => (el as HTMLElement).style.setProperty('--i', String(i % 8)));
+      document.querySelectorAll('#main .tl-item').forEach((el) => el.classList.add('is-in'));
+      timelineRef.current = initTimeline();
+      const role = document.getElementById('roleText');
+      if (role && prefersReduced()) role.textContent = rolesRef.current[0] ?? '';
+      refreshScene();
+    });
+  }, [sig, refreshScene]);
+
+  useEffect(() => {
+    const html = document.documentElement;
+    const reduced = prefersReduced();
+    html.classList.remove('route-admin');
+
+    const loader = new Loader({ reduced });
+    loader.track(document.fonts ? document.fonts.ready : Promise.resolve(), 1);
+    initTheme((t: string) => scene.current?.setTheme(t));
+    initMotionToggle();
+    initCursor({ reduced });
+    initFooterField({ reduced });
+    const nav = initNav();
+    const toTop = initToTop({ reduced });
+    initReveals();
+    initCounters(document.querySelectorAll('#main [data-count-to]'), { reduced });
+    initMagnetic(document.querySelectorAll('.magnetic'), { reduced });
+    // Cursor-following light on .spot cards (achievements, certificates, education,
+    // experience): one delegated listener writes --mx / --my on the hovered card.
+    const onSpot = (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse') return;
+      const el = (e.target as Element | null)?.closest?.('.spot') as HTMLElement | null;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      el.style.setProperty('--mx', `${e.clientX - r.left}px`);
+      el.style.setProperty('--my', `${e.clientY - r.top}px`);
+    };
+    document.addEventListener('pointermove', onSpot, { passive: true });
+    timelineRef.current = initTimeline();
+
+    // Desktop: the scene module downloads now and is built after the loader reveals the hero.
+    // Phones / low-power devices: download and build it on the first scroll or tap (or after 4s),
+    // so the hero text paints and becomes interactive first.
+    const low = lowPower();
+    const sceneMod = webglAvailable() ? (low ? whenEngaged(4000).then(() => import('./lib/scene.js')) : import('./lib/scene.js')) : null;
+    if (!sceneMod) html.classList.add('no-webgl');
+    loader.onExit(() => {
+      document.body.classList.add('hero-in');
+      initRoleRotator(document.getElementById('roleText'), () => rolesRef.current, { reduced });
+      sceneMod
+        ?.then(({ createScene }) => new Promise<void>((r) => idle(r)).then(() => createScene(document.getElementById('scene') as HTMLCanvasElement, {
+          mobile: low, reduced, theme: html.getAttribute('data-theme') || 'dark',
+        })))
+        .then((s) => {
+          scene.current = s as SceneApi;
+          scene.current.setTheme(html.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+          html.classList.add('scene-ready');
+          scene.current.intro();
+        })
+        .catch(() => html.classList.add('no-webgl'));
+      // Firebase work (live content edits, analytics) after everything visual has settled:
+      // it loads the Firestore SDK and App Check (reCAPTCHA), both heavy on phones.
+      setTimeout(() => idle(() => {
+        loadOverridesRef.current();
+        import('./tracking').then((t) => t.trackVisit()).catch(() => {});
+      }), low ? 1500 : 300);
+    });
+
+    const heroEl = document.getElementById('hero') as HTMLElement;
+    const heroInner = document.querySelector('.hero-inner') as HTMLElement;
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        const y = window.scrollY;
+        if (!reduced) {
+          const range = Math.max(1, heroEl.offsetHeight - window.innerHeight);
+          heroInner.style.setProperty('--hp', Math.min(1, Math.max(0, y / range)).toFixed(4));
+        }
+        nav.update(y);
+        toTop.update(y);
+        timelineRef.current.update();
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    onScroll();
+
+    // Hidden admin shortcuts (same as the previous site):
+    //  - triple-click the "SK" logo within 500 ms
+    //  - Ctrl+Shift+A (Windows/Linux) or Cmd+Shift+A (macOS)
+    // Full navigation so the 3D scene stops instead of running behind the admin.
+    const goAdmin = () => window.location.assign('/admin');
+    const logo = document.querySelector<HTMLElement>('.nav-logo');
+    let clicks = 0;
+    let clickTimer = 0;
+    const onLogoClick = (e: MouseEvent) => {
+      clicks += 1;
+      if (clicks === 1) clickTimer = window.setTimeout(() => { clicks = 0; }, 500);
+      if (clicks === 3) { e.preventDefault(); clearTimeout(clickTimer); clicks = 0; goAdmin(); }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && !e.altKey && e.key.toLowerCase() === 'a') { e.preventDefault(); goAdmin(); }
+    };
+    logo?.addEventListener('click', onLogoClick);
+    document.addEventListener('keydown', onKey);
+    (window as unknown as Record<string, unknown>).__skReady = true;
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      logo?.removeEventListener('click', onLogoClick);
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('pointermove', onSpot);
+      clearTimeout(clickTimer);
+    };
+  }, []);
+
+  return (
+    <ContentContext.Provider value={live}>
+    <ModalProvider reduced={prefersReduced()}>
+      <a className="skip-link" href="#main">Skip to content</a>
+      {announcement && <AnnouncementBar text={announcement.text} link={announcement.link} />}
+      <Nav />
+      <main id="main" tabIndex={-1}>
+        <Hero availability={availabilityOf(overrides)} />
+        <About />
+        <Skills />
+        <Projects key={sig} list={projectList} onLayoutChange={refreshScene} revealNow={sig !== firstSig.current} />
+        <ExperienceSection />
+        <Achievements />
+        <Education />
+        <Contact />
+      </main>
+      <Footer />
+      <button className="to-top" id="toTop" type="button" aria-label="Back to top">
+        <svg className="to-top-ring" viewBox="0 0 48 48" aria-hidden="true"><circle className="ring-bg" cx="24" cy="24" r="21" /><circle className="ring-fg" id="toTopRing" cx="24" cy="24" r="21" /></svg>
+        <Icon id="up" />
+      </button>
+      <div className="motion-note" id="motionNote" role="region" aria-label="Animation notice" hidden>
+        <p>Animations are reduced by your device's motion setting.</p>
+        <button className="btn btn-primary" type="button" id="motionEnable">Enable animations</button>
+        <button className="icon-btn" type="button" id="motionDismiss" aria-label="Dismiss"><Icon id="close" /></button>
+      </div>
+    </ModalProvider>
+    </ContentContext.Provider>
+  );
+}

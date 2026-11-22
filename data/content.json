@@ -1,0 +1,317 @@
+{
+  "profile": {
+    "name": "Sriram Kannan",
+    "title": "AI & ML Developer | Generative & Agentic AI | Data Analytics",
+    "roles": [
+      "AI & ML Developer",
+      "Generative & Agentic AI",
+      "Computer Vision & NLP",
+      "Data Analytics"
+    ],
+    "location": "Tuticorin, Tamil Nadu",
+    "email": "sriramkannan01062005@gmail.com",
+    "links": {
+      "github": "https://github.com/SriramKannan2005",
+      "linkedin": "https://www.linkedin.com/in/sriramkannan-ai/",
+      "leetcode": "https://leetcode.com/u/Sriramkannan2005/",
+      "hackerrank": "https://www.hackerrank.com/sriramkannan01062005"
+    }
+  },
+  "about": [
+    "I'm an AI & ML developer who builds computer-vision, NLP and retrieval-augmented GenAI systems and ships them as working products, not notebooks.",
+    "I'm a final-year B.Tech student in Artificial Intelligence & Data Science at P.S.R. Engineering College, Sivakasi, with three internships behind me and placements at national-level hackathons."
+  ],
+  "stats": [
+    {
+      "id": "projects",
+      "label": "Projects built",
+      "source": "projects",
+      "format": "roundedPlus"
+    },
+    {
+      "id": "internships",
+      "label": "Internships",
+      "source": "experience",
+      "filter": {
+        "type": "internship"
+      },
+      "format": "exact"
+    },
+    {
+      "id": "leetcode",
+      "label": "LeetCode problems solved (Java)",
+      "source": "achievementMetric",
+      "achievement": "leetcode",
+      "format": "metric"
+    },
+    {
+      "id": "hackathons",
+      "label": "National hackathon placements",
+      "source": "achievements",
+      "filter": {
+        "kind": "hackathon",
+        "level": "national"
+      },
+      "format": "exact"
+    }
+  ],
+  "skills": [
+    {
+      "id": "lang",
+      "name": "Languages",
+      "items": [
+        "Python",
+        "Java",
+        "C",
+        "SQL",
+        "JavaScript",
+        "HTML/CSS"
+      ]
+    },
+    {
+      "id": "ml",
+      "name": "ML & DL",
+      "items": [
+        "TensorFlow/Keras",
+        "PyTorch",
+        "Scikit-learn",
+        "OpenCV",
+        "MediaPipe",
+        "CNNs",
+        "LSTMs",
+        "GANs",
+        "Encoder-decoder"
+      ]
+    },
+    {
+      "id": "genai",
+      "name": "GenAI & Agentic",
+      "items": [
+        "RAG",
+        "LangChain",
+        "FAISS",
+        "Hugging Face",
+        "Gemini API",
+        "Ollama (local LLMs)",
+        "Prompt engineering",
+        "Agentic AI"
+      ]
+    },
+    {
+      "id": "web",
+      "name": "Backend & Web",
+      "items": [
+        "Flask",
+        "FastAPI",
+        "Spring Boot",
+        "React",
+        "REST APIs",
+        "Firebase",
+        "MySQL",
+        "SQLite"
+      ]
+    },
+    {
+      "id": "data",
+      "name": "Data & Analytics",
+      "items": [
+        "Pandas",
+        "NumPy",
+        "Tableau",
+        "Power BI",
+        "Chart.js"
+      ]
+    },
+    {
+      "id": "tools",
+      "name": "Tools",
+      "items": [
+        "Git/GitHub",
+        "Docker",
+        "Jupyter",
+        "Google Colab",
+        "VS Code"
+      ]
+    }
+  ],
+  "experience": [
+    {
+      "role": "Data Science Intern",
+      "org": "The Developers Arena",
+      "period": "2026 · 12-week program",
+      "type": "internship",
+      "summary": "Weekly deliverables across the data-science workflow, ending in a capstone churn-prediction service.",
+      "points": [
+        "Sales analysis, dashboards and churn analysis",
+        "Preprocessing pipelines, house-price modelling and customer segmentation",
+        "Capstone: churn prediction served through a Flask REST API"
+      ],
+      "tags": [
+        "Python",
+        "Pandas",
+        "Scikit-learn",
+        "Flask"
+      ]
+    },
+    {
+      "role": "Data Analyst Intern",
+      "org": "NullClass",
+      "period": "Nov 2025 – Feb 2026",
+      "type": "internship",
+      "summary": "Built Python data pipelines and Tableau dashboards for job-market analysis.",
+      "points": [
+        "Python data-cleaning and transformation pipelines",
+        "Tableau dashboards with geospatial filtering",
+        "Delivered the Job Analytics Dashboard"
+      ],
+      "tags": [
+        "Python",
+        "Pandas",
+        "Tableau"
+      ]
+    },
+    {
+      "role": "AI/ML Development Intern",
+      "org": "TARAS Systems and Solutions",
+      "period": "Dec 2024 – May 2025",
+      "type": "internship",
+      "summary": "Built and deployed computer-vision systems: real-time gesture recognition, custom object detection and automated image inspection.",
+      "points": [
+        "Deployed a real-time hand-gesture calculator with OpenCV and MediaPipe, holding 95%+ accuracy under varied lighting",
+        "Built a YOLOv8 + TensorFlow object-detection system reaching ~91% mAP on 5,000+ custom-annotated images",
+        "Built a CNN-based image-analysis module that automated visual feature extraction, cutting inspection review time by ~40%"
+      ],
+      "tags": [
+        "Python",
+        "OpenCV",
+        "MediaPipe",
+        "YOLOv8",
+        "TensorFlow",
+        "CNN"
+      ]
+    }
+  ],
+  "achievements": [
+    {
+      "id": "hacksphere",
+      "kind": "hackathon",
+      "level": "national",
+      "title": "2nd Prize · HackSphere 2025",
+      "detail": "National-level on-spot coding hackathon",
+      "metric": {
+        "value": 120,
+        "suffix": "+",
+        "label": "teams competing"
+      },
+      "icon": "trophy"
+    },
+    {
+      "id": "hackspora",
+      "kind": "hackathon",
+      "level": "national",
+      "title": "Top 10 · HACKSPORA-2K25",
+      "detail": "National-level hackathon",
+      "metric": {
+        "value": 200,
+        "suffix": "+",
+        "label": "teams competing"
+      },
+      "icon": "medal"
+    },
+    {
+      "id": "thiran",
+      "kind": "grant",
+      "title": "IoT Innovation Grant · Thiran-2K25",
+      "detail": "Smart-agriculture sensor prototype",
+      "icon": "spark"
+    },
+    {
+      "id": "nqt",
+      "kind": "assessment",
+      "title": "TCS iON NQT (IT) · Aug 2026",
+      "detail": "88.42% in Java programming",
+      "metric": {
+        "value": 75.34,
+        "decimals": 2,
+        "suffix": "%",
+        "label": "overall score"
+      },
+      "icon": "chart"
+    },
+    {
+      "id": "leetcode",
+      "kind": "coding",
+      "title": "LeetCode · Java",
+      "detail": "Consistent problem-solving practice in Java",
+      "metric": {
+        "value": 174,
+        "suffix": "+",
+        "label": "problems solved"
+      },
+      "icon": "code",
+      "link": "https://leetcode.com/u/Sriramkannan2005/"
+    }
+  ],
+  "certifications": [
+    {
+      "title": "ChatGPT for Everyone",
+      "issuer": "Coursera",
+      "image": "/assets/images/certificates/chatgpt-for-everyone.png"
+    },
+    {
+      "title": "Python Programming",
+      "issuer": "Coursera",
+      "image": "/assets/images/certificates/python-programming.png"
+    },
+    {
+      "title": "Python (Basic)",
+      "issuer": "HackerRank",
+      "image": "/assets/images/certificates/python-hackerrank.png"
+    }
+  ],
+  "education": [
+    {
+      "degree": "B.Tech, Artificial Intelligence & Data Science",
+      "school": "P.S.R. Engineering College, Sivakasi",
+      "note": "Anna University · NAAC A+",
+      "period": "2023 – 2027",
+      "score": "CGPA 8.1 / 10"
+    },
+    {
+      "degree": "Higher Secondary",
+      "school": "BMC Matric Higher Secondary School",
+      "period": "2021 – 2023"
+    },
+    {
+      "degree": "Secondary",
+      "school": "St. Antony's Matric Higher Secondary School",
+      "period": "2008 – 2021"
+    }
+  ],
+  "resumes": [
+    {
+      "id": "ai-ml",
+      "label": "AI / ML Engineer",
+      "description": "Computer vision, deep learning and GenAI: YOLOv8, TensorFlow, MediaPipe, RAG with LangChain + FAISS.",
+      "file": "/assets/docs/sriram-kannan-resume-ai-ml.pdf",
+      "filename": "Sriram-Kannan-Resume-AI-ML.pdf",
+      "updated": "Nov 2026"
+    },
+    {
+      "id": "data-science",
+      "label": "Data Science & Analytics",
+      "description": "Data pipelines, predictive models and dashboards: Pandas, scikit-learn, SQL, Tableau, Power BI.",
+      "file": "/assets/docs/sriram-kannan-resume-data-science.pdf",
+      "filename": "Sriram-Kannan-Resume-Data-Science.pdf",
+      "updated": "Nov 2026"
+    },
+    {
+      "id": "java-backend",
+      "label": "Java Backend Developer",
+      "description": "Spring Boot REST APIs with JWT, JPA/MySQL, Flyway and Testcontainers integration tests.",
+      "file": "/assets/docs/sriram-kannan-resume-java-backend.pdf",
+      "filename": "Sriram-Kannan-Resume-Java-Backend.pdf",
+      "updated": "Oct 2026"
+    }
+  ]
+}

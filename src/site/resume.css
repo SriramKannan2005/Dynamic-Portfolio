@@ -1,0 +1,90 @@
+/* Resume viewer (src/site/ResumeViewer.tsx). The modal panel grows to a fixed-height
+   workspace when it holds the viewer: versions on the left, the page scrolls inside. */
+.modal-panel:has(.rv) { width: min(1180px, 100%); height: calc(100dvh - 32px); overflow: hidden; display: flex; flex-direction: column; }
+/* The modal wraps content in .modal-body (no height of its own): let it fill the panel,
+   otherwise the viewer collapses and the lower half of the page gets clipped. */
+.modal-panel:has(.rv) > .modal-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.rv { display: flex; flex-direction: column; flex: 1; height: 100%; min-height: 0; }
+.rv-head { padding: 22px 64px 14px 26px; border-bottom: 1px solid var(--line); }
+.rv-head .kicker { margin: 0 0 6px; }
+.rv-head h2 { font-size: clamp(20px, 2.2vw, 26px); }
+.rv-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 300px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+
+/* Version list */
+.rv-tabs { display: flex; flex-direction: column; gap: 8px; padding: 16px; border-right: 1px solid var(--line); overflow-y: auto; }
+.rv-tab {
+  display: flex; gap: 12px; align-items: flex-start; width: 100%; padding: 14px; text-align: left; color: inherit;
+  border-radius: 16px; border: 1px solid var(--line); background: var(--surface-2);
+  transition: border-color .25s, background-color .25s, transform .3s var(--ease);
+}
+.rv-tab:hover { border-color: var(--line-strong); transform: translateX(2px); }
+.rv-tab:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(99, 102, 241, .35); }
+.rv-tab.is-active {
+  border-color: transparent;
+  background: linear-gradient(var(--surface-solid), var(--surface-solid)) padding-box, var(--grad) border-box;
+  border: 1px solid transparent; box-shadow: 0 16px 40px -22px var(--glow);
+}
+.rv-tab-num { flex: none; font-size: 12px; color: var(--text-3); padding-top: 2px; }
+.rv-tab.is-active .rv-tab-num { color: var(--cyan); }
+.rv-tab-text { display: grid; gap: 5px; min-width: 0; }
+.rv-tab-text b { font-family: var(--font-head); font-size: 16px; }
+.rv-tab-text small { color: var(--text-2); font-size: 13px; line-height: 1.45; }
+.rv-tab-text .rv-updated { font-size: 11px; color: var(--text-3); letter-spacing: .04em; }
+
+/* Main column */
+.rv-main { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.rv-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 18px; border-bottom: 1px solid var(--line); }
+.rv-zoom { display: inline-flex; align-items: center; gap: 4px; padding: 3px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); }
+.rv-zoom .icon-btn { width: 34px; height: 34px; font-size: 18px; line-height: 1; border: 0; background: transparent; }
+.rv-zoom .icon-btn:disabled { opacity: .35; cursor: default; }
+.rv-zoom-val { min-width: 54px; padding: 8px 6px; border-radius: 8px; font-size: 12px; color: var(--text-2); }
+.rv-zoom-val:hover { color: var(--text); background: var(--surface-solid); }
+.rv-actions { display: flex; gap: 8px; }
+.btn-sm-site { padding: 10px 14px; font-size: 14px; }
+
+.rv-stage {
+  position: relative; flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 22px;
+  scrollbar-gutter: stable both-edges; /* width doesn't change when zooming adds a scrollbar */
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(99, 102, 241, .14), transparent 60%),
+    var(--bg-2);
+}
+.rv-pages { display: grid; justify-items: center; gap: 18px; min-width: min-content; }
+.rv-page { display: block; background: #fff; border-radius: 6px; box-shadow: 0 2px 0 rgba(0, 0, 0, .05), 0 26px 60px -24px rgba(0, 0, 0, .7); }
+.rv-stage.is-loading .rv-pages { opacity: .25; }
+.rv-stage.is-error .rv-pages { display: none; }
+
+/* Skeleton while a version renders */
+/* Stays inside the stage (never adds scroll height, which would change the stage width and re-trigger a render) */
+.rv-skeleton {
+  position: absolute; z-index: 1; left: 50%; top: 22px; bottom: 22px; transform: translateX(-50%); width: min(520px, calc(100% - 44px)); overflow: hidden;
+  display: grid; align-content: start; gap: 14px; padding: 40px 36px; border-radius: 6px; background: var(--surface-solid); border: 1px solid var(--line);
+}
+.rv-skeleton span { height: 12px; border-radius: 6px; background: linear-gradient(90deg, var(--surface-2), var(--line-strong), var(--surface-2)); background-size: 200% 100%; animation: rvShimmer 1.3s linear infinite; }
+.rv-skeleton span:nth-child(1) { width: 45%; height: 22px; }
+.rv-skeleton span:nth-child(2) { width: 70%; }
+.rv-skeleton span:nth-child(3) { width: 92%; }
+.rv-skeleton span:nth-child(4) { width: 84%; }
+.rv-skeleton span:nth-child(5) { width: 60%; }
+@keyframes rvShimmer { to { background-position: -200% 0; } }
+html.reduced-motion .rv-skeleton span { animation: none; }
+.rv-error { display: grid; justify-items: center; gap: 14px; padding: 60px 20px; text-align: center; color: var(--text-2); }
+
+/* Suspense fallback while the viewer code downloads */
+.rv-boot { flex-direction: row; align-items: center; justify-content: center; gap: 12px; color: var(--text-2); }
+.rv-spinner { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--line-strong); border-top-color: var(--brand-ink); animation: rvSpin .8s linear infinite; }
+@keyframes rvSpin { to { transform: rotate(360deg); } }
+
+@media (max-width: 860px) {
+  .modal-panel:has(.rv) { height: calc(100dvh - 16px); }
+  .rv-head { padding: 18px 60px 12px 18px; }
+  .rv-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+  .rv-tabs { flex-direction: row; overflow-x: auto; overflow-y: hidden; border-right: 0; border-bottom: 1px solid var(--line); padding: 12px; scroll-snap-type: x mandatory; }
+  .rv-tab { flex: 0 0 min(260px, 78%); scroll-snap-align: start; padding: 12px; }
+  .rv-tab:hover { transform: none; }
+  .rv-tab-text small:not(.rv-updated) { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .rv-stage { padding: 12px; }
+  .rv-toolbar { padding: 10px 12px; }
+  .rv-actions .btn span { display: none; }
+  .rv-actions .btn-primary span { display: inline; }
+}

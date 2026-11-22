@@ -1,0 +1,39 @@
+/* Scrollbars that match the palette, for the public site and the admin.
+   Chromium/Safari: slim gradient thumb (indigo -> cyan) on a transparent track.
+   Firefox only supports flat colours (scrollbar-color), so it gets the same hues.
+   The standard properties are applied to Firefox only: in Chromium they would
+   override (and disable) the ::-webkit-scrollbar styling below. */
+:root {
+  --sb-a: #6d6af0;
+  --sb-b: #1797b8;
+  --sb-track: transparent;
+  --sb-flat: rgba(129, 140, 248, .55);
+  --sb-flat-track: rgba(255, 255, 255, .04);
+}
+:root[data-theme="light"] {
+  --sb-a: #4f46e5;
+  --sb-b: #0891b2;
+  --sb-flat: rgba(79, 70, 229, .5);
+  --sb-flat-track: rgba(79, 70, 229, .06);
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--sb-track); }
+::-webkit-scrollbar-thumb {
+  border-radius: 999px; border: 3px solid transparent; background-clip: padding-box;
+  background-image: linear-gradient(180deg, var(--sb-a), var(--sb-b));
+  min-height: 40px;
+}
+::-webkit-scrollbar-thumb:horizontal { background-image: linear-gradient(90deg, var(--sb-a), var(--sb-b)); }
+::-webkit-scrollbar-thumb:hover { border-width: 2px; filter: brightness(1.15); }
+::-webkit-scrollbar-thumb:active { border-width: 1px; }
+::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+/* the page scrollbar is a touch wider and sits on a faint track */
+html::-webkit-scrollbar { width: 12px; }
+html::-webkit-scrollbar-track { background: var(--sb-flat-track); }
+
+@supports not selector(::-webkit-scrollbar) {
+  html { scrollbar-color: var(--sb-flat) var(--sb-flat-track); }
+  * { scrollbar-width: thin; scrollbar-color: var(--sb-flat) transparent; }
+}

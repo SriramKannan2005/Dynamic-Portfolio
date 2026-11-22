@@ -1,58 +1,162 @@
 rules_version = '2';
+
+// Portfolio + admin panel rules.
+//  - Admin = signed-in user with the custom claim admin == true
+//    (set with scripts/set-admin-claim.mjs; see README).
+//  - The public site may only CREATE documents, each validated field by field.
+//  - Per-visitor counters use deterministic ids "<itemId>__<visitorId>", so a
+//    second create from the same visitor is an update and is rejected.
+//  - Anything not matched below is denied.
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Messages collection
+
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+    function data() {
+      return request.resource.data;
+    }
+    function isStr(v, min, max) {
+      return v is string && v.size() >= min && v.size() <= max;
+    }
+    function isVisitorId(v) {
+      return v is string && v.matches('^[A-Za-z0-9-]{8,64}$');
+    }
+    function isItemId(v) {
+      return v is string && v.matches('^[A-Za-z0-9-]{1,64}$');
+    }
+    function optStr(field, max) {
+      return !(field in data()) || isStr(data()[field], 0, max);
+    }
+    // Sender not on the admin's block list (doc id = lowercased address).
+    // exists() is evaluated by the rules engine, so visitors never read the list.
+    function notBlocked() {
+      return !exists(/databases/$(database)/documents/blockedSenders/$(data().email.lower()));
+    }
+    // Create-only "one per visitor per item" documents
+    function validCounter(docId, itemField) {
+      return data().keys().hasOnly([itemField, 'visitorId', 'createdAt'])
+        && data().keys().hasAll([itemField, 'visitorId', 'createdAt'])
+        && isItemId(data()[itemField])
+        && isVisitorId(data().visitorId)
+        && docId == data()[itemField] + '__' + data().visitorId
+        && data().createdAt == request.time;
+    }
+
+    // ---------------- Contact messages ----------------
     match /messages/{messageId} {
-      allow read, delete, update: if request.auth != null;
-      allow create: if true;
+      allow create: if data().keys().hasOnly(['name', 'email', 'subject', 'message', 'category', 'timestamp', 'createdAt', 'read', 'source'])
+        && data().keys().hasAll(['name', 'email', 'message', 'category', 'timestamp', 'createdAt', 'read'])
+        && isStr(data().name, 2, 100)
+        && isStr(data().email, 5, 254)
+        && data().email.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]{2,}$')
+        && notBlocked()
+        && optStr('subject', 150)
+        && isStr(data().message, 10, 5000)
+        && data().category in ['Job Inquiry', 'Collaboration', 'Technical Question', 'Feedback', 'General']
+        && isStr(data().timestamp, 20, 40)
+        && data().createdAt == request.time
+        && data().read == false
+        && (!('source' in data()) || data().source == 'portfolio');
+      // TEMPORARY: the previous site (still live until the React build is deployed)
+      // sends {name, email, message, category, timestamp, date, read}. Same field
+      // validation, minus the server timestamp. Remove once the new site is live.
+      allow create: if data().keys().hasOnly(['name', 'email', 'message', 'category', 'timestamp', 'date', 'read'])
+        && data().keys().hasAll(['name', 'email', 'message', 'timestamp', 'read'])
+        && isStr(data().name, 1, 100)
+        && isStr(data().email, 5, 254)
+        && data().email.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]{2,}$')
+        && notBlocked()
+        && isStr(data().message, 1, 5000)
+        && (!('category' in data()) || data().category in ['Job Inquiry', 'Collaboration', 'Technical Question', 'Feedback', 'General'])
+        && isStr(data().timestamp, 20, 40)
+        && optStr('date', 60)
+        && data().read == false;
+      allow read, update, delete: if isAdmin();
     }
-    
-    // Admin content
-    match /admin/{document=**} {
-      allow read, write: if request.auth != null;
-    }
-    
-    // Analytics collection (public read for visitor count badge)
-    match /analytics/{analyticsId} {
-      allow read: if true;
-      allow create: if true;
-      allow update, delete: if false;
-    }
-    
-    // Page views tracking
-    match /pageViews/{viewId} {
-      allow read: if request.auth != null;
-      allow create: if true;
-      allow update, delete: if false;
-    }
-    
-    // Visitor tracking
-    match /visitors/{visitorId} {
-      allow read: if request.auth != null;
-      allow create: if true;
-      allow update, delete: if false;
-    }
-    
-    // ✅ FIXED: Project views (was projectViews, now matches code)
-    match /projectViews/{viewId} {
-      allow read: if true;  // ✅ Changed to allow public read
-      allow create: if true;
-      allow update, delete: if false;
-    }
-    
-    // Project likes
-    match /projectLikes/{likeId} {
-      allow read: if true;
-      allow create: if true;
-      allow update, delete: if false;
-    }
-    
-    // Reply history (admin only)
+
+    // ---------------- Admin-only ----------------
     match /replies/{replyId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
+      allow read, create, update, delete: if isAdmin();
+    }
+    match /admin/{document=**} {
+      allow read, write: if isAdmin();
+    }
+    // Senders whose new messages are refused (see notBlocked). Admin-managed.
+    match /blockedSenders/{email} {
+      allow read, delete: if isAdmin();
+      allow create, update: if isAdmin()
+        && data().keys().hasOnly(['email', 'reason', 'at'])
+        && data().email == email
+        && email == email.lower()
+        && isStr(email, 5, 254)
+        && optStr('reason', 200)
+        && isStr(data().at, 10, 40);
+    }
+    // Append-only audit trail of admin actions: no edits, no deletes, ever.
+    match /auditLog/{entryId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && data().keys().hasOnly(['action', 'detail', 'at', 'by', 'email'])
+        && data().keys().hasAll(['action', 'detail', 'at', 'by'])
+        && isStr(data().action, 1, 60)
+        && isStr(data().detail, 0, 500)
+        && data().at == request.time
+        && data().by == request.auth.uid
+        && optStr('email', 254);
       allow update, delete: if false;
+    }
+    // Live site content overrides (availability, announcement, per-project edits and
+    // whole-section replacements: roles, about, skills, experience, education, ...).
+    // Public read so the site can render them; only admins write, one fixed doc.
+    match /siteContent/{docId} {
+      allow read: if true;
+      allow create, update: if isAdmin() && docId == 'live'
+        && data().keys().hasOnly(['availability', 'announcement', 'projects', 'sections', 'updatedAt', 'updatedBy'])
+        && isStr(data().updatedAt, 10, 40)
+        && data().updatedBy == request.auth.uid
+        && (!('availability' in data()) || data().availability is map)
+        && (!('announcement' in data()) || data().announcement is map)
+        && (!('projects' in data()) || data().projects is map)
+        && (!('sections' in data()) || data().sections is map);
+      allow delete: if isAdmin();
+    }
+    // Legacy page-view log written by the previous site: read-only history
+    match /analytics/{id} {
+      allow read: if isAdmin();
+    }
+
+    // ---------------- Public analytics (create-only) ----------------
+    match /pageViews/{viewId} {
+      allow read: if isAdmin();
+      allow create: if data().keys().hasOnly(['path', 'visitorId', 'referrer', 'createdAt'])
+        && data().keys().hasAll(['path', 'visitorId', 'createdAt'])
+        && isStr(data().path, 1, 200) && data().path.matches('^/.*')
+        && isVisitorId(data().visitorId)
+        && optStr('referrer', 300)
+        && data().createdAt == request.time;
+    }
+    match /visitors/{visitorId} {
+      allow read: if isAdmin();
+      allow create: if data().keys().hasOnly(['visitorId', 'firstSeen', 'lang', 'screen'])
+        && data().keys().hasAll(['visitorId', 'firstSeen'])
+        && isVisitorId(visitorId)
+        && data().visitorId == visitorId
+        && data().firstSeen == request.time
+        && optStr('lang', 20)
+        && optStr('screen', 20);
+    }
+    match /projectLikes/{docId} {
+      allow read: if isAdmin();
+      allow create: if validCounter(docId, 'projectId');
+    }
+    match /projectViews/{docId} {
+      allow read: if isAdmin();
+      allow create: if validCounter(docId, 'projectId');
+    }
+    match /resumeDownloads/{docId} {
+      allow read: if isAdmin();
+      allow create: if validCounter(docId, 'resumeId');
     }
   }
 }

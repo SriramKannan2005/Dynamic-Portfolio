@@ -1,76 +1,391 @@
 {
   "1": {
-      "title": "Smart-Exam-Evaluator",
-      "description": "An AI-powered exam evaluation system that automates grading of handwritten multiple-choice answer sheets using Google Gemini, Flask, and OpenCV. It enables educators to set up tests, process scanned answer sheets, and generate detailed Excel-based performance reports. The platform supports real-time analysis, consolidated reporting, and an intuitive frontend dashboard for seamless test management.",
-      "techStack": ["Flask", "Google Gemini API", "OpenCV", "JavaScript", "HTML", "CSS", "OpenPyXL", "Pandas", "Machine Learning"],
-      "github": "https://github.com/SriramKannan2005/Smart-Exam-Evaluvator",
-      "video": "assets/videos/smart.mp4",
-      "image": "assets/images/projects/project1.png",
-      "category": "ai",
-      "icon": "fas fa-robot"
+    "title": "Smart Exam Evaluator",
+    "hook": "Grades handwritten MCQ answer sheets in seconds.",
+    "description": "Reads scanned, handwritten multiple-choice answer sheets with Gemini OCR and OpenCV, scores them against the key, and exports per-student and consolidated Excel reports.",
+    "techStack": [
+      "Flask",
+      "Gemini",
+      "OpenCV",
+      "OpenPyXL"
+    ],
+    "github": "https://github.com/SriramKannan2005/Smart-Exam-Evaluvator",
+    "video": "/assets/videos/smart.mp4",
+    "image": "/assets/images/projects/project1.png",
+    "category": "ai",
+    "icon": "fas fa-robot",
+    "featured": true,
+    "order": 4,
+    "links": {
+      "github": "https://github.com/SriramKannan2005/Smart-Exam-Evaluvator"
+    },
+    "poster": {
+      "hueA": 210,
+      "hueB": 160,
+      "shape": "cubes"
+    }
   },
   "2": {
-      "title": "GenAI Multi-Document Intelligence System",
-      "description": "An advanced AI-powered document analysis platform that enables users to upload, analyze, and query multiple documents simultaneously. The system leverages Generative AI and Natural Language Processing to extract contextual insights, provide precise citations, and deliver intelligent responses with real-time analytics through interactive visualizations.",
-      "techStack": ["HTML", "CSS", "JavaScript", "Chart.js", "Generative AI", "NLP", "Flask", "Google Gemini API", "Machine Learning"],
-      "github": "https://github.com/SriramKannan2005/Info-Nexus",
-      "video": "assets/videos/doc.mp4",
-      "image": "assets/images/projects/project2.png",
-      "category": "ai",
-      "icon": "fas fa-file-alt"
+    "title": "Info-Nexus",
+    "hook": "GenAI multi-document intelligence with cited answers.",
+    "description": "Upload many documents and query them together. Answers come back with citations to the source passages, alongside live analytics on the document set.",
+    "techStack": [
+      "Flask",
+      "Gemini API",
+      "FAISS",
+      "LangChain",
+      "Chart.js"
+    ],
+    "github": "https://github.com/SriramKannan2005/Info-Nexus",
+    "video": "/assets/videos/doc.mp4",
+    "image": "/assets/images/projects/project2.png",
+    "category": "ai",
+    "icon": "fas fa-file-alt",
+    "featured": true,
+    "order": 3,
+    "links": {
+      "github": "https://github.com/SriramKannan2005/Info-Nexus"
+    },
+    "poster": {
+      "hueA": 265,
+      "hueB": 320,
+      "shape": "sphere"
+    }
   },
   "3": {
-      "title": "CineHome+ | AI-Powered Personal Cinema",
-      "description": "An intelligent, locally hosted OTT-style platform that transforms your personal video library into an immersive cinema experience. CineHome+ integrates gesture-based video controls, AI-powered chat assistance, and user-adaptive recommendations using the Gemini API. It supports video streaming, watch history, and real-time interactions for a seamless home-theater experience.",
-      "techStack": ["HTML", "CSS", "JavaScript", "Flask", "MediaPipe", "OpenCV", "Google Gemini API", "AI Chatbot", "Gesture Recognition", "Computer Vision"],
-      "github": "https://github.com/SriramKannan2005/media-player",
-      "video": "assets/videos/me.mp4",
-      "image": "assets/images/projects/project3.png",
-      "category": "ai",
-      "icon": "fas fa-film"
+    "title": "CineHome+",
+    "hook": "A local OTT-style cinema you control with hand gestures.",
+    "description": "Turns a personal video library into an OTT-style platform with MediaPipe gesture controls, an AI chat assistant and recommendations powered by Gemini 2.5 Flash.",
+    "techStack": [
+      "Flask",
+      "MediaPipe",
+      "OpenCV",
+      "Gemini 2.5 Flash",
+      "JavaScript"
+    ],
+    "github": "https://github.com/SriramKannan2005/media-player",
+    "video": "/assets/videos/me.mp4",
+    "image": "/assets/images/projects/project3.png",
+    "category": "ai",
+    "icon": "fas fa-film",
+    "featured": true,
+    "order": 5,
+    "links": {
+      "github": "https://github.com/SriramKannan2005/media-player"
+    },
+    "poster": {
+      "hueA": 350,
+      "hueB": 30,
+      "shape": "knot"
+    }
   },
   "4": {
-      "title": "The Chai Time POS",
-      "description": "A Point of Sale (POS) system designed for chai shops and small food businesses. Features include order management, real-time billing, sales tracking, and a clean, intuitive interface for quick service. Built with vanilla JavaScript for fast, dependency-free operation.",
-      "techStack": ["HTML", "CSS", "JavaScript"],
+    "title": "The Chai Time POS",
+    "hook": "Point-of-sale for a chai shop, in vanilla JS.",
+    "description": "Order management, real-time billing and sales tracking for small food businesses. Vanilla JavaScript front end with Firebase.",
+    "techStack": [
+      "JavaScript",
+      "HTML",
+      "CSS",
+      "Firebase"
+    ],
+    "github": "https://github.com/SriramKannan2005/The-Chai-Time-POS",
+    "video": "/assets/videos/project4.mp4",
+    "image": "/assets/images/projects/project4.png",
+    "category": "web",
+    "icon": "fas fa-mug-hot",
+    "iconColor": [
+      "#f59e0b",
+      "#d97706"
+    ],
+    "featured": false,
+    "order": 6,
+    "links": {
       "github": "https://github.com/SriramKannan2005/The-Chai-Time-POS",
-      "video": "assets/videos/project4.mp4",
-      "image": "assets/images/projects/project4.png",
-      "category": "web",
-      "icon": "fas fa-mug-hot",
-      "iconColor": ["#f59e0b", "#d97706"]
+      "demo": "https://chai-time.netlify.app"
+    },
+    "poster": {
+      "hueA": 35,
+      "hueB": 12,
+      "shape": "ico"
+    }
   },
   "5": {
-      "title": "Wedding Flowers Delivery App",
-      "description": "A full-stack e-commerce platform for wedding flower delivery services. Features secure JWT authentication, product catalog with categories and pricing, flower customization (types & colors), bulk ordering with status tracking, auto-generated PDF bills, and a comprehensive admin dashboard for inventory and order management.",
-      "techStack": ["React", "Spring Boot", "MySQL", "JWT", "Spring Security", "Vite"],
-      "github": "https://github.com/SriramKannan2005/flower-delivery-application-frontend-",
-      "video": "assets/videos/project5.mp4",
-      "image": "assets/images/projects/project5.png",
-      "category": "web",
-      "icon": "fas fa-seedling",
-      "iconColor": ["#ec4899", "#f43f5e"]
+    "title": "Wedding Flowers Delivery App",
+    "hook": "Full-stack flower ordering with JWT auth and an admin dashboard.",
+    "description": "Catalogue, customisation, bulk orders with status tracking and PDF bills. React front end on a Spring Boot + MySQL API secured with JWT.",
+    "techStack": [
+      "React",
+      "Spring Boot",
+      "MySQL",
+      "JWT"
+    ],
+    "github": "https://github.com/SriramKannan2005/flower-delivery-application-frontend-",
+    "video": "/assets/videos/project5.mp4",
+    "image": "/assets/images/projects/project5.png",
+    "category": "web",
+    "icon": "fas fa-seedling",
+    "iconColor": [
+      "#ec4899",
+      "#f43f5e"
+    ],
+    "featured": false,
+    "order": 7,
+    "links": {
+      "github": "https://github.com/SriramKannan2005/flower-delivery-application-frontend-"
+    },
+    "poster": {
+      "hueA": 320,
+      "hueB": 285,
+      "shape": "knot"
+    }
   },
   "6": {
-      "title": "Job Analytics Dashboard",
-      "description": "An end-to-end data analysis and visualization project built using the Job Descriptions Dataset from Kaggle. Features interactive filter-driven insights across salary, geography, qualifications, company size, work type, and job portals. Includes extensive data cleaning, salary parsing, experience extraction, and geospatial mapping.",
-      "techStack": ["Python", "Jupyter Notebook", "Data Visualization", "Pandas", "Machine Learning"],
-      "github": "https://github.com/SriramKannan2005/Job-Analytics-Dashboard",
-      "video": "assets/videos/project6.mp4",
-      "image": "assets/images/projects/project6.png",
-      "category": "ml",
-      "icon": "fas fa-chart-bar",
-      "iconColor": ["#3b82f6", "#1d4ed8"]
+    "title": "Job Analytics Dashboard",
+    "hook": "Geospatial and salary analytics over a large job-postings dataset.",
+    "description": "Cleaning, salary parsing and experience extraction in Python/Pandas, with filter-driven geospatial and salary views. Built during the NullClass internship.",
+    "techStack": [
+      "Python",
+      "Pandas",
+      "Jupyter",
+      "Tableau"
+    ],
+    "github": "https://github.com/SriramKannan2005/Job-Analytics-Dashboard",
+    "video": "/assets/videos/project6.mp4",
+    "image": "/assets/images/projects/project6.png",
+    "category": "ml",
+    "icon": "fas fa-chart-bar",
+    "iconColor": [
+      "#3b82f6",
+      "#1d4ed8"
+    ],
+    "featured": false,
+    "order": 8,
+    "links": {
+      "github": "https://github.com/SriramKannan2005/Job-Analytics-Dashboard"
+    },
+    "poster": {
+      "hueA": 180,
+      "hueB": 225,
+      "shape": "sphere"
+    }
   },
   "7": {
-      "title": "Digital Clock",
-      "description": "A sleek, responsive digital clock application featuring real-time display with hours, minutes, and seconds. Supports dark and light themes with smooth CSS animations for an elegant user experience.",
-      "techStack": ["HTML", "CSS", "JavaScript"],
-      "github": "https://github.com/SriramKannan2005/Digital-Clock",
-      "video": "assets/videos/project7.mp4",
-      "image": "assets/images/projects/project7.png",
-      "category": "web",
-      "icon": "fas fa-clock",
-      "iconColor": ["#10b981", "#059669"]
+    "title": "Digital Clock",
+    "hook": "A themeable real-time clock with smooth CSS animation.",
+    "description": "Hours, minutes and seconds in real time, with dark and light themes and CSS transitions.",
+    "techStack": [
+      "HTML",
+      "CSS",
+      "JavaScript"
+    ],
+    "github": "https://github.com/SriramKannan2005/Digital-Clock",
+    "video": "/assets/videos/project7.mp4",
+    "image": "/assets/images/projects/project7.png",
+    "category": "web",
+    "icon": "fas fa-clock",
+    "iconColor": [
+      "#10b981",
+      "#059669"
+    ],
+    "featured": false,
+    "order": 12,
+    "links": {
+      "github": "https://github.com/SriramKannan2005/Digital-Clock"
+    },
+    "poster": {
+      "hueA": 195,
+      "hueB": 255,
+      "shape": "ico"
+    }
+  },
+  "forensix": {
+    "title": "ForensiX AI",
+    "hook": "Multi-modal forensics that explains why an image or document looks tampered.",
+    "description": "LLM-augmented forensic system that detects tampered and AI-generated images and documents. A ResNet18 detector is fused with ELA, noise, frequency, EXIF and Grad-CAM signals, and three local specialist LLMs reconcile the evidence into one verdict.",
+    "techStack": [
+      "PyTorch",
+      "FastAPI",
+      "React",
+      "Vite",
+      "TypeScript",
+      "Ollama",
+      "OpenCV"
+    ],
+    "github": "https://github.com/SriramKannan2005/Forensix-ai",
+    "video": "",
+    "image": "",
+    "category": "ai",
+    "icon": "fas fa-fingerprint",
+    "featured": true,
+    "order": 1,
+    "badge": "Flagship",
+    "poster": {
+      "hueA": 245,
+      "hueB": 190,
+      "shape": "ico"
+    },
+    "links": {
+      "github": "https://github.com/SriramKannan2005/Forensix-ai"
+    },
+    "caseStudy": {
+      "problem": "Edited photos, AI-generated images and doctored PDFs or Office files are now easy to make and hard to spot. A single classifier score says nothing about why a file is suspicious, so a reviewer cannot act on it.",
+      "pipeline": [
+        {
+          "title": "Input",
+          "detail": "Image or document upload"
+        },
+        {
+          "title": "ResNet18 detector",
+          "detail": "Real vs. AI-generated / tampered"
+        },
+        {
+          "title": "Forensic signals",
+          "detail": "ELA · noise · frequency · EXIF · Grad-CAM"
+        },
+        {
+          "title": "Document parsers",
+          "detail": "PDF · OOXML · legacy binary"
+        },
+        {
+          "title": "Specialist LLMs",
+          "detail": "llava · mistral · gemma via Ollama"
+        },
+        {
+          "title": "Verdict",
+          "detail": "Reconciled decision with cited evidence"
+        }
+      ],
+      "results": [
+        {
+          "value": 86.69,
+          "decimals": 2,
+          "suffix": "%",
+          "label": "Held-out accuracy (CIFAKE + CASIA v2)"
+        },
+        {
+          "value": 505,
+          "decimals": 0,
+          "suffix": "/505",
+          "label": "Forensic parser tests passing"
+        },
+        {
+          "value": 5,
+          "decimals": 0,
+          "suffix": "",
+          "label": "Forensic signals fused with the detector"
+        },
+        {
+          "value": 3,
+          "decimals": 0,
+          "suffix": "",
+          "label": "Local specialist LLMs, no cloud calls"
+        }
+      ]
+    }
+  },
+  "cardioscreen": {
+    "title": "CardioScreen",
+    "hook": "ECG screening and population analytics on one shared database.",
+    "description": "Multi-label cardiac screening from ECGs plus population analytics on PTB-XL (21,799 records). Macro ROC-AUC 0.910; a confidence gate routes 3.7% of cases to specialist review, and SHAP explains each prediction.",
+    "techStack": [
+      "Python",
+      "FastAPI",
+      "Streamlit",
+      "SQLite",
+      "SHAP"
+    ],
+    "github": "https://github.com/SriramKannan2005/HCDA-project",
+    "video": "",
+    "image": "",
+    "category": "ml",
+    "icon": "fas fa-heart-pulse",
+    "featured": true,
+    "order": 2,
+    "poster": {
+      "hueA": 330,
+      "hueB": 265,
+      "shape": "knot"
+    },
+    "links": {
+      "github": "https://github.com/SriramKannan2005/HCDA-project"
+    }
+  },
+  "churn": {
+    "title": "Customer Churn Prediction",
+    "hook": "Segment customers, predict churn, serve it over REST.",
+    "description": "K-Means customer segmentation feeding a Random Forest churn model, exposed through a Flask REST API. Capstone of The Developers Arena internship.",
+    "techStack": [
+      "Python",
+      "Scikit-learn",
+      "K-Means",
+      "Random Forest",
+      "Flask"
+    ],
+    "github": "https://github.com/SriramKannan2005/the_developer_arena_weekly_task_11",
+    "video": "",
+    "image": "",
+    "category": "ml",
+    "icon": "fas fa-users",
+    "featured": false,
+    "order": 9,
+    "poster": {
+      "hueA": 200,
+      "hueB": 150,
+      "shape": "sphere"
+    },
+    "links": {
+      "github": "https://github.com/SriramKannan2005/the_developer_arena_weekly_task_11"
+    }
+  },
+  "file-forge": {
+    "title": "File-Forge-AI",
+    "hook": "An AI-assisted file workspace on React + Vite.",
+    "description": "A React + Vite front end for working with files, with AI assistance built in. See the repository for the current feature set.",
+    "techStack": [
+      "React",
+      "Vite",
+      "JavaScript"
+    ],
+    "github": "https://github.com/SriramKannan2005/File-Forge-Ai",
+    "video": "",
+    "image": "",
+    "category": "web",
+    "icon": "fas fa-file",
+    "featured": false,
+    "order": 10,
+    "poster": {
+      "hueA": 25,
+      "hueB": 300,
+      "shape": "cubes"
+    },
+    "links": {
+      "github": "https://github.com/SriramKannan2005/File-Forge-Ai"
+    }
+  },
+  "vaibinox": {
+    "title": "VAIBINOX 2026",
+    "hook": "Event website for the VAIBINOX 2026 symposium.",
+    "description": "Responsive, component-based event website built with React, TypeScript and Tailwind CSS.",
+    "techStack": [
+      "React",
+      "TypeScript",
+      "Tailwind CSS"
+    ],
+    "github": "https://github.com/SriramKannan2005/Vaibinox-event-website-",
+    "video": "",
+    "image": "",
+    "category": "web",
+    "icon": "fas fa-calendar",
+    "featured": false,
+    "order": 11,
+    "poster": {
+      "hueA": 275,
+      "hueB": 210,
+      "shape": "ico"
+    },
+    "links": {
+      "github": "https://github.com/SriramKannan2005/Vaibinox-event-website-"
+    }
   }
 }

@@ -1,0 +1,157 @@
+/* Admin glassmorphism layer (loaded last).
+   1. A slowly drifting field of colour blobs behind everything (glass needs colour behind it).
+   2. Surface tokens become translucent inside the admin, so every panel turns see-through.
+   3. Real frosted blur (backdrop-filter) only on top-level panes, to keep scrolling smooth.
+   4. Popovers, dialogs, toasts and tooltips get a denser frost so text stays readable. */
+
+html.route-admin {
+  --glass: rgba(255, 255, 255, .055);
+  --glass-2: rgba(255, 255, 255, .04);
+  --glass-strong: rgba(16, 16, 32, .74);
+  --glass-edge: rgba(255, 255, 255, .11);
+  --glass-edge-hi: rgba(255, 255, 255, .22);
+  --glass-hi: inset 0 1px 0 rgba(255, 255, 255, .09), inset 0 0 0 1px rgba(255, 255, 255, .02);
+  --glass-shadow: 0 24px 60px -30px rgba(0, 0, 0, .75);
+  --blur: blur(22px) saturate(160%);
+}
+:root[data-theme="light"].route-admin {
+  --glass: rgba(255, 255, 255, .5);
+  --glass-2: rgba(255, 255, 255, .42);
+  --glass-strong: rgba(255, 255, 255, .86);
+  --glass-edge: rgba(255, 255, 255, .75);
+  --glass-edge-hi: rgba(255, 255, 255, .95);
+  --glass-hi: inset 0 1px 0 rgba(255, 255, 255, .9);
+  --glass-shadow: 0 24px 50px -30px rgba(30, 27, 75, .35);
+}
+
+/* ---------- 1. colour field ---------- */
+html.route-admin body { background: #06060f; }
+:root[data-theme="light"].route-admin body { background: #eef0ff; }
+html.route-admin body::before, html.route-admin body::after {
+  content: ""; position: fixed; z-index: -1; pointer-events: none; inset: -20vmax;
+}
+html.route-admin body::before {
+  background:
+    radial-gradient(26vmax 26vmax at 18% 22%, rgba(109, 106, 240, .55), transparent 70%),
+    radial-gradient(22vmax 22vmax at 82% 18%, rgba(23, 151, 184, .45), transparent 70%),
+    radial-gradient(24vmax 24vmax at 70% 80%, rgba(213, 81, 129, .38), transparent 70%),
+    radial-gradient(20vmax 20vmax at 25% 85%, rgba(25, 158, 112, .30), transparent 70%);
+  filter: blur(40px);
+  animation: glassDrift 38s ease-in-out infinite alternate;
+}
+html.route-admin body::after {
+  /* fine grain so large glass areas don't band */
+  inset: 0; opacity: .05; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+:root[data-theme="light"].route-admin body::before {
+  background:
+    radial-gradient(26vmax 26vmax at 18% 22%, rgba(129, 140, 248, .55), transparent 70%),
+    radial-gradient(22vmax 22vmax at 82% 18%, rgba(34, 211, 238, .45), transparent 70%),
+    radial-gradient(24vmax 24vmax at 70% 80%, rgba(244, 114, 182, .40), transparent 70%),
+    radial-gradient(20vmax 20vmax at 25% 85%, rgba(52, 211, 153, .32), transparent 70%);
+}
+@keyframes glassDrift {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+  50% { transform: translate3d(3vmax, -2vmax, 0) rotate(8deg) scale(1.06); }
+  100% { transform: translate3d(-3vmax, 2vmax, 0) rotate(-6deg) scale(1.02); }
+}
+html.reduced-motion.route-admin body::before { animation: none; }
+
+/* ---------- 2. translucent tokens inside the admin ---------- */
+html.route-admin .admin {
+  --surface: var(--glass);
+  --surface-solid: var(--glass);
+  --surface-2: var(--glass-2);
+  --line: rgba(255, 255, 255, .09);
+  --line-strong: rgba(255, 255, 255, .18);
+}
+:root[data-theme="light"].route-admin .admin { --line: rgba(79, 70, 229, .12); --line-strong: rgba(79, 70, 229, .24); }
+
+/* ---------- 3. frosted panes ---------- */
+html.route-admin :is(
+  .admin-bar, .admin-main .panel, .kpx-tile, .insight, .ov-hero, .mx-rail, .mx-listcol, .mx-reader,
+  .person, .msg-toolbar, .admin-main .glass, .ct-nav, .admin-head .seg, .bulk-bar.is-on
+) {
+  background: linear-gradient(145deg, rgba(255, 255, 255, .085), rgba(255, 255, 255, .025)) !important;
+  border: 1px solid var(--glass-edge) !important;
+  box-shadow: var(--glass-hi), var(--glass-shadow);
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+}
+:root[data-theme="light"].route-admin :is(
+  .admin-bar, .admin-main .panel, .kpx-tile, .insight, .ov-hero, .mx-rail, .mx-listcol, .mx-reader,
+  .person, .msg-toolbar, .admin-main .glass, .ct-nav, .admin-head .seg, .bulk-bar.is-on
+) {
+  background: linear-gradient(145deg, rgba(255, 255, 255, .62), rgba(255, 255, 255, .36)) !important;
+}
+/* a light edge that catches the top-left, like real glass */
+/* (.mx-reader is already sticky, which anchors the ::after edge; making it relative would shift it by its top offset) */
+html.route-admin :is(.admin-main .panel, .kpx-tile, .ov-hero, .person) { position: relative; }
+html.route-admin :is(.admin-main .panel, .kpx-tile, .ov-hero, .mx-reader, .person)::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; padding: 1px;
+  background: linear-gradient(135deg, var(--glass-edge-hi), transparent 35%, transparent 70%, rgba(255, 255, 255, .06));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+.ov-hero::after { z-index: 0; }
+html.route-admin .admin-main .panel:hover, html.route-admin .kpx-tile:hover { border-color: var(--glass-edge-hi) !important; }
+/* keep the coloured tint that identifies each KPI / hero */
+html.route-admin .kpx-tile { background: radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--k) 30%, transparent), transparent 60%), linear-gradient(145deg, rgba(255, 255, 255, .085), rgba(255, 255, 255, .02)) !important; }
+:root[data-theme="light"].route-admin .kpx-tile { background: radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--k) 22%, transparent), transparent 60%), linear-gradient(145deg, rgba(255, 255, 255, .66), rgba(255, 255, 255, .38)) !important; }
+html.route-admin .ov-hero {
+  background: radial-gradient(80% 120% at 0% 0%, rgba(var(--mag), .32), transparent 60%), radial-gradient(60% 100% at 100% 100%, rgba(34, 211, 238, .2), transparent 60%),
+    linear-gradient(145deg, rgba(255, 255, 255, .09), rgba(255, 255, 255, .02)) !important;
+}
+
+/* nested cards: lighter glass, no extra blur */
+html.route-admin :is(.ov-queue li, .ov-action, .fmt-tile, .device-tile, .source, .spotlight, .status-list li, .podium-card, .sec-item, .mx-chip, .mx-dock-tools, .rv-tab, .tpl-item, .search, .dd-btn) {
+  border-color: var(--glass-edge);
+}
+html.route-admin .search, html.route-admin .dd-btn, html.route-admin .text-field input, html.route-admin .text-field textarea, html.route-admin .num-input, html.route-admin .badge-input {
+  background: rgba(255, 255, 255, .05);
+}
+:root[data-theme="light"].route-admin :is(.search, .dd-btn, .text-field input, .text-field textarea, .num-input, .badge-input) { background: rgba(255, 255, 255, .6); }
+
+/* sidebar: extra frost and a glowing active pill */
+html.route-admin .admin-bar { box-shadow: var(--glass-hi), 0 30px 70px -40px rgba(0, 0, 0, .9); }
+@media (max-width: 1099px) { html.route-admin .admin-bar { border-radius: 0 0 20px 20px; border-top: 0 !important; } }
+html.route-admin .admin-tab.is-active { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25), 0 10px 30px -12px rgba(var(--mag), 1); }
+
+/* the Messages reader dock sits on glass too */
+html.route-admin .mx-dock { background: linear-gradient(180deg, transparent, rgba(255, 255, 255, .03)); border-top-color: var(--glass-edge); }
+html.route-admin .mx-bubble { background: rgba(255, 255, 255, .06); backdrop-filter: none; }
+:root[data-theme="light"].route-admin .mx-bubble { background: rgba(255, 255, 255, .7); }
+html.route-admin .mx-bubble.is-me { background: linear-gradient(135deg, rgba(109, 106, 240, .45), rgba(23, 151, 184, .3)); border: 1px solid rgba(255, 255, 255, .14); }
+:root[data-theme="light"].route-admin .mx-bubble.is-me { background: linear-gradient(135deg, rgba(129, 140, 248, .35), rgba(34, 211, 238, .22)); }
+
+/* paper resumes stay paper, avatars stay solid */
+html.route-admin .paper { background: linear-gradient(180deg, #f8f8fc, #e9e9f3); }
+
+/* ---------- 4. popovers & overlays: denser frost ---------- */
+html.route-admin :is(.dd-menu, .toast, .traffic-tip, .cmdk, .cmdk-panel) {
+  background: var(--glass-strong) !important;
+  border: 1px solid var(--glass-edge) !important;
+  -webkit-backdrop-filter: blur(26px) saturate(170%); backdrop-filter: blur(26px) saturate(170%);
+  box-shadow: var(--glass-hi), 0 24px 60px -20px rgba(0, 0, 0, .7);
+}
+html.route-admin .modal-panel {
+  background: var(--glass-strong) !important;
+  border: 1px solid var(--glass-edge) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(170%); backdrop-filter: blur(28px) saturate(170%);
+  box-shadow: var(--glass-hi), 0 40px 90px -30px rgba(0, 0, 0, .8);
+}
+html.route-admin .modal-backdrop, html.route-admin .modal::before { -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+
+/* readability: muted text gets a touch more contrast on busy glass */
+html.route-admin .admin { --text-3: #9a9ab8; }
+:root[data-theme="light"].route-admin .admin { --text-3: #4f4f6b; }
+
+/* print and no-blur fallbacks */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  html.route-admin .admin { --glass: rgba(20, 20, 38, .92); --glass-2: rgba(32, 32, 56, .9); }
+  :root[data-theme="light"].route-admin .admin { --glass: rgba(255, 255, 255, .95); --glass-2: rgba(245, 245, 252, .95); }
+}
+@media print {
+  html.route-admin body::before, html.route-admin body::after { display: none; }
+  html.route-admin :is(.admin-main .panel, .kpx-tile, .ov-hero)::after { display: none; }
+}

@@ -1,0 +1,43 @@
+{
+  "name": "sriram-kannan-portfolio",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:emulators": "firebase emulators:start --only auth,firestore --project demo-portfolio",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-portfolio \"node tests/rules.test.mjs\"",
+    "test:functions": "tsx tests/functions.test.ts",
+    "check:secrets": "node scripts/check-secrets.mjs",
+    "admin:claim": "node scripts/set-admin-claim.mjs"
+  },
+  "dependencies": {
+    "chart.js": "4.4.6",
+    "firebase": "^13.0.0",
+    "jose": "^5.9.6",
+    "pdfjs-dist": "4.10.38",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-router-dom": "6.28.0",
+    "three": "0.160.1",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "6.0.0",
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "@types/three": "0.160.0",
+    "@vitejs/plugin-react": "4.3.4",
+    "firebase-admin": "^13.0.0",
+    "firebase-tools": "^15.0.0",
+    "tsx": "4.19.2",
+    "typescript": "5.6.3",
+    "vite": "5.4.11"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
