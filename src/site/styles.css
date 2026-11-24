@@ -278,19 +278,18 @@ html.has-cursor input, html.has-cursor textarea { cursor: text; }
 .subhead::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line-strong), transparent); }
 
 /* ---------- 1. Hero ---------- */
-.hero { position: relative; height: 175vh; }
+/* One ordinary screen: no pinned scroll-out stretch (it showed an empty scene and made
+   scrolling into About heavy). min-height so tall content on short screens never clips. */
+.hero { position: relative; }
 .hero-pin {
-  position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; align-items: center;
+  position: relative; min-height: 86vh; min-height: 86svh; display: flex; align-items: flex-end;
+  padding-bottom: clamp(16px, 3vh, 36px); /* content sits low in the hero, close to About */
   perspective: 900px; overflow: hidden;
 }
-.hero-inner {
-  --hp: 0;
-  transform: translate3d(0, calc(var(--hp) * -40px), calc(var(--hp) * -520px));
-  opacity: calc(1 - var(--hp) * 1.35);
-  filter: blur(calc(var(--hp) * 6px));
-  will-change: transform, opacity;
-  padding-top: var(--nav-h);
-}
+/* transform/opacity are set while scrolling out of the hero (Site.tsx): compositor-only */
+.hero-inner { padding-top: var(--nav-h); padding-bottom: 8px; will-change: transform, opacity; }
+/* Tighter join between the hero and About (the hero already fills the first screen) */
+#about { padding-top: clamp(28px, 4vw, 56px); }
 .eyebrow { display: inline-flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-2); letter-spacing: .04em;
   padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); margin-bottom: 28px;
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
@@ -802,6 +801,14 @@ html.reduced-motion .ic-motion-off { display: block; }
 
 }
 @media (max-width: 900px) {
+  /* Phones and tablets: no backdrop blur on content cards. Each blurred card is re-blurred
+     every frame while scrolling, which is what makes phones stutter; a denser translucent
+     fill looks nearly the same. (The floating nav bar keeps its blur: it's one small layer.) */
+  .glass, .eyebrow, .ach, .cert, .edu-card {
+    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+  }
+  .glass, .eyebrow { background: color-mix(in srgb, var(--surface-solid) 90%, transparent); }
+
   /* Phones and tablets: the nav bar floats at the bottom, within thumb reach */
   :root { --dock-h: 62px; --dock-gap: calc(10px + env(safe-area-inset-bottom)); --dock-clear: calc(var(--dock-h) + var(--dock-gap) + 12px); }
   html { scroll-padding-top: 16px; }
@@ -816,6 +823,9 @@ html.reduced-motion .ic-motion-off { display: block; }
   .nav .icon-btn { width: 44px; height: 44px; border-radius: 14px; }
   .nav-menu-btn { background: var(--grad); color: #fff; border-color: transparent; }
   .hero-inner { padding-top: 0; }
+  /* phones: the nav is at the bottom, so start the hero content near the top instead of
+     anchoring it low (which left an empty band above it) */
+  .hero-pin { min-height: 0; align-items: flex-start; padding-top: max(56px, 12vh); }
   .footer { padding-bottom: var(--dock-clear); }
   .to-top { right: 14px; bottom: var(--dock-clear); }
   html .announce, html .motion-note { bottom: var(--dock-clear); }

@@ -8,6 +8,7 @@ import {
 } from 'firebase/firestore';
 import type { SiteOverrides } from '../shared/siteContent';
 import { getDb, getAuthInstance } from '../shared/firebase';
+import { demo, demoActive, demoAnalytics, demoCountBy } from './demo';
 
 export interface Message {
   id: string;
@@ -62,6 +63,7 @@ const db = (): Promise<Firestore> => getDb();
 
 /* ---------------- messages ---------------- */
 export async function fetchMessages(): Promise<Message[]> {
+  if (demoActive()) return demo.fetchMessages();
   const d = await db();
   const [snap, replied] = await Promise.all([
     getDocs(query(collection(d, 'messages'), orderBy('timestamp', 'desc'), limit(1000))),
@@ -85,6 +87,7 @@ export function subscribeMessages(
   onError: (e: Error) => void,
   onNew: (m: Message[]) => void,
 ): () => void {
+  if (demoActive()) return demo.subscribeMessages(onData, onError, onNew);
   let unsub = () => {};
   let cancelled = false;
   let unsubReplies = () => {};
@@ -125,6 +128,7 @@ export function subscribeMessages(
 
 /** Batched field updates (read / starred / archived) on many messages. */
 export async function updateMessages(ids: string[], patch: MessagePatch) {
+  if (demoActive()) return demo.updateMessages(ids, patch);
   const d = await db();
   const data = Object.fromEntries(Object.entries(patch).map(([k, v]) => [k, v === null ? deleteField() : v]));
   for (let i = 0; i < ids.length; i += 450) {
@@ -134,6 +138,7 @@ export async function updateMessages(ids: string[], patch: MessagePatch) {
   }
 }
 export async function deleteMessages(ids: string[]) {
+  if (demoActive()) return demo.deleteMessages(ids);
   const d = await db();
   for (let i = 0; i < ids.length; i += 450) {
     const batch = writeBatch(d);
@@ -142,14 +147,17 @@ export async function deleteMessages(ids: string[]) {
   }
 }
 export async function setNote(id: string, note: string) {
+  if (demoActive()) return demo.setNote(id, note);
   const v = note.trim().slice(0, 2000);
   await updateDoc(doc(await db(), 'messages', id), { note: v ? v : deleteField() });
 }
 
 export async function setRead(id: string, read: boolean) {
+  if (demoActive()) return demo.updateMessages([id], { read });
   await updateDoc(doc(await db(), 'messages', id), { read });
 }
 export async function markAllRead(ids: string[]) {
+  if (demoActive()) return demo.updateMessages(ids, { read: true });
   const d = await db();
   for (let i = 0; i < ids.length; i += 450) {
     const batch = writeBatch(d);
@@ -158,16 +166,19 @@ export async function markAllRead(ids: string[]) {
   }
 }
 export async function deleteMessage(id: string) {
+  if (demoActive()) return demo.deleteMessages([id]);
   await deleteDoc(doc(await db(), 'messages', id));
 }
 
 /* ---------------- replies ---------------- */
 export async function fetchReplies(messageId: string): Promise<Reply[]> {
+  if (demoActive()) return demo.fetchReplies(messageId);
   const snap = await getDocs(query(collection(await db(), 'replies'), where('messageId', '==', messageId)));
   return snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Reply, 'id'>) }))
     .sort((a, b) => String(a.sentAt).localeCompare(String(b.sentAt)));
 }
 export async function recordReply(m: Message, subject: string, body: string, via: 'apps-script' | 'gmail') {
+  if (demoActive()) return demo.recordReply(m, subject, body, via);
   const d = await db();
   await addDoc(collection(d, 'replies'), {
     messageId: m.id, to: m.email, toName: m.name, subject, replyContent: body,
@@ -190,6 +201,7 @@ export interface AnalyticsData {
 }
 
 export async function fetchAnalytics(): Promise<AnalyticsData> {
+  if (demoActive()) return demoAnalytics();
   const d = await db();
   const LEGACY_TYPES = ['pageview', 'page_view'];
   const since = Timestamp.fromDate(startOfDay(6));
@@ -242,6 +254,7 @@ export async function fetchAnalytics(): Promise<AnalyticsData> {
 }
 
 export async function countBy(collectionName: 'projectLikes' | 'projectViews' | 'resumeDownloads', field: 'projectId' | 'resumeId', ids: string[]): Promise<Record<string, number>> {
+  if (demoActive()) return demoCountBy(collectionName, field, ids);
   const d = await db();
   const entries = await Promise.all(ids.map(async (id) => {
     const s = await getCountFromServer(query(collection(d, collectionName), where(field, '==', id)));
@@ -253,15 +266,18 @@ export async function countBy(collectionName: 'projectLikes' | 'projectViews' | 
 /* ---------------- sheets sync state ---------------- */
 export interface SyncState { lastSync?: string; lastCount?: number; autoSync?: boolean }
 export async function getSyncState(): Promise<SyncState> {
+  if (demoActive()) return demo.getSyncState();
   const s = await getDoc(doc(await db(), 'admin', 'sheetsSync'));
   return (s.data() as SyncState) ?? {};
 }
 export async function saveSyncState(patch: SyncState) {
+  if (demoActive()) return demo.saveSyncState(patch);
   await setDoc(doc(await db(), 'admin', 'sheetsSync'), patch, { merge: true });
 }
 
 /* ---------------- Netlify Functions ---------------- */
 export async function callFunction<T>(name: 'ai-draft' | 'send-reply' | 'sheets-sync' | 'status', init: { method?: 'GET' | 'POST'; body?: unknown } = {}): Promise<T> {
+  if (demoActive()) return demo.callFunction(name, init) as Promise<T>;
   const auth = await getAuthInstance();
   const user = auth.currentUser;
   if (!user) throw new Error('Not signed in.');
@@ -298,6 +314,7 @@ export const toRows = (list: Message[]) => list.map((m) => ({
 /* ---------------- audit log (append-only, see firestore.rules) ---------------- */
 export interface AuditEntry { id: string; action: string; detail: string; at?: Timestamp; by: string; email?: string }
 export async function logAction(action: string, detail: string): Promise<void> {
+  if (demoActive()) return demo.logAction(action, detail);
   try {
     const auth = await getAuthInstance();
     const u = auth.currentUser;
@@ -308,6 +325,7 @@ export async function logAction(action: string, detail: string): Promise<void> {
   } catch { /* the action itself already succeeded; never block on the log */ }
 }
 export async function fetchAudit(n = 100): Promise<AuditEntry[]> {
+  if (demoActive()) return demo.fetchAudit(n);
   const snap = await getDocs(query(collection(await db(), 'auditLog'), orderBy('at', 'desc'), limit(n)));
   return snap.docs.map((x) => ({ id: x.id, ...(x.data() as Omit<AuditEntry, 'id'>) }));
 }
@@ -335,11 +353,13 @@ Best regards,
 Sriram Kannan` },
 ];
 export async function getTemplates(): Promise<Template[]> {
+  if (demoActive()) return demo.getTemplates(DEFAULT_TEMPLATES);
   const s = await getDoc(doc(await db(), 'admin', 'templates'));
   const items = (s.data()?.items as Template[] | undefined);
   return Array.isArray(items) ? items : DEFAULT_TEMPLATES;
 }
 export async function saveTemplates(items: Template[]) {
+  if (demoActive()) return demo.saveTemplates(items);
   const clean = items.slice(0, 50).map((t) => ({ id: t.id.slice(0, 40), name: t.name.trim().slice(0, 80) || 'Untitled', body: t.body.slice(0, 5000) }));
   await setDoc(doc(await db(), 'admin', 'templates'), { items: clean });
 }
@@ -350,10 +370,12 @@ export const fillTemplate = (body: string, m: Pick<Message, 'name' | 'email'>) =
 
 /* ---------------- site content overrides (siteContent/live) ---------------- */
 export async function getOverrides(): Promise<SiteOverrides | null> {
+  if (demoActive()) return demo.getOverrides();
   const s = await getDoc(doc(await db(), 'siteContent', 'live'));
   return s.exists() ? (s.data() as SiteOverrides) : null;
 }
 export async function saveOverrides(o: Omit<SiteOverrides, 'updatedAt' | 'updatedBy'>): Promise<SiteOverrides> {
+  if (demoActive()) return demo.saveOverrides(o);
   const auth = await getAuthInstance();
   const uid = auth.currentUser?.uid;
   if (!uid) throw new Error('Not signed in.');
@@ -362,6 +384,7 @@ export async function saveOverrides(o: Omit<SiteOverrides, 'updatedAt' | 'update
   return data;
 }
 export async function resetOverrides() {
+  if (demoActive()) return demo.resetOverrides();
   await deleteDoc(doc(await db(), 'siteContent', 'live'));
 }
 
@@ -370,22 +393,26 @@ export interface Blocked { id: string; email: string; reason?: string; at?: stri
 /** Doc id is the lowercased address: the rules check exists(blockedSenders/<email.lower()>). */
 export const blockKey = (email: string) => email.trim().toLowerCase();
 export async function blockSender(email: string, reason = '') {
+  if (demoActive()) return demo.blockSender(email, reason);
   const key = blockKey(email);
   await setDoc(doc(await db(), 'blockedSenders', key), { email: key, reason: reason.slice(0, 200), at: new Date().toISOString() });
   logAction('sender.block', `Blocked ${key}${reason ? `: ${reason}` : ''}`);
 }
 export async function unblockSender(email: string) {
+  if (demoActive()) return demo.unblockSender(email);
   const key = blockKey(email);
   await deleteDoc(doc(await db(), 'blockedSenders', key));
   logAction('sender.unblock', `Unblocked ${key}`);
 }
 export async function fetchBlocked(): Promise<Blocked[]> {
+  if (demoActive()) return demo.fetchBlocked();
   const snap = await getDocs(collection(await db(), 'blockedSenders'));
   return snap.docs.map((x) => ({ id: x.id, ...(x.data() as Omit<Blocked, 'id'>) })).sort((a, b) => String(b.at).localeCompare(String(a.at)));
 }
 
 /* ---------------- full backup ---------------- */
 export async function fetchBackup() {
+  if (demoActive()) return demo.fetchBackup();
   const d = await db();
   const all = async (name: string) => getDocs(collection(d, name)).then((s) => s.docs.map((x) => ({ id: x.id, ...x.data() }))).catch(() => null);
   const one = async (c: string, id: string) => getDoc(doc(d, c, id)).then((s) => (s.exists() ? s.data() : null)).catch(() => null);

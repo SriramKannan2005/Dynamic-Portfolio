@@ -13,6 +13,7 @@ import { content } from '../site/content';
 import { AdminDock } from './AdminMobile';
 import { ProfileMark } from './ProfileMark';
 import { AdminErrorBoundary } from './ErrorBoundary';
+import { DEMO_USER, demoActive, endDemo, startDemo } from './demo';
 import { getAuthInstance, adminUids, firebaseConfigured, useEmulators } from '../shared/firebase';
 import { ToastProvider, useToast } from './feedback';
 import { Login } from './Login';
@@ -247,11 +248,15 @@ function SetupScreen({ user, onSignOut }: { user: User; onSignOut: () => void })
 
 export default function AdminApp() {
   useNoIndex();
+  // Demo mode: sample data only, no sign-in, no Firebase (see demo.ts)
+  const [inDemo, setInDemo] = useState(demoActive);
   const [status, setStatus] = useState<Status>(firebaseConfigured ? 'loading' : 'misconfigured');
   const [user, setUser] = useState<User | null>(null);
+  const enterDemo = useCallback(() => { startDemo(); setInDemo(true); }, []);
+  const exitDemo = useCallback(() => { endDemo(); window.location.assign('/admin'); }, []);
 
   useEffect(() => {
-    if (!firebaseConfigured) return;
+    if (!firebaseConfigured || inDemo) return;
     let unsub = () => {};
     let alive = true;
     (async () => {
@@ -272,17 +277,30 @@ export default function AdminApp() {
       });
     })();
     return () => { alive = false; unsub(); };
-  }, []);
+  }, [inDemo]);
 
   const signOutNow = useCallback(async () => {
     try { sessionStorage.removeItem('sk-admin-signin-logged'); } catch { /* blocked */ }
+    if (demoActive()) { exitDemo(); return; }
     const auth = await getAuthInstance();
     const { signOut } = await import('firebase/auth');
     await signOut(auth);
-  }, []);
+  }, [exitDemo]);
 
   let body;
-  if (status === 'misconfigured') {
+  if (inDemo) {
+    body = (
+      <AdminErrorBoundary>
+        <InboxProvider>
+          <p className="demo-banner" role="status">
+            <b>Demo mode</b><span> · sample data · nothing is saved, sent or published</span>
+            <button type="button" onClick={exitDemo}>Exit demo</button>
+          </p>
+          <Dashboard user={DEMO_USER as unknown as User} onSignOut={exitDemo} />
+        </InboxProvider>
+      </AdminErrorBoundary>
+    );
+  } else if (status === 'misconfigured') {
     body = (
       <div className="admin-center"><div className="login-card glass">
         <h1>Admin unavailable</h1>
@@ -306,7 +324,7 @@ export default function AdminApp() {
   } else if (status === 'setup' && user) {
     body = <SetupScreen user={user} onSignOut={signOutNow} />;
   } else {
-    body = <Login />;
+    body = <Login onDemo={enterDemo} />;
   }
 
   return (

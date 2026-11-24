@@ -425,17 +425,28 @@ export async function createScene(canvas, opts = {}) {
   window.addEventListener('pointerdown', onDown, { passive: true });
 
   /* ---- scroll state ---- */
+  // Zig-zag camera: each section has an anchor scroll position (its top settled near the
+  // top of the screen; the hero's is 0). Between two anchors the camera glides from one
+  // section's keyframe to the next, so the motion is continuous whatever the section
+  // heights. Sections hold their pose for the first part of the way (HOLD); the hero
+  // doesn't, so leaving it is one long glide, like the original pinned hero.
+  const HOLD = 0.3;
   function scrollState() {
     const y = window.scrollY;
-    const centre = y + vh * 0.5;
+    let prev = 0;
+    const anchors = sections.map((s, k) => (prev = k === 0 ? 0 : Math.max(prev + 1, s.top - vh * 0.15)));
     let i = 0;
-    for (let s = 0; s < sections.length; s++) if (centre >= sections[s].top) i = s;
-    const sec = sections[i] || { top: 0, height: 1 };
-    const f = clamp((centre - sec.top) / sec.height, 0, 1);
-    const j = Math.min(i + 1, KEYS.length - 1);
-    const t = i === j ? 0 : smooth(clamp((f - 0.5) / 0.5, 0, 1));
+    for (let k = 0; k < anchors.length; k++) if (y >= anchors[k]) i = k;
+    const j = Math.min(i + 1, KEYS.length - 1, anchors.length - 1);
+    let t = 0;
+    if (j > i) {
+      const p = clamp((y - anchors[i]) / Math.max(1, anchors[j] - anchors[i]), 0, 1);
+      const hold = i === 0 ? 0 : HOLD;
+      t = smooth(clamp((p - hold) / (1 - hold), 0, 1));
+    }
     const hero = sections[0];
-    const heroP = hero ? clamp(y / Math.max(1, hero.height - vh), 0, 1) : 0;
+    // progress through the (one-screen) hero: 0 at the top, 1 once it has scrolled away
+    const heroP = hero ? clamp(y / Math.max(1, hero.height), 0, 1) : 0;
     return { i, j, t, heroP };
   }
 

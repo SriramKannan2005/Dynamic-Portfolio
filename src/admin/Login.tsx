@@ -13,12 +13,21 @@ const MESSAGES: Record<string, string> = {
   'auth/network-request-failed': 'Network error. Check your connection.',
 };
 
-export function Login() {
+export function Login({ onDemo }: { onDemo?: () => void } = {}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [badField, setBadField] = useState<'' | 'email' | 'password'>('');
+  // Hidden demo entry: 6 quick clicks / taps on the profile photo (each within 700ms)
+  const taps = useRef({ n: 0, last: 0 });
+  const tapPhoto = () => {
+    if (!onDemo) return;
+    const now = Date.now();
+    taps.current.n = now - taps.current.last <= 700 ? taps.current.n + 1 : 1;
+    taps.current.last = now;
+    if (taps.current.n >= 6) { taps.current.n = 0; onDemo(); }
+  };
   // Set by the idle timer in AdminApp; shown once, then cleared
   const [idleOut] = useState(() => {
     try { const v = sessionStorage.getItem('sk-admin-idle-out'); sessionStorage.removeItem('sk-admin-idle-out'); return v; } catch { return null; }
@@ -63,7 +72,7 @@ export function Login() {
   return (
     <main className="admin-center" id="main">
       <form className="login-card glass" onSubmit={submit} noValidate aria-labelledby="loginTitle">
-        <ProfileMark />
+        <span className="login-mark" onClick={tapPhoto} aria-hidden="true"><ProfileMark /></span>
         <h1 id="loginTitle">Admin sign-in</h1>
         <p className="login-sub">Restricted area. Sessions end when you close the tab.</p>
         {idleOut && <p className="login-note" role="status">You were signed out after {idleOut} minutes of inactivity.</p>}

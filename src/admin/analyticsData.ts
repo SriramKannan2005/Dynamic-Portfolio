@@ -8,6 +8,7 @@
  */
 import { collection, getDocs, query, where, orderBy, startAfter, limit, Timestamp, type QueryDocumentSnapshot, type Query, type QuerySnapshot } from 'firebase/firestore';
 import { getDb } from '../shared/firebase';
+import { demoActive, demoRows } from './demo';
 import { dayKey } from './api';
 
 /** A number of days, or every record since the first one. */
@@ -58,7 +59,9 @@ export const referrerLabel = (r?: string) => {
 
 type Row = Record<string, unknown>;
 export async function fetchRange(range: RangeDays): Promise<RangeData> {
-  const d = await getDb();
+  // Demo mode never touches Firebase: rows come from the generated sample data
+  const demoMode = demoActive();
+  const d = demoMode ? null : await getDb();
   const all = range === 'all';
   const since = all ? Timestamp.fromMillis(0) : Timestamp.fromDate(startOfDay(range * 2 - 1));
   const failed: string[] = [];
@@ -71,8 +74,8 @@ export async function fetchRange(range: RangeDays): Promise<RangeData> {
     let last: QueryDocumentSnapshot | null = null;
     for (let i = 0; i < 20; i++) {
       const q: Query = last
-        ? query(collection(d, name), where(field, '>=', since), orderBy(field), startAfter(last), limit(PAGE))
-        : query(collection(d, name), where(field, '>=', since), orderBy(field), limit(PAGE));
+        ? query(collection(d!, name), where(field, '>=', since), orderBy(field), startAfter(last), limit(PAGE))
+        : query(collection(d!, name), where(field, '>=', since), orderBy(field), limit(PAGE));
       const snap: QuerySnapshot = await getDocs(q);
       snap.docs.forEach((x) => out.push({ _id: x.id, ...x.data() }));
       if (snap.size < PAGE) break;
@@ -84,7 +87,7 @@ export async function fetchRange(range: RangeDays): Promise<RangeData> {
   // those rows are read too and renamed, so totals go back to the very first visit.
   const OPTIONAL = new Set(['analytics', 'visitors~old', 'projectLikes~old', 'projectViews~old']);
   const get = (name: string, field: string) =>
-    pages(name.replace('~old', ''), field)
+    (demoMode ? Promise.resolve(demoRows(name, field, since.toMillis())) : pages(name.replace('~old', ''), field))
       .catch((e: { code?: string }) => {
         failed.push(name);
         if (!OPTIONAL.has(name)) reasons.add(e?.code ?? 'unknown');
