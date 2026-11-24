@@ -392,12 +392,21 @@ export function initToTop({ reduced }) {
     window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
     document.getElementById('main').focus({ preventScroll: true });
   });
+  // Page height is read on resize / content changes, never inside the scroll frame
+  // (reading it there can force a synchronous layout on every frame).
+  let max = 1;
+  const measure = () => { max = document.documentElement.scrollHeight - window.innerHeight; };
+  measure();
+  window.addEventListener('resize', measure, { passive: true });
+  if ('ResizeObserver' in window) new ResizeObserver(measure).observe(document.body);
+  let lastOffset = '', lastVisible = null;
   return {
     update(y) {
-      const max = document.documentElement.scrollHeight - window.innerHeight;
       const p = max > 0 ? clamp(y / max, 0, 1) : 0;
-      ring.style.strokeDashoffset = (C * (1 - p)).toFixed(2);
-      btn.classList.toggle('is-visible', y > 500);
+      const off = (C * (1 - p)).toFixed(1);
+      if (off !== lastOffset) { lastOffset = off; ring.style.strokeDashoffset = off; }
+      const vis = y > 500;
+      if (vis !== lastVisible) { lastVisible = vis; btn.classList.toggle('is-visible', vis); }
     },
   };
 }

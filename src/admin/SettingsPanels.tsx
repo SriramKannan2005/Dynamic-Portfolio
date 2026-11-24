@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Icon } from '../shared/Icon';
 import { getAuthInstance, useEmulators } from '../shared/firebase';
+import { demoActive } from './demo';
 import { blockSender, callFunction, fetchAudit, fetchBackup, fetchBlocked, logAction, unblockSender, type Blocked } from './api';
 import { useToast } from './feedback';
 import { download, stamp } from './Export';
@@ -87,6 +88,18 @@ export function StatusPanel() {
     const out: Check[] = [];
     const push = (c: Check) => { out.push(c); setChecks([...out]); };
     setChecks([]);
+    if (demoActive()) {
+      // Demo: nothing is checked against the real project
+      await new Promise((r) => setTimeout(r, 400));
+      push({ label: 'Demo mode', state: 'warn', detail: 'Sample data in this browser tab only; nothing is saved or sent' });
+      push({ label: 'Admin claim', state: 'ok', detail: 'Guest (demo)' });
+      push({ label: 'Functions', state: 'ok', detail: 'Simulated in the browser' });
+      push({ label: 'AI drafts (Gemini)', state: 'ok', detail: 'Sample drafts (no API calls)' });
+      push({ label: 'Send email', state: 'ok', detail: 'Simulated: no email is sent' });
+      push({ label: 'Sheets sync', state: 'ok', detail: 'Simulated: no rows are written' });
+      setBusy(false);
+      return;
+    }
     try {
       const u = (await getAuthInstance()).currentUser;
       const admin = (await u?.getIdTokenResult())?.claims.admin === true;

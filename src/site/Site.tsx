@@ -26,19 +26,24 @@ const webglAvailable = () => {
   if (/[?&]nowebgl\b/.test(location.search)) return false;
   try { const c = document.createElement('canvas'); return !!(window.WebGLRenderingContext && (c.getContext('webgl2') || c.getContext('webgl'))); } catch { return false; }
 };
-/** Resolves on the first scroll / tap / key press, or after `ms` (whichever comes first). */
-const whenEngaged = (ms: number) => new Promise<void>((resolve) => {
-  const events = ['pointerdown', 'keydown', 'scroll', 'touchstart', 'wheel'] as const;
-  let done = false;
-  const go = () => {
-    if (done) return;
-    done = true;
-    events.forEach((e) => window.removeEventListener(e, go));
-    clearTimeout(timer);
-    resolve();
+/**
+ * Resolves after minMs, once the page has also been still for quietMs (no scrolling
+ * or touch). Heavy one-off work (building the 3D scene) then never lands mid-scroll.
+ */
+const whenQuiet = (minMs: number, quietMs = 600) => new Promise<void>((resolve) => {
+  const events = ['scroll', 'wheel', 'touchmove', 'pointerdown'] as const;
+  let last = performance.now();
+  const bump = () => { last = performance.now(); };
+  events.forEach((e) => window.addEventListener(e, bump, { passive: true }));
+  const start = performance.now();
+  const check = () => {
+    const now = performance.now();
+    if (now - start >= minMs && now - last >= quietMs) {
+      events.forEach((e) => window.removeEventListener(e, bump));
+      resolve();
+    } else setTimeout(check, 200);
   };
-  const timer = setTimeout(go, ms);
-  events.forEach((e) => window.addEventListener(e, go, { passive: true }));
+  setTimeout(check, Math.min(minMs, 200));
 });
 const idle = (fn: () => void) => ('requestIdleCallback' in window ? requestIdleCallback(fn, { timeout: 700 }) : setTimeout(fn, 120));
 
@@ -133,10 +138,10 @@ export default function Site() {
     timelineRef.current = initTimeline();
 
     // Desktop: the scene module downloads now and is built after the loader reveals the hero.
-    // Phones / low-power devices: download and build it on the first scroll or tap (or after 4s),
-    // so the hero text paints and becomes interactive first.
+    // Phones / low-power devices: download and build it a few seconds in, once the page is still,
+    // so the hero text paints first and the build never stutters an in-progress scroll.
     const low = lowPower();
-    const sceneMod = webglAvailable() ? (low ? whenEngaged(4000).then(() => import('./lib/scene.js')) : import('./lib/scene.js')) : null;
+    const sceneMod = webglAvailable() ? (low ? whenQuiet(3000).then(() => import('./lib/scene.js')) : import('./lib/scene.js')) : null;
     if (!sceneMod) html.classList.add('no-webgl');
     loader.onExit(() => {
       document.body.classList.add('hero-in');
@@ -160,8 +165,16 @@ export default function Site() {
       }), low ? 1500 : 300);
     });
 
+    // Scrolling out of the hero, its text recedes into the screen (lagging the page a
+    // little, shrinking back in depth, fading). Only transform + opacity on one element,
+    // only while the hero is visible and only when the value changes: compositor-only,
+    // no blur and no inherited CSS variables (those made this stretch lag before).
     const heroEl = document.getElementById('hero') as HTMLElement;
     const heroInner = document.querySelector('.hero-inner') as HTMLElement;
+    let heroH = 1;
+    let lastHp = -1;
+    const measureHero = () => { heroH = Math.max(1, heroEl.offsetHeight); };
+    measureHero();
     let ticking = false;
     const onScroll = () => {
       if (ticking) return;
@@ -170,8 +183,12 @@ export default function Site() {
         ticking = false;
         const y = window.scrollY;
         if (!reduced) {
-          const range = Math.max(1, heroEl.offsetHeight - window.innerHeight);
-          heroInner.style.setProperty('--hp', Math.min(1, Math.max(0, y / range)).toFixed(4));
+          const hp = Math.round(Math.min(1, Math.max(0, y / heroH)) * 500) / 500;
+          if (hp !== lastHp) {
+            lastHp = hp;
+            heroInner.style.transform = hp ? `translate3d(0, ${(y * 0.35).toFixed(1)}px, ${(-460 * hp).toFixed(1)}px)` : '';
+            heroInner.style.opacity = hp ? String(Math.max(0, 1 - hp * 1.3).toFixed(3)) : '';
+          }
         }
         nav.update(y);
         toTop.update(y);
@@ -179,7 +196,8 @@ export default function Site() {
       });
     };
     window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll, { passive: true });
+    const onResize = () => { measureHero(); onScroll(); };
+    window.addEventListener('resize', onResize, { passive: true });
     onScroll();
 
     // Hidden admin shortcuts (same as the previous site):
@@ -203,7 +221,7 @@ export default function Site() {
     (window as unknown as Record<string, unknown>).__skReady = true;
     return () => {
       window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
+      window.removeEventListener('resize', onResize);
       logo?.removeEventListener('click', onLogoClick);
       document.removeEventListener('keydown', onKey);
       document.removeEventListener('pointermove', onSpot);
